@@ -4,9 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import ImageCarousel from "@/components/ImageCarousel";
+import ChatBox from "@/components/ChatBox";
+import ReviewsList from "@/components/ReviewsList";
+import AddReview from "@/components/AddReview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, 
   Gauge, 
@@ -20,13 +24,17 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useConversation } from "@/hooks/useConversation";
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [reviewsKey, setReviewsKey] = useState(0);
   const { isFavorite, toggleFavorite } = useFavorites(id);
+  const { conversationId, loading: convLoading } = useConversation(id || "", listing?.seller_id || "");
 
   useEffect(() => {
     fetchListing();
@@ -53,6 +61,23 @@ const ListingDetail = () => {
 
   const handleFavorite = () => {
     toggleFavorite();
+  };
+
+  const handleContactSeller = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("Vous devez être connecté");
+      navigate("/auth");
+      return;
+    }
+
+    if (listing?.seller_id === user.id) {
+      toast.error("Vous ne pouvez pas vous contacter vous-même");
+      return;
+    }
+
+    setChatOpen(true);
   };
 
   const handleShare = () => {
@@ -211,19 +236,49 @@ const ListingDetail = () => {
 
         <Separator className="my-6" />
 
-        {/* Contact Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button size="lg" className="w-full">
-            <MessageCircle className="h-5 w-5 mr-2" />
-            Contacter le vendeur
-          </Button>
-          <Button size="lg" variant="outline" className="w-full">
-            Demander un essai
-          </Button>
-        </div>
+        {/* Tabs for Reviews and Contact */}
+        <Tabs defaultValue="contact" className="mb-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="contact">Contact</TabsTrigger>
+            <TabsTrigger value="reviews">Avis</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="contact" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
+                size="lg" 
+                className="w-full"
+                onClick={handleContactSeller}
+                disabled={convLoading}
+              >
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Contacter le vendeur
+              </Button>
+              <Button size="lg" variant="outline" className="w-full">
+                Demander un essai
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-6">
+            <AddReview 
+              listingId={id!} 
+              onReviewAdded={() => setReviewsKey(prev => prev + 1)}
+            />
+            <ReviewsList key={reviewsKey} sellerId={listing.seller_id} />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <BottomNav />
+      
+      {/* Chat Box */}
+      {chatOpen && conversationId && (
+        <ChatBox 
+          conversationId={conversationId} 
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </div>
   );
 };

@@ -3,66 +3,89 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import ChatBox from "@/components/ChatBox";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Search } from "lucide-react";
+import { MessageCircle, User as UserIcon } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+
+interface Conversation {
+  id: string;
+  participant1_id: string;
+  participant2_id: string;
+  listing_id: string;
+  updated_at: string;
+  sale_listings: {
+    brand: string;
+    model: string;
+    images: any;
+  };
+}
 
 const Messages = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error("Vous devez être connecté pour accéder aux messages");
-        navigate("/auth");
-        return;
+    checkAuthAndFetchConversations();
+  }, []);
+
+  const checkAuthAndFetchConversations = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("Vous devez être connecté");
+      navigate("/auth");
+      return;
+    }
+
+    fetchConversations(user.id);
+  };
+
+  const fetchConversations = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("conversations")
+        .select(`
+          *,
+          sale_listings (
+            brand,
+            model,
+            images
+          )
+        `)
+        .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
+        .order("updated_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching conversations:", error);
+        toast.error("Erreur lors du chargement des conversations");
+      } else {
+        setConversations(data || []);
       }
-
-      setUser(user);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Une erreur est survenue");
+    } finally {
       setLoading(false);
-    };
-
-    checkAuth();
-  }, [navigate]);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-20">
         <TopBar />
-        <div className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-6">
           <p className="text-center text-muted-foreground">Chargement...</p>
-        </div>
+        </main>
         <BottomNav />
       </div>
     );
   }
-
-  // Mock conversations for now
-  const conversations = [
-    {
-      id: "1",
-      name: "Jean Dupont",
-      avatar: "",
-      lastMessage: "Bonjour, est-ce que le véhicule est toujours disponible ?",
-      time: "Il y a 5 min",
-      unread: 2,
-    },
-    {
-      id: "2",
-      name: "Marie Martin",
-      avatar: "",
-      lastMessage: "Merci pour les informations !",
-      time: "Il y a 1h",
-      unread: 0,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -72,79 +95,74 @@ const Messages = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Messages</h1>
           <p className="text-muted-foreground">
-            Communiquez avec les acheteurs et vendeurs
+            Gérez vos conversations avec les acheteurs et vendeurs
           </p>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher une conversation..."
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Conversations List */}
-        <div className="space-y-3">
-          {conversations.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground mb-4">
+        {conversations.length === 0 ? (
+          <Card className="shadow-card">
+            <CardContent className="pt-6">
+              <div className="text-center py-12">
+                <MessageCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
                   Aucune conversation pour le moment
                 </p>
-                <Button variant="outline" onClick={() => navigate("/listings")}>
-                  Découvrir des véhicules
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            conversations.map((conv) => (
-              <Card
-                key={conv.id}
-                className="cursor-pointer hover:shadow-card transition-shadow"
-                onClick={() => toast.info("Fonctionnalité de messagerie en développement")}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={conv.avatar} />
-                      <AvatarFallback>
-                        {conv.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Vos conversations avec les vendeurs apparaîtront ici
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {conversations.map((conv) => {
+              const listing = conv.sale_listings;
+              const image = Array.isArray(listing?.images) && listing.images.length > 0 
+                ? listing.images[0] 
+                : null;
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold truncate">{conv.name}</h3>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                          {conv.time}
-                        </span>
+              return (
+                <Card
+                  key={conv.id}
+                  className="shadow-card cursor-pointer hover:shadow-elevated transition-smooth"
+                  onClick={() => setSelectedConversation(conv.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        {image ? (
+                          <img src={image} alt={`${listing.brand} ${listing.model}`} className="object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            <UserIcon className="h-6 w-6" />
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">
+                          {listing?.brand} {listing?.model}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(conv.updated_at), "dd MMM yyyy à HH:mm", { locale: fr })}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {conv.lastMessage}
-                      </p>
                     </div>
-
-                    {conv.unread > 0 && (
-                      <div className="bg-primary text-primary-foreground rounded-full h-6 w-6 flex items-center justify-center text-xs font-medium">
-                        {conv.unread}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </main>
 
       <BottomNav />
+
+      {selectedConversation && (
+        <ChatBox 
+          conversationId={selectedConversation}
+          onClose={() => setSelectedConversation(null)}
+        />
+      )}
     </div>
   );
 };
