@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
+import ImageCarousel from "@/components/ImageCarousel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -18,13 +19,14 @@ import {
   MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites(id);
 
   useEffect(() => {
     fetchListing();
@@ -50,8 +52,7 @@ const ListingDetail = () => {
   };
 
   const handleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? "Retiré des favoris" : "Ajouté aux favoris");
+    toggleFavorite();
   };
 
   const handleShare = () => {
@@ -106,17 +107,10 @@ const ListingDetail = () => {
 
         {/* Image Gallery */}
         <div className="mb-6">
-          {images.length > 0 ? (
-            <img
-              src={images[0]}
-              alt={`${listing.brand} ${listing.model}`}
-              className="w-full h-[400px] object-cover rounded-lg shadow-card"
-            />
-          ) : (
-            <div className="w-full h-[400px] bg-gradient-card rounded-lg flex items-center justify-center">
-              <span className="text-muted-foreground">Image non disponible</span>
-            </div>
-          )}
+          <ImageCarousel 
+            images={images} 
+            alt={`${listing.brand} ${listing.model}`}
+          />
         </div>
 
         {/* Title and Actions */}

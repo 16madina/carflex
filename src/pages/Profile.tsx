@@ -114,8 +114,11 @@ const Profile = () => {
               </div>
 
               <div className="pt-4 space-y-3">
-                <Button variant="outline" className="w-full" disabled>
+                <Button variant="outline" className="w-full" onClick={() => navigate("/profile/edit")}>
                   Modifier le profil
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => navigate("/favorites")}>
+                  Mes favoris
                 </Button>
                 <Button variant="destructive" className="w-full" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
