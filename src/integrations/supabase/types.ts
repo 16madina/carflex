@@ -275,7 +275,7 @@ export type Database = {
           previous_owners: number | null
           price: number
           seats: number | null
-          seller_id: string
+          seller_id: string | null
           transmission: Database["public"]["Enums"]["transmission_type"]
           updated_at: string
           year: number
@@ -309,7 +309,7 @@ export type Database = {
           previous_owners?: number | null
           price: number
           seats?: number | null
-          seller_id: string
+          seller_id?: string | null
           transmission: Database["public"]["Enums"]["transmission_type"]
           updated_at?: string
           year: number
@@ -343,7 +343,7 @@ export type Database = {
           previous_owners?: number | null
           price?: number
           seats?: number | null
-          seller_id?: string
+          seller_id?: string | null
           transmission?: Database["public"]["Enums"]["transmission_type"]
           updated_at?: string
           year?: number
