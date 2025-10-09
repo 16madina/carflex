@@ -5,6 +5,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import CarCard from "@/components/CarCard";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 const Favorites = () => {
@@ -77,6 +78,15 @@ const Favorites = () => {
       <TopBar />
 
       <main className="container mx-auto px-4 py-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Mes Favoris</h1>
           <p className="text-muted-foreground">

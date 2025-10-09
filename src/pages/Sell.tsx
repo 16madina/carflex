@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Upload, X, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Sell = () => {
@@ -185,6 +185,15 @@ const Sell = () => {
       <TopBar />
 
       <main className="container mx-auto px-4 py-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+
         <Card className="max-w-2xl mx-auto shadow-elevated">
           <CardHeader>
             <CardTitle className="text-3xl">Poster une annonce</CardTitle>
