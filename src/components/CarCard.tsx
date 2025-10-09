@@ -17,6 +17,7 @@ interface CarCardProps {
   transmission: string;
   isFavorite?: boolean;
   onFavoriteToggle?: () => void;
+  isRental?: boolean;
 }
 
 const CarCard = ({
@@ -31,6 +32,7 @@ const CarCard = ({
   transmission,
   isFavorite = false,
   onFavoriteToggle,
+  isRental = false,
 }: CarCardProps) => {
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
@@ -93,9 +95,14 @@ const CarCard = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-accent">
-            {formatPrice(price)}
-          </span>
+          <div>
+            <span className="text-2xl font-bold text-accent">
+              {formatPrice(price)}
+            </span>
+            {isRental && (
+              <span className="text-sm text-muted-foreground ml-1">/jour</span>
+            )}
+          </div>
           <Button 
             variant="default"
             onClick={(e) => {

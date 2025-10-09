@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Listings = () => {
+  const [listingType, setListingType] = useState<"sale" | "rental">("sale");
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,15 +35,19 @@ const Listings = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [sortBy]);
+  }, [sortBy, listingType]);
 
   const fetchListings = async () => {
     setLoading(true);
     
+    const tableName = listingType === "sale" ? "sale_listings" : "rental_listings";
+    const priceField = listingType === "sale" ? "price" : "price_per_day";
+    const orderField = sortBy === "price" ? priceField : sortBy;
+    
     let query = supabase
-      .from("sale_listings")
+      .from(tableName)
       .select("*")
-      .order(sortBy, { ascending: sortBy === "price" });
+      .order(orderField, { ascending: sortBy === "price" || sortBy === "price_per_day" });
 
     const { data, error } = await query;
 
@@ -61,9 +67,10 @@ const Listings = () => {
       listing.model.toLowerCase().includes(searchLower) ||
       listing.city.toLowerCase().includes(searchLower);
 
+    const priceValue = listingType === "sale" ? listing.price : listing.price_per_day;
     const matchesPrice = 
-      (!filters.priceMin || listing.price >= parseInt(filters.priceMin)) &&
-      (!filters.priceMax || listing.price <= parseInt(filters.priceMax));
+      (!filters.priceMin || priceValue >= parseInt(filters.priceMin)) &&
+      (!filters.priceMax || priceValue <= parseInt(filters.priceMax));
 
     const matchesMileage = 
       (!filters.mileageMin || listing.mileage >= parseInt(filters.mileageMin)) &&
@@ -107,12 +114,23 @@ const Listings = () => {
       <TopBar />
 
       <main className="container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Acheter un véhicule</h1>
-          <p className="text-muted-foreground">
-            Découvrez notre sélection de véhicules à vendre
-          </p>
-        </div>
+        <Tabs value={listingType} onValueChange={(value) => setListingType(value as "sale" | "rental")} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+            <TabsTrigger value="sale">Acheter</TabsTrigger>
+            <TabsTrigger value="rental">Louer</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={listingType} className="mt-0">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold mb-2">
+                {listingType === "sale" ? "Acheter un véhicule" : "Louer un véhicule"}
+              </h1>
+              <p className="text-muted-foreground">
+                {listingType === "sale" 
+                  ? "Découvrez notre sélection de véhicules à vendre"
+                  : "Découvrez notre sélection de véhicules à louer"}
+              </p>
+            </div>
 
         {/* Search and Filters */}
         <div className="flex gap-3 mb-6">
@@ -169,7 +187,7 @@ const Listings = () => {
 
                 {/* Price Range */}
                 <div className="space-y-2">
-                  <Label>Prix (€)</Label>
+                  <Label>{listingType === "sale" ? "Prix" : "Prix par jour"}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <Input
                       type="number"
@@ -300,15 +318,18 @@ const Listings = () => {
                 brand={listing.brand}
                 model={listing.model}
                 year={listing.year}
-                price={listing.price}
+                price={listingType === "sale" ? listing.price : listing.price_per_day}
                 mileage={listing.mileage}
                 city={listing.city}
                 transmission={listing.transmission === "automatic" ? "Automatique" : "Manuelle"}
                 image={Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : undefined}
+                isRental={listingType === "rental"}
               />
             ))}
           </div>
         )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <BottomNav />
