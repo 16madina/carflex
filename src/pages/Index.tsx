@@ -1,51 +1,44 @@
-import Navbar from "@/components/Navbar";
+import TopBar from "@/components/TopBar";
+import BottomNav from "@/components/BottomNav";
 import Hero from "@/components/Hero";
 import CarCard from "@/components/CarCard";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  // Mock featured cars
-  const featuredCars = [
-    {
-      id: "1",
-      brand: "BMW",
-      model: "Série 3",
-      year: 2022,
-      price: 42900,
-      mileage: 15000,
-      city: "Paris",
-      transmission: "Automatique",
-      image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop",
-    },
-    {
-      id: "2",
-      brand: "Mercedes",
-      model: "Classe A",
-      year: 2023,
-      price: 38500,
-      mileage: 8000,
-      city: "Lyon",
-      transmission: "Automatique",
-      image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop",
-    },
-    {
-      id: "3",
-      brand: "Audi",
-      model: "A4",
-      year: 2021,
-      price: 35000,
-      mileage: 25000,
-      city: "Marseille",
-      transmission: "Automatique",
-      image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop",
-    },
-  ];
+  const [featuredCars, setFeaturedCars] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchFeaturedCars = async () => {
+      const { data } = await supabase
+        .from("sale_listings")
+        .select("*")
+        .eq("is_featured", true)
+        .limit(3);
+
+      if (data && data.length > 0) {
+        setFeaturedCars(data);
+      } else {
+        // Fallback to latest cars if no featured cars
+        const { data: latestData } = await supabase
+          .from("sale_listings")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(3);
+
+        setFeaturedCars(latestData || []);
+      }
+    };
+
+    fetchFeaturedCars();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div className="min-h-screen bg-background pb-20">
+      <TopBar />
       <Hero />
 
       {/* Featured Cars Section */}
@@ -67,7 +60,18 @@ const Index = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredCars.map((car) => (
-            <CarCard key={car.id} {...car} />
+            <CarCard
+              key={car.id}
+              id={car.id}
+              brand={car.brand}
+              model={car.model}
+              year={car.year}
+              price={car.price}
+              mileage={car.mileage}
+              city={car.city}
+              transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
+              image={Array.isArray(car.images) && car.images.length > 0 ? car.images[0] : undefined}
+            />
           ))}
         </div>
       </section>
@@ -127,6 +131,8 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      <BottomNav />
     </div>
   );
 };
