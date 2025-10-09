@@ -2,6 +2,7 @@ import { Heart, MapPin, Calendar, Gauge } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface CarCardProps {
   id: string;
@@ -18,6 +19,7 @@ interface CarCardProps {
 }
 
 const CarCard = ({
+  id,
   brand,
   model,
   year,
@@ -29,8 +31,17 @@ const CarCard = ({
   isFavorite = false,
   onFavoriteToggle,
 }: CarCardProps) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/listing/${id}`);
+  };
+
   return (
-    <Card className="group overflow-hidden hover:shadow-elevated transition-all duration-300">
+    <Card 
+      className="group overflow-hidden hover:shadow-elevated transition-all duration-300 cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="relative h-48 overflow-hidden">
         {image ? (
           <img
@@ -83,7 +94,15 @@ const CarCard = ({
           <span className="text-2xl font-bold text-accent">
             {price.toLocaleString()} €
           </span>
-          <Button variant="default">Voir détails</Button>
+          <Button 
+            variant="default"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCardClick();
+            }}
+          >
+            Voir détails
+          </Button>
         </div>
       </CardContent>
     </Card>

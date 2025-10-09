@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Listings from "./pages/Listings";
+import ListingDetail from "./pages/ListingDetail";
 import Sell from "./pages/Sell";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/listings" element={<Listings />} />
+          <Route path="/listing/:id" element={<ListingDetail />} />
           <Route path="/sell" element={<Sell />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
