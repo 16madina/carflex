@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Car } from "lucide-react";
 import NotificationBell from "./NotificationBell";
+import CountrySelector from "./CountrySelector";
 
 const TopBar = () => {
 
@@ -17,6 +18,7 @@ const TopBar = () => {
           </Link>
 
           <div className="flex items-center gap-2">
+            <CountrySelector />
             <NotificationBell />
           </div>
         </div>

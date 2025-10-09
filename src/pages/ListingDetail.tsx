@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useConversation } from "@/hooks/useConversation";
+import { useCountry } from "@/contexts/CountryContext";
 
 const ListingDetail = () => {
   const { id } = useParams();
@@ -35,6 +36,7 @@ const ListingDetail = () => {
   const [reviewsKey, setReviewsKey] = useState(0);
   const { isFavorite, toggleFavorite } = useFavorites(id);
   const { conversationId, loading: convLoading } = useConversation(id || "", listing?.seller_id || "");
+  const { formatPrice } = useCountry();
 
   useEffect(() => {
     fetchListing();
@@ -171,7 +173,7 @@ const ListingDetail = () => {
         <div className="bg-gradient-card rounded-lg p-6 mb-6">
           <p className="text-sm text-muted-foreground mb-1">Prix</p>
           <p className="text-4xl font-bold text-accent">
-            {listing.price.toLocaleString()} €
+            {formatPrice(listing.price)}
           </p>
         </div>
 

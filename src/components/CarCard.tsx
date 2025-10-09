@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { useCountry } from "@/contexts/CountryContext";
 
 interface CarCardProps {
   id: string;
@@ -32,6 +33,7 @@ const CarCard = ({
   onFavoriteToggle,
 }: CarCardProps) => {
   const navigate = useNavigate();
+  const { formatPrice } = useCountry();
 
   const handleCardClick = () => {
     navigate(`/listing/${id}`);
@@ -92,7 +94,7 @@ const CarCard = ({
 
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold text-accent">
-            {price.toLocaleString()} €
+            {formatPrice(price)}
           </span>
           <Button 
             variant="default"

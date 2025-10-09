@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useCountry } from "@/contexts/CountryContext";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { toast } from "sonner";
 
 const Sell = () => {
   const navigate = useNavigate();
+  const { selectedCountry, convertPrice, formatPrice } = useCountry();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
@@ -145,6 +147,9 @@ const Sell = () => {
       // Upload images
       const imageUrls = await uploadImages();
 
+      // Convert price from selected currency to base XOF
+      const priceInXOF = convertPrice(parseFloat(formData.price), selectedCountry.currency);
+
       // Insert listing
       const { error } = await supabase
         .from("sale_listings")
@@ -154,7 +159,7 @@ const Sell = () => {
           model: formData.model,
           year: formData.year,
           mileage: parseInt(formData.mileage),
-          price: parseFloat(formData.price),
+          price: priceInXOF, // Store in base currency (XOF)
           transmission: formData.transmission as "automatic" | "manual",
           fuel_type: formData.fuel_type as "petrol" | "diesel" | "electric" | "hybrid",
           condition: formData.condition as "new" | "used" | "certified",
@@ -265,7 +270,7 @@ const Sell = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Prix (€) *</Label>
+                  <Label htmlFor="price">Prix ({selectedCountry.currencySymbol}) *</Label>
                   <Input
                     id="price"
                     type="number"
@@ -274,6 +279,9 @@ const Sell = () => {
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     required
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Les prix sont enregistrés en CFA et convertis automatiquement
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
