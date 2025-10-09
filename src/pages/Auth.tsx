@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Car } from "lucide-react";
+import { Car, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
+import { WEST_AFRICAN_COUNTRIES } from "@/contexts/CountryContext";
+import CitySelector from "@/components/CitySelector";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -22,11 +25,25 @@ const Auth = () => {
     firstName: "",
     lastName: "",
     phone: "",
-    country: "",
+    country: WEST_AFRICAN_COUNTRIES[0].code,
     city: "",
     userType: "buyer" as "buyer" | "seller" | "agent" | "dealer",
     companyName: "",
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +71,30 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      let avatarUrl = "";
+
+      // Upload avatar if selected
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, avatarFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        avatarUrl = publicUrl;
+      }
+
+      // Get the selected country name
+      const selectedCountry = WEST_AFRICAN_COUNTRIES.find(c => c.code === signupData.country);
+
       const { error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
@@ -63,10 +104,11 @@ const Auth = () => {
             first_name: signupData.firstName,
             last_name: signupData.lastName,
             phone: signupData.phone,
-            country: signupData.country,
+            country: selectedCountry?.name || signupData.country,
             city: signupData.city,
             user_type: signupData.userType,
             company_name: signupData.companyName,
+            avatar_url: avatarUrl,
           },
         },
       });
@@ -138,9 +180,38 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
+                  {/* Profile Picture Upload */}
+                  <div className="space-y-2">
+                    <Label htmlFor="avatar">Photo de profil <span className="text-destructive">*</span></Label>
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-20 w-20">
+                        {avatarPreview ? (
+                          <AvatarImage src={avatarPreview} alt="Avatar preview" />
+                        ) : (
+                          <AvatarFallback className="bg-muted">
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="flex-1">
+                        <Input
+                          id="avatar"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarChange}
+                          required
+                          className="cursor-pointer"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JPG, PNG ou WEBP (max. 5MB)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-firstname">Prénom</Label>
+                      <Label htmlFor="signup-firstname">Prénom <span className="text-destructive">*</span></Label>
                       <Input
                         id="signup-firstname"
                         placeholder="Jean"
@@ -150,7 +221,7 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-lastname">Nom</Label>
+                      <Label htmlFor="signup-lastname">Nom <span className="text-destructive">*</span></Label>
                       <Input
                         id="signup-lastname"
                         placeholder="Dupont"
@@ -162,7 +233,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">Email <span className="text-destructive">*</span></Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -174,7 +245,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Mot de passe</Label>
+                    <Label htmlFor="signup-password">Mot de passe <span className="text-destructive">*</span></Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -186,42 +257,54 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-phone">Téléphone</Label>
+                    <Label htmlFor="signup-phone">Téléphone <span className="text-destructive">*</span></Label>
                     <Input
                       id="signup-phone"
                       type="tel"
-                      placeholder="+33 6 12 34 56 78"
+                      placeholder="+225 01 23 45 67 89"
                       value={signupData.phone}
                       onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                      required
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-country">Pays</Label>
-                      <Input
-                        id="signup-country"
-                        placeholder="France"
+                      <Label htmlFor="signup-country">Pays <span className="text-destructive">*</span></Label>
+                      <Select
                         value={signupData.country}
-                        onChange={(e) => setSignupData({ ...signupData, country: e.target.value })}
-                      />
+                        onValueChange={(value) => setSignupData({ ...signupData, country: value, city: "" })}
+                        required
+                      >
+                        <SelectTrigger id="signup-country">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {WEST_AFRICAN_COUNTRIES.map((country) => (
+                            <SelectItem key={country.code} value={country.code}>
+                              <span className="flex items-center gap-2">
+                                <span className="text-lg">{country.flag}</span>
+                                <span>{country.name}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-city">Ville</Label>
-                      <Input
-                        id="signup-city"
-                        placeholder="Paris"
-                        value={signupData.city}
-                        onChange={(e) => setSignupData({ ...signupData, city: e.target.value })}
-                      />
-                    </div>
+                    <CitySelector
+                      country={signupData.country}
+                      value={signupData.city}
+                      onChange={(city) => setSignupData({ ...signupData, city })}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-usertype">Type d'utilisateur</Label>
+                    <Label htmlFor="signup-usertype">Type d'utilisateur <span className="text-destructive">*</span></Label>
                     <Select
                       value={signupData.userType}
                       onValueChange={(value: any) => setSignupData({ ...signupData, userType: value })}
+                      required
                     >
                       <SelectTrigger id="signup-usertype">
                         <SelectValue />
@@ -237,12 +320,13 @@ const Auth = () => {
 
                   {(signupData.userType === "seller" || signupData.userType === "dealer") && (
                     <div className="space-y-2">
-                      <Label htmlFor="signup-company">Nom de l'entreprise</Label>
+                      <Label htmlFor="signup-company">Nom de l'entreprise <span className="text-destructive">*</span></Label>
                       <Input
                         id="signup-company"
                         placeholder="Mon Garage SARL"
                         value={signupData.companyName}
                         onChange={(e) => setSignupData({ ...signupData, companyName: e.target.value })}
+                        required
                       />
                     </div>
                   )}
