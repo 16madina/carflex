@@ -23,6 +23,12 @@ interface Conversation {
     model: string;
     images: any;
   };
+  messages: Array<{
+    content: string;
+    created_at: string;
+    sender_id: string;
+    is_read: boolean;
+  }>;
 }
 
 const Messages = () => {
@@ -30,6 +36,7 @@ const Messages = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuthAndFetchConversations();
@@ -44,6 +51,7 @@ const Messages = () => {
       return;
     }
 
+    setCurrentUserId(user.id);
     fetchConversations(user.id);
   };
 
@@ -57,6 +65,12 @@ const Messages = () => {
             brand,
             model,
             images
+          ),
+          messages (
+            content,
+            created_at,
+            sender_id,
+            is_read
           )
         `)
         .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
@@ -124,36 +138,55 @@ const Messages = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {conversations.map((conv) => {
               const listing = conv.sale_listings;
               const image = Array.isArray(listing?.images) && listing.images.length > 0 
                 ? listing.images[0] 
                 : null;
+              
+              const lastMessage = conv.messages?.[conv.messages.length - 1];
+              const hasUnreadMessages = conv.messages?.some(
+                msg => !msg.is_read && msg.sender_id !== currentUserId
+              );
 
               return (
                 <Card
                   key={conv.id}
-                  className="shadow-card cursor-pointer hover:shadow-elevated transition-smooth"
+                  className={`cursor-pointer hover:bg-accent/50 transition-smooth border-0 ${
+                    hasUnreadMessages ? 'bg-accent/20' : ''
+                  }`}
                   onClick={() => setSelectedConversation(conv.id)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        {image ? (
-                          <img src={image} alt={`${listing.brand} ${listing.model}`} className="object-cover" />
-                        ) : (
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            <UserIcon className="h-6 w-6" />
-                          </AvatarFallback>
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="relative">
+                        <Avatar className="h-14 w-14">
+                          {image ? (
+                            <img src={image} alt={`${listing.brand} ${listing.model}`} className="object-cover" />
+                          ) : (
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              <UserIcon className="h-7 w-7" />
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        {hasUnreadMessages && (
+                          <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full border-2 border-background" />
                         )}
-                      </Avatar>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">
-                          {listing?.brand} {listing?.model}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(conv.updated_at), "dd MMM yyyy à HH:mm", { locale: fr })}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className={`font-semibold truncate ${hasUnreadMessages ? 'text-foreground' : ''}`}>
+                            {listing?.brand} {listing?.model}
+                          </h3>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {lastMessage && format(new Date(lastMessage.created_at), "HH:mm", { locale: fr })}
+                          </span>
+                        </div>
+                        <p className={`text-sm truncate ${
+                          hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'
+                        }`}>
+                          {lastMessage?.content || "Nouvelle conversation"}
                         </p>
                       </div>
                     </div>
