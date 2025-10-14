@@ -55,8 +55,19 @@ const Index = () => {
       if (premiumData && premiumData.length > 0) {
         console.log("Premium data:", premiumData);
         const premiumListings = premiumData
-          .map((p: any) => p.sale_listings)
+          .map((p: any) => {
+            const saleListing = p.sale_listings;
+            // Extract profile data from nested structure
+            if (saleListing && saleListing.profiles) {
+              return {
+                ...saleListing,
+                profiles: saleListing.profiles
+              };
+            }
+            return saleListing;
+          })
           .filter((car: any) => car !== null);
+        console.log("Processed premium listings:", premiumListings);
         setPremiumCars(premiumListings);
       }
 
@@ -74,6 +85,7 @@ const Index = () => {
         .order("created_at", { ascending: false })
         .limit(6);
 
+      console.log("Latest cars with profiles:", latestData);
       setFeaturedCars(latestData || []);
 
       // Fetch rental cars
@@ -91,6 +103,7 @@ const Index = () => {
         .order("created_at", { ascending: false })
         .limit(6);
 
+      console.log("Rental cars with profiles:", rentalData);
       setRentalCars(rentalData || []);
     };
 
