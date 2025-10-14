@@ -21,6 +21,8 @@ interface PremiumCarCardProps {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   priceQuality?: "excellent" | "good" | "fair";
+  sellerName?: string;
+  sellerType?: string;
 }
 
 const PremiumCarCard = ({
@@ -38,6 +40,8 @@ const PremiumCarCard = ({
   isFavorite,
   onToggleFavorite,
   priceQuality = "good",
+  sellerName,
+  sellerType,
 }: PremiumCarCardProps) => {
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
@@ -92,6 +96,16 @@ const PremiumCarCard = ({
         <h3 className="font-semibold text-lg mb-2">
           {year} {brand} {model}
         </h3>
+        {sellerName && sellerType && (
+          <Badge variant="outline" className="text-xs mb-2">
+            {sellerName} • {
+              sellerType === 'dealer' ? 'Concessionnaire' :
+              sellerType === 'seller' ? 'Vendeur' :
+              sellerType === 'agent' ? 'Agent' :
+              'Propriétaire'
+            }
+          </Badge>
+        )}
         <p className="text-2xl font-bold text-primary mb-3">
           {formatPrice(price)}
         </p>

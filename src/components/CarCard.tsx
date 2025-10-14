@@ -21,6 +21,8 @@ interface CarCardProps {
   isFavorite?: boolean;
   onFavoriteToggle?: () => void;
   isRental?: boolean;
+  sellerName?: string;
+  sellerType?: string;
 }
 
 const CarCard = ({
@@ -37,6 +39,8 @@ const CarCard = ({
   isFavorite = false,
   onFavoriteToggle,
   isRental = false,
+  sellerName,
+  sellerType,
 }: CarCardProps) => {
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
@@ -87,7 +91,19 @@ const CarCard = ({
           <h3 className="font-bold text-lg mb-1">
             {brand} {model}
           </h3>
-          <Badge variant="secondary">{transmission}</Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="secondary">{transmission}</Badge>
+            {sellerName && sellerType && (
+              <Badge variant="outline" className="text-xs">
+                {sellerName} • {
+                  sellerType === 'dealer' ? 'Concessionnaire' :
+                  sellerType === 'seller' ? 'Vendeur' :
+                  sellerType === 'agent' ? 'Agent' :
+                  'Propriétaire'
+                }
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">

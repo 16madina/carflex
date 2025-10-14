@@ -33,7 +33,13 @@ const Index = () => {
             country,
             transmission,
             fuel_type,
-            images
+            images,
+            seller_id,
+            profiles!sale_listings_seller_id_fkey (
+              first_name,
+              last_name,
+              user_type
+            )
           )
         `)
         .eq("is_active", true)
@@ -57,7 +63,14 @@ const Index = () => {
       // Fetch latest cars (show all recent cars, not just featured)
       const { data: latestData } = await supabase
         .from("sale_listings")
-        .select("*")
+        .select(`
+          *,
+          profiles!sale_listings_seller_id_fkey (
+            first_name,
+            last_name,
+            user_type
+          )
+        `)
         .order("created_at", { ascending: false })
         .limit(6);
 
@@ -66,7 +79,14 @@ const Index = () => {
       // Fetch rental cars
       const { data: rentalData } = await supabase
         .from("rental_listings")
-        .select("*")
+        .select(`
+          *,
+          profiles!rental_listings_owner_id_fkey (
+            first_name,
+            last_name,
+            user_type
+          )
+        `)
         .eq("available", true)
         .order("created_at", { ascending: false })
         .limit(6);
@@ -114,6 +134,8 @@ const Index = () => {
                     fuel_type={car.fuel_type}
                     images={Array.isArray(car.images) ? car.images : []}
                     priceQuality="good"
+                    sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
+                    sellerType={car.profiles?.user_type}
                   />
                 </div>
               ))}
@@ -161,6 +183,8 @@ const Index = () => {
                   city={car.city}
                   transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
                   images={Array.isArray(car.images) ? car.images : []}
+                  sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
+                  sellerType={car.profiles?.user_type}
                 />
               ))}
             </div>
@@ -181,6 +205,8 @@ const Index = () => {
                   transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
                   images={Array.isArray(car.images) ? car.images : []}
                   isRental={true}
+                  sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
+                  sellerType={car.profiles?.user_type}
                 />
               ))}
             </div>
