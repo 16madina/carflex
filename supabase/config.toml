@@ -2,3 +2,6 @@ project_id = "dgmqdovojzzbdovgkawu"
 
 [functions.evaluate-vehicle]
 verify_jwt = false
+
+[functions.calculate-deal-rating]
+verify_jwt = false

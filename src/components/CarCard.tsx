@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
+import DealRatingBadge from "./DealRatingBadge";
 
 interface CarCardProps {
   id: string;
@@ -69,6 +70,9 @@ const CarCard = ({
         >
           <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
         </Button>
+        <div className="absolute bottom-3 left-3">
+          <DealRatingBadge listingId={id} listingType={isRental ? "rental" : "sale"} />
+        </div>
       </div>
 
       <CardContent className="p-5">

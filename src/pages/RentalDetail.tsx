@@ -8,6 +8,8 @@ import ChatBox from "@/components/ChatBox";
 import ReviewsList from "@/components/ReviewsList";
 import AddReview from "@/components/AddReview";
 import FinanceCalculator from "@/components/FinanceCalculator";
+import DealRatingBadge from "@/components/DealRatingBadge";
+import ReviewsSection from "@/components/ReviewsSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -143,10 +145,13 @@ const RentalDetail = () => {
 
         {/* Title and Actions */}
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
-              {listing.brand} {listing.model}
-            </h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold">
+                {listing.brand} {listing.model}
+              </h1>
+              <DealRatingBadge listingId={id!} listingType="rental" />
+            </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <MapPin className="h-4 w-4" />
               <span>{listing.city}, {listing.country}</span>
@@ -244,11 +249,23 @@ const RentalDetail = () => {
 
         <Separator className="my-6" />
 
-        {/* Tabs for Reviews and Contact */}
+        {/* Reviews Section */}
+        <ReviewsSection listingId={id!} sellerId={listing.owner_id} />
+
+        <Separator className="my-6" />
+
+        {/* Add Review */}
+        <AddReview 
+          listingId={id!} 
+          onReviewAdded={() => setReviewsKey(prev => prev + 1)}
+        />
+
+        <Separator className="my-6" />
+
+        {/* Tabs for Contact */}
         <Tabs defaultValue="contact" className="mb-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="contact">Contact</TabsTrigger>
-            <TabsTrigger value="reviews">Avis</TabsTrigger>
           </TabsList>
           
           <TabsContent value="contact" className="space-y-4">
@@ -266,14 +283,6 @@ const RentalDetail = () => {
                 Réserver maintenant
               </Button>
             </div>
-          </TabsContent>
-
-          <TabsContent value="reviews" className="space-y-6">
-            <AddReview 
-              listingId={id!} 
-              onReviewAdded={() => setReviewsKey(prev => prev + 1)}
-            />
-            <ReviewsList key={reviewsKey} sellerId={listing.owner_id} />
           </TabsContent>
         </Tabs>
       </main>
