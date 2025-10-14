@@ -289,6 +289,7 @@ export type Database = {
       rental_listings: {
         Row: {
           available: boolean | null
+          body_type: string | null
           brand: string
           city: string
           country: string
@@ -310,6 +311,7 @@ export type Database = {
         }
         Insert: {
           available?: boolean | null
+          body_type?: string | null
           brand: string
           city: string
           country: string
@@ -331,6 +333,7 @@ export type Database = {
         }
         Update: {
           available?: boolean | null
+          body_type?: string | null
           brand?: string
           city?: string
           country?: string

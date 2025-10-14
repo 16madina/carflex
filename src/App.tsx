@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
+import RentalDetail from "./pages/RentalDetail";
 import SellType from "./pages/SellType";
 import SellForm from "./pages/SellForm";
 import RentForm from "./pages/RentForm";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/listings" element={<Listings />} />
           <Route path="/listing/:id" element={<ListingDetail />} />
+          <Route path="/rental/:id" element={<RentalDetail />} />
           <Route path="/sell" element={<SellType />} />
           <Route path="/sell/vendre" element={<SellForm />} />
           <Route path="/sell/louer" element={<RentForm />} />

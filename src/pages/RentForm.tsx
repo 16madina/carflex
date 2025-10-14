@@ -183,6 +183,7 @@ const RentForm = () => {
           longitude: formData.longitude,
           images: imageUrls,
           features: formData.features,
+          body_type: formData.body_type || null,
         });
 
       if (error) throw error;

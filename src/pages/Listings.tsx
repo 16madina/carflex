@@ -11,6 +11,7 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BODY_TYPES } from "@/constants/vehicles";
 
 const Listings = () => {
   const [listingType, setListingType] = useState<"sale" | "rental">("sale");
@@ -30,7 +31,8 @@ const Listings = () => {
     fuelType: "all",
     transmission: "all",
     city: "",
-    country: ""
+    country: "",
+    bodyType: "all"
   });
 
   useEffect(() => {
@@ -84,9 +86,10 @@ const Listings = () => {
     const matchesTransmission = filters.transmission === "all" || listing.transmission === filters.transmission;
     const matchesCity = !filters.city || listing.city.toLowerCase().includes(filters.city.toLowerCase());
     const matchesCountry = !filters.country || listing.country.toLowerCase().includes(filters.country.toLowerCase());
+    const matchesBodyType = filters.bodyType === "all" || !listing.body_type || listing.body_type === filters.bodyType;
 
     return matchesSearch && matchesPrice && matchesMileage && matchesYear && 
-           matchesFuel && matchesTransmission && matchesCity && matchesCountry;
+           matchesFuel && matchesTransmission && matchesCity && matchesCountry && matchesBodyType;
   });
 
   const resetFilters = () => {
@@ -100,12 +103,13 @@ const Listings = () => {
       fuelType: "all",
       transmission: "all",
       city: "",
-      country: ""
+      country: "",
+      bodyType: "all"
     });
   };
 
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === "fuelType" || key === "transmission") return value !== "all";
+    if (key === "fuelType" || key === "transmission" || key === "bodyType") return value !== "all";
     return value !== "";
   }).length;
 
@@ -270,6 +274,24 @@ const Listings = () => {
                       <SelectItem value="all">Tous</SelectItem>
                       <SelectItem value="automatic">Automatique</SelectItem>
                       <SelectItem value="manual">Manuelle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Body Type */}
+                <div className="space-y-2">
+                  <Label>Type de carrosserie</Label>
+                  <Select value={filters.bodyType} onValueChange={(value) => setFilters(prev => ({ ...prev, bodyType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous</SelectItem>
+                      {BODY_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

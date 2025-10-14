@@ -38,7 +38,7 @@ const CarCard = ({
   const { formatPrice } = useCountry();
 
   const handleCardClick = () => {
-    navigate(`/listing/${id}`);
+    navigate(isRental ? `/rental/${id}` : `/listing/${id}`);
   };
 
   return (
