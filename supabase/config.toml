@@ -1,5 +1,8 @@
 project_id = "dgmqdovojzzbdovgkawu"
 
+[functions.payment-webhook]
+verify_jwt = false
+
 [functions.ai-price-evaluation]
 verify_jwt = false
 

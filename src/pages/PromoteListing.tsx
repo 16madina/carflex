@@ -103,44 +103,44 @@ const PromoteListing = () => {
 
     setSubmitting(true);
 
-    const pkg = packages.find(p => p.id === selectedPackage);
-    if (!pkg) return;
-
     const listing = userListings.find(l => l.id === selectedListing);
-    if (!listing) return;
-
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + pkg.duration_days);
-
-    const { error } = await supabase
-      .from("premium_listings")
-      .insert([{
-        listing_id: selectedListing,
-        listing_type: listing.type,
-        package_id: selectedPackage,
-        user_id: user.id,
-        end_date: endDate.toISOString(),
-      }]);
-
-    setSubmitting(false);
-
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de promouvoir l'annonce",
-        variant: "destructive",
-      });
-      console.error(error);
+    if (!listing) {
+      setSubmitting(false);
       return;
     }
 
-    toast({
-      title: "Annonce promue avec succès !",
-      description: "Votre annonce apparaît maintenant dans les annonces premium",
-    });
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('initiate-payment', {
+        body: {
+          package_id: selectedPackage,
+          listing_id: selectedListing,
+          listing_type: listing.type
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
 
-    setSelectedListing("");
-    setSelectedPackage("");
+      if (error) throw error;
+
+      if (data?.url) {
+        // Rediriger vers la page de paiement Fedapay
+        window.location.href = data.url;
+      } else {
+        throw new Error("URL de paiement non reçue");
+      }
+
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'initier le paiement",
+        variant: "destructive",
+      });
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
