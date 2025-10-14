@@ -41,15 +41,21 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
   }, [messages]);
 
   const initChat = async () => {
+    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.error("No user found");
+        setLoading(false);
+        return;
+      }
 
       setCurrentUserId(user.id);
       await fetchMessages();
       await markMessagesAsRead(user.id);
     } catch (error) {
       console.error("Error initializing chat:", error);
+      toast.error("Erreur lors du chargement du chat");
     } finally {
       setLoading(false);
     }
