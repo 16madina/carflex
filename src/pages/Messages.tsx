@@ -12,12 +12,21 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
+interface Profile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string;
+}
+
 interface Conversation {
   id: string;
   participant1_id: string;
   participant2_id: string;
   listing_id: string;
   updated_at: string;
+  participant1_profile?: Profile;
+  participant2_profile?: Profile;
   sale_listings: {
     brand: string;
     model: string;
@@ -79,9 +88,33 @@ const Messages = () => {
       if (error) {
         console.error("Error fetching conversations:", error);
         toast.error("Erreur lors du chargement des conversations");
-      } else {
-        setConversations(data || []);
+        setLoading(false);
+        return;
       }
+
+      // Récupérer les profils des participants
+      const participantIds = new Set<string>();
+      data?.forEach(conv => {
+        participantIds.add(conv.participant1_id);
+        participantIds.add(conv.participant2_id);
+      });
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url")
+        .in("id", Array.from(participantIds));
+
+      // Créer un map des profils
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Ajouter les profils aux conversations
+      const conversationsWithProfiles = data?.map(conv => ({
+        ...conv,
+        participant1_profile: profilesMap.get(conv.participant1_id),
+        participant2_profile: profilesMap.get(conv.participant2_id),
+      })) || [];
+
+      setConversations(conversationsWithProfiles as Conversation[]);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Une erreur est survenue");
@@ -140,15 +173,19 @@ const Messages = () => {
         ) : (
           <div className="space-y-2">
             {conversations.map((conv) => {
-              const listing = conv.sale_listings;
-              const image = Array.isArray(listing?.images) && listing.images.length > 0 
-                ? listing.images[0] 
-                : null;
+              // Détermine l'autre participant
+              const otherParticipant = conv.participant1_id === currentUserId 
+                ? conv.participant2_profile 
+                : conv.participant1_profile;
               
               const lastMessage = conv.messages?.[conv.messages.length - 1];
               const hasUnreadMessages = conv.messages?.some(
                 msg => !msg.is_read && msg.sender_id !== currentUserId
               );
+
+              const participantName = otherParticipant 
+                ? `${otherParticipant.first_name} ${otherParticipant.last_name}`
+                : "Utilisateur";
 
               return (
                 <Card
@@ -158,26 +195,23 @@ const Messages = () => {
                   }`}
                   onClick={() => setSelectedConversation(conv.id)}
                 >
-                  <CardContent className="p-3">
-                    <div className="flex items-start gap-3">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
                       <div className="relative">
                         <Avatar className="h-14 w-14">
-                          {image ? (
-                            <img src={image} alt={`${listing.brand} ${listing.model}`} className="object-cover" />
-                          ) : (
-                            <AvatarFallback className="bg-primary text-primary-foreground">
-                              <UserIcon className="h-7 w-7" />
-                            </AvatarFallback>
-                          )}
+                          <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            <UserIcon className="h-7 w-7" />
+                          </AvatarFallback>
                         </Avatar>
                         {hasUnreadMessages && (
-                          <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full border-2 border-background" />
+                          <div className="absolute -top-1 -right-1 h-3 w-3 bg-blue-500 rounded-full border-2 border-background" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start justify-between gap-2 mb-1">
                           <h3 className={`font-semibold truncate ${hasUnreadMessages ? 'text-foreground' : ''}`}>
-                            {listing?.brand} {listing?.model}
+                            {participantName}
                           </h3>
                           <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {lastMessage && format(new Date(lastMessage.created_at), "HH:mm", { locale: fr })}
@@ -186,6 +220,7 @@ const Messages = () => {
                         <p className={`text-sm truncate ${
                           hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'
                         }`}>
+                          {lastMessage?.sender_id === currentUserId && "Vous: "}
                           {lastMessage?.content || "Nouvelle conversation"}
                         </p>
                       </div>
