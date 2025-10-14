@@ -136,11 +136,14 @@ const AdminPanel = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Convert price from user's currency to XOF (base currency)
+    const priceInXOF = formData.price / selectedCountry.exchangeRate;
+
     const packageData = {
       name: formData.name,
       description: formData.description,
       duration_days: formData.duration_days,
-      price: formData.price,
+      price: priceInXOF,
       features: formData.features.split("\n").filter(f => f.trim()),
       is_active: true,
     };
@@ -236,11 +239,13 @@ const AdminPanel = () => {
   const handleEdit = (pkg: PremiumPackage) => {
     setEditingPackage(pkg);
     const featuresArray = Array.isArray(pkg.features) ? pkg.features : [];
+    // Convert price from XOF to user's currency for editing
+    const priceInUserCurrency = pkg.price * selectedCountry.exchangeRate;
     setFormData({
       name: pkg.name,
       description: pkg.description || "",
       duration_days: pkg.duration_days,
-      price: pkg.price,
+      price: priceInUserCurrency,
       features: featuresArray.join("\n"),
     });
   };
@@ -414,7 +419,7 @@ const AdminPanel = () => {
                     <CardContent>
                       <div className="space-y-2 text-sm">
                         <p><strong>Durée:</strong> {pkg.duration_days} jours</p>
-                        <p><strong>Prix:</strong> {formatPrice(convertPrice(pkg.price, 'MAD'))}</p>
+                        <p><strong>Prix:</strong> {formatPrice(pkg.price)}</p>
                         {Array.isArray(pkg.features) && pkg.features.length > 0 && (
                           <div>
                             <strong>Fonctionnalités:</strong>
@@ -458,7 +463,7 @@ const AdminPanel = () => {
                       <SelectContent>
                         {listings.map((listing) => (
                           <SelectItem key={listing.id} value={listing.id}>
-                            {listing.year} {listing.brand} {listing.model} - {formatPrice(convertPrice(listing.price, 'MAD'))}
+                            {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -477,7 +482,7 @@ const AdminPanel = () => {
                       <SelectContent>
                         {packages.filter(p => p.is_active).map((pkg) => (
                           <SelectItem key={pkg.id} value={pkg.id}>
-                            {pkg.name} - {pkg.duration_days} jours - {formatPrice(convertPrice(pkg.price, 'MAD'))}
+                            {pkg.name} - {pkg.duration_days} jours - {formatPrice(pkg.price)}
                           </SelectItem>
                         ))}
                       </SelectContent>

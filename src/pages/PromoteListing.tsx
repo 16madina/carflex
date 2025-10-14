@@ -31,7 +31,7 @@ interface UserListing {
 
 const PromoteListing = () => {
   const navigate = useNavigate();
-  const { formatPrice, convertPrice } = useCountry();
+  const { formatPrice } = useCountry();
   const [user, setUser] = useState<any>(null);
   const [packages, setPackages] = useState<PremiumPackage[]>([]);
   const [userListings, setUserListings] = useState<UserListing[]>([]);
@@ -200,7 +200,7 @@ const PromoteListing = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-3xl font-bold">{formatPrice(convertPrice(pkg.price, 'MAD'))}</p>
+                    <p className="text-3xl font-bold">{formatPrice(pkg.price)}</p>
                     <p className="text-sm text-muted-foreground">
                       pour {pkg.duration_days} jours
                     </p>
