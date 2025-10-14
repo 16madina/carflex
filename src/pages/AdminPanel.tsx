@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Crown, Zap } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCountry } from "@/contexts/CountryContext";
 
 interface PremiumPackage {
   id: string;
@@ -52,6 +53,7 @@ const AdminPanel = () => {
   });
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { formatPrice, convertPrice, selectedCountry } = useCountry();
 
   useEffect(() => {
     checkAdminStatus();
@@ -337,7 +339,7 @@ const AdminPanel = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="price">Prix (€)</Label>
+                        <Label htmlFor="price">Prix ({selectedCountry.currencySymbol})</Label>
                         <Input
                           id="price"
                           type="number"
@@ -412,7 +414,7 @@ const AdminPanel = () => {
                     <CardContent>
                       <div className="space-y-2 text-sm">
                         <p><strong>Durée:</strong> {pkg.duration_days} jours</p>
-                        <p><strong>Prix:</strong> {pkg.price}€</p>
+                        <p><strong>Prix:</strong> {formatPrice(convertPrice(pkg.price, 'MAD'))}</p>
                         {Array.isArray(pkg.features) && pkg.features.length > 0 && (
                           <div>
                             <strong>Fonctionnalités:</strong>
@@ -456,7 +458,7 @@ const AdminPanel = () => {
                       <SelectContent>
                         {listings.map((listing) => (
                           <SelectItem key={listing.id} value={listing.id}>
-                            {listing.year} {listing.brand} {listing.model} - {listing.price}€
+                            {listing.year} {listing.brand} {listing.model} - {formatPrice(convertPrice(listing.price, 'MAD'))}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -475,7 +477,7 @@ const AdminPanel = () => {
                       <SelectContent>
                         {packages.filter(p => p.is_active).map((pkg) => (
                           <SelectItem key={pkg.id} value={pkg.id}>
-                            {pkg.name} - {pkg.duration_days} jours - {pkg.price}€
+                            {pkg.name} - {pkg.duration_days} jours - {formatPrice(convertPrice(pkg.price, 'MAD'))}
                           </SelectItem>
                         ))}
                       </SelectContent>
