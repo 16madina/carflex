@@ -10,6 +10,7 @@ import ListingDetail from "./pages/ListingDetail";
 import SellType from "./pages/SellType";
 import SellForm from "./pages/SellForm";
 import RentForm from "./pages/RentForm";
+import VehicleEvaluation from "./pages/VehicleEvaluation";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/sell" element={<SellType />} />
           <Route path="/sell/vendre" element={<SellForm />} />
           <Route path="/sell/louer" element={<RentForm />} />
+          <Route path="/sell/evaluer" element={<VehicleEvaluation />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />

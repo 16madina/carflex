@@ -13,21 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-// Marques de véhicules populaires
-const CAR_BRANDS = [
-  "Toyota", "Mercedes-Benz", "BMW", "Audi", "Volkswagen", "Ford", "Honda", "Nissan",
-  "Hyundai", "Kia", "Mazda", "Peugeot", "Renault", "Citroën", "Fiat", "Jeep",
-  "Land Rover", "Range Rover", "Lexus", "Infiniti", "Acura", "Chevrolet", "Dodge",
-  "Subaru", "Mitsubishi", "Suzuki", "Isuzu", "Daihatsu", "Volvo", "Porsche",
-  "Ferrari", "Lamborghini", "Maserati", "Bentley", "Rolls-Royce", "Aston Martin",
-  "Jaguar", "Tesla", "BYD", "Geely", "Chery", "Haval", "MG", "Autre"
-];
-
-const BODY_TYPES = [
-  "Berline", "SUV", "Coupé", "Cabriolet", "Break", "Monospace", 
-  "Pick-up", "Utilitaire", "4x4", "Citadine", "Crossover"
-];
+import { CAR_BRANDS, BODY_TYPES } from "@/constants/vehicles";
 
 const AVAILABLE_FEATURES = [
   "Climatisation", "GPS", "Bluetooth", "Sièges chauffants",

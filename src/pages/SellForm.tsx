@@ -13,27 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-// Marques de véhicules populaires
-const CAR_BRANDS = [
-  "Toyota", "Mercedes-Benz", "BMW", "Audi", "Volkswagen", "Ford", "Honda", "Nissan",
-  "Hyundai", "Kia", "Mazda", "Peugeot", "Renault", "Citroën", "Fiat", "Jeep",
-  "Land Rover", "Range Rover", "Lexus", "Infiniti", "Acura", "Chevrolet", "Dodge",
-  "Subaru", "Mitsubishi", "Suzuki", "Isuzu", "Daihatsu", "Volvo", "Porsche",
-  "Ferrari", "Lamborghini", "Maserati", "Bentley", "Rolls-Royce", "Aston Martin",
-  "Jaguar", "Tesla", "BYD", "Geely", "Chery", "Haval", "MG", "Autre"
-];
-
-const BODY_TYPES = [
-  "Berline", "SUV", "Coupé", "Cabriolet", "Break", "Monospace", 
-  "Pick-up", "Utilitaire", "4x4", "Citadine", "Crossover"
-];
-
-const AVAILABLE_DOCUMENTS = [
-  "Carte grise", "Certificat de dédouanement", "Assurance valide",
-  "Contrôle technique", "Carnet d'entretien", "Factures d'achat",
-  "Certificat de non-gage", "Manuel d'utilisation"
-];
+import { CAR_BRANDS, BODY_TYPES, AVAILABLE_DOCUMENTS } from "@/constants/vehicles";
 
 const SellForm = () => {
   const navigate = useNavigate();

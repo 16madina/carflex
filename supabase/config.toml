@@ -1,1 +1,4 @@
 project_id = "dgmqdovojzzbdovgkawu"
+
+[functions.evaluate-vehicle]
+verify_jwt = false
