@@ -65,9 +65,12 @@ const DealRatingBadge = ({
     return <Skeleton className="h-6 w-24" />;
   }
 
-  if (!rating || rating.comparableCount < 3) {
+  if (!rating) {
     return null;
   }
+
+  // Show badge even with few comparables, but with different messaging
+  const hasEnoughData = rating.comparableCount >= 3;
 
   const config = {
     excellent: {
@@ -95,7 +98,7 @@ const DealRatingBadge = ({
   const { label, color, icon: Icon } = config[rating.dealRating];
 
   const badge = (
-    <Badge className={`${color} font-medium flex items-center gap-1`}>
+    <Badge className={`${color} font-medium flex items-center gap-1 shadow-lg`}>
       <Icon className="h-3 w-3" />
       {label}
       {rating.savingsPercentage !== 0 && (
@@ -109,6 +112,22 @@ const DealRatingBadge = ({
     </Badge>
   );
 
+  const tooltipContent = hasEnoughData ? (
+    <>
+      <p className="text-sm">{rating.explanation}</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        Basé sur {rating.comparableCount} annonces similaires
+      </p>
+    </>
+  ) : (
+    <>
+      <p className="text-sm">{rating.explanation}</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        Données limitées ({rating.comparableCount} annonces)
+      </p>
+    </>
+  );
+
   if (!showDetails) {
     return (
       <TooltipProvider>
@@ -117,10 +136,7 @@ const DealRatingBadge = ({
             {badge}
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
-            <p className="text-sm">{rating.explanation}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Basé sur {rating.comparableCount} annonces similaires
-            </p>
+            {tooltipContent}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -134,7 +150,10 @@ const DealRatingBadge = ({
         <div className="text-sm space-y-1">
           <p className="text-muted-foreground">{rating.explanation}</p>
           <p className="text-xs text-muted-foreground">
-            Basé sur {rating.comparableCount} annonces similaires
+            {hasEnoughData 
+              ? `Basé sur ${rating.comparableCount} annonces similaires`
+              : `Données limitées (${rating.comparableCount} annonces)`
+            }
           </p>
         </div>
       )}
