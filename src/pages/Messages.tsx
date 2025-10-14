@@ -191,6 +191,11 @@ const Messages = () => {
 
                   const isSelected = selectedConversation === conv.id;
 
+                  const listingImage = conv.sale_listings?.images?.[0] || null;
+                  const vehicleInfo = conv.sale_listings 
+                    ? `${conv.sale_listings.brand} ${conv.sale_listings.model}`
+                    : "Annonce";
+
                   return (
                     <div
                       key={conv.id}
@@ -201,7 +206,7 @@ const Messages = () => {
                       `}
                       onClick={() => setSelectedConversation(conv.id)}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-start gap-3">
                         <div className="relative">
                           <Avatar className="h-12 w-12">
                             <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} />
@@ -217,6 +222,7 @@ const Messages = () => {
                             </div>
                           )}
                         </div>
+                        
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-0.5">
                             <h3 className={`font-semibold truncate ${hasUnreadMessages ? 'text-foreground' : ''}`}>
@@ -226,6 +232,23 @@ const Messages = () => {
                               {lastMessage && format(new Date(lastMessage.created_at), "HH:mm", { locale: fr })}
                             </span>
                           </div>
+                          
+                          {/* Vehicle info */}
+                          <div className="flex items-center gap-2 mb-1">
+                            {listingImage && (
+                              <div className="w-10 h-10 rounded overflow-hidden bg-muted flex-shrink-0">
+                                <img 
+                                  src={listingImage} 
+                                  alt={vehicleInfo}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            )}
+                            <p className="text-xs font-medium text-accent truncate">
+                              {vehicleInfo}
+                            </p>
+                          </div>
+                          
                           <p className={`text-sm truncate ${
                             hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'
                           }`}>
