@@ -422,7 +422,7 @@ const Listings = () => {
                 mileage={listing.mileage}
                 city={listing.city}
                 transmission={listing.transmission === "automatic" ? "Automatique" : "Manuelle"}
-                image={Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : undefined}
+                images={Array.isArray(listing.images) ? listing.images : []}
                 isRental={listingType === "rental"}
               />
             ))}
