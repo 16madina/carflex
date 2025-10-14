@@ -357,14 +357,25 @@ const Auth = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-phone">Téléphone <span className="text-destructive">*</span></Label>
-                    <Input
-                      id="signup-phone"
-                      type="tel"
-                      placeholder="+225 01 23 45 67 89"
-                      value={signupData.phone}
-                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                        <span className="text-lg">
+                          {WEST_AFRICAN_COUNTRIES.find(c => c.code === signupData.country)?.flag}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {WEST_AFRICAN_COUNTRIES.find(c => c.code === signupData.country)?.dialCode}
+                        </span>
+                      </div>
+                      <Input
+                        id="signup-phone"
+                        type="tel"
+                        placeholder="01 23 45 67 89"
+                        value={signupData.phone}
+                        onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                        className="pl-24"
+                        required
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">

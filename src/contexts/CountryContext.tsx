@@ -7,6 +7,7 @@ export interface Country {
   currency: string;
   currencySymbol: string;
   exchangeRate: number; // Rate to XOF (base currency)
+  dialCode: string;
 }
 
 export const WEST_AFRICAN_COUNTRIES: Country[] = [
@@ -16,7 +17,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇸🇳',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+221'
   },
   {
     code: 'CI',
@@ -24,7 +26,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇨🇮',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+225'
   },
   {
     code: 'BJ',
@@ -32,7 +35,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇧🇯',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+229'
   },
   {
     code: 'BF',
@@ -40,7 +44,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇧🇫',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+226'
   },
   {
     code: 'ML',
@@ -48,7 +53,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇲🇱',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+223'
   },
   {
     code: 'NE',
@@ -56,7 +62,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇳🇪',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+227'
   },
   {
     code: 'TG',
@@ -64,7 +71,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇹🇬',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+228'
   },
   {
     code: 'GW',
@@ -72,7 +80,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇬🇼',
     currency: 'XOF',
     currencySymbol: 'CFA',
-    exchangeRate: 1
+    exchangeRate: 1,
+    dialCode: '+245'
   },
   {
     code: 'NG',
@@ -80,7 +89,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇳🇬',
     currency: 'NGN',
     currencySymbol: '₦',
-    exchangeRate: 1.2 // Exemple: 1 XOF = 1.2 NGN
+    exchangeRate: 1.2,
+    dialCode: '+234'
   },
   {
     code: 'GH',
@@ -88,7 +98,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇬🇭',
     currency: 'GHS',
     currencySymbol: '₵',
-    exchangeRate: 0.07 // Exemple: 1 XOF = 0.07 GHS
+    exchangeRate: 0.07,
+    dialCode: '+233'
   },
   {
     code: 'GN',
@@ -96,7 +107,8 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     flag: '🇬🇳',
     currency: 'GNF',
     currencySymbol: 'FG',
-    exchangeRate: 14 // Exemple: 1 XOF = 14 GNF
+    exchangeRate: 14,
+    dialCode: '+224'
   }
 ];
 
