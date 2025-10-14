@@ -50,9 +50,29 @@ export const CAR_MODELS: Record<string, string[]> = {
 };
 
 export const BODY_TYPES = [
-  "Berline", "SUV", "Coupé", "Cabriolet", "Break", "Monospace", 
-  "Pick-up", "Utilitaire", "4x4", "Citadine", "Crossover"
+  "SUV", "Berline", "Pick-up", "Coupé", "Hatchback", 
+  "Cabriolet", "Break", "Monospace"
 ];
+
+export const VEHICLE_CATEGORIES = [
+  { value: "economique", label: "Économique" },
+  { value: "sportive", label: "Sportive" },
+  { value: "awd", label: "AWD" },
+  { value: "4x4", label: "4x4" },
+  { value: "electrique", label: "Électrique" },
+  { value: "petit_camion", label: "Petit camion" }
+];
+
+export const POPULAR_CITIES = {
+  "CI": ["Abidjan", "Bouaké", "Yamoussoukro", "Daloa", "San-Pédro"],
+  "ML": ["Bamako", "Sikasso", "Mopti", "Koutiala", "Kayes"],
+  "TG": ["Lomé", "Sokodé", "Kara", "Atakpamé", "Kpalimé"],
+  "SN": ["Dakar", "Thiès", "Kaolack", "Ziguinchor", "Saint-Louis"],
+  "BJ": ["Cotonou", "Porto-Novo", "Parakou", "Djougou", "Bohicon"],
+  "BF": ["Ouagadougou", "Bobo-Dioulasso", "Koudougou", "Ouahigouya", "Banfora"],
+  "NE": ["Niamey", "Zinder", "Maradi", "Agadez", "Tahoua"],
+  "GN": ["Conakry", "Nzérékoré", "Kankan", "Kindia", "Labé"]
+};
 
 export const AVAILABLE_DOCUMENTS = [
   "Carte grise", "Certificat de dédouanement", "Assurance valide",

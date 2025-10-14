@@ -11,7 +11,9 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BODY_TYPES } from "@/constants/vehicles";
+import { BODY_TYPES, VEHICLE_CATEGORIES, POPULAR_CITIES } from "@/constants/vehicles";
+import BudgetCalculator from "@/components/BudgetCalculator";
+import { useCountry } from "@/contexts/CountryContext";
 
 const Listings = () => {
   const [listingType, setListingType] = useState<"sale" | "rental">("sale");
@@ -19,6 +21,8 @@ const Listings = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("created_at");
+  
+  const { selectedCountry } = useCountry();
   
   // Advanced filters
   const [filters, setFilters] = useState({
@@ -32,7 +36,9 @@ const Listings = () => {
     transmission: "all",
     city: "",
     country: "",
-    bodyType: "all"
+    bodyType: "all",
+    category: "all",
+    budgetMax: ""
   });
 
   useEffect(() => {
@@ -87,9 +93,31 @@ const Listings = () => {
     const matchesCity = !filters.city || listing.city.toLowerCase().includes(filters.city.toLowerCase());
     const matchesCountry = !filters.country || listing.country.toLowerCase().includes(filters.country.toLowerCase());
     const matchesBodyType = filters.bodyType === "all" || !listing.body_type || listing.body_type === filters.bodyType;
+    
+    const matchesBudget = !filters.budgetMax || priceValue <= parseInt(filters.budgetMax);
+    
+    const matchesCategory = filters.category === "all" || (() => {
+      switch (filters.category) {
+        case "economique":
+          return priceValue < 10000000 && listing.fuel_type !== "gasoline";
+        case "sportive":
+          return listing.horsepower > 200 || listing.body_type === "Coupé";
+        case "awd":
+          return listing.features?.includes("AWD") || listing.features?.includes("4WD");
+        case "4x4":
+          return listing.body_type === "4x4" || listing.body_type === "SUV" || listing.body_type === "Pick-up";
+        case "electrique":
+          return listing.fuel_type === "electric" || listing.fuel_type === "hybrid";
+        case "petit_camion":
+          return listing.body_type === "Pick-up";
+        default:
+          return true;
+      }
+    })();
 
     return matchesSearch && matchesPrice && matchesMileage && matchesYear && 
-           matchesFuel && matchesTransmission && matchesCity && matchesCountry && matchesBodyType;
+           matchesFuel && matchesTransmission && matchesCity && matchesCountry && 
+           matchesBodyType && matchesBudget && matchesCategory;
   });
 
   const resetFilters = () => {
@@ -104,14 +132,24 @@ const Listings = () => {
       transmission: "all",
       city: "",
       country: "",
-      bodyType: "all"
+      bodyType: "all",
+      category: "all",
+      budgetMax: ""
     });
   };
 
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === "fuelType" || key === "transmission" || key === "bodyType") return value !== "all";
+    if (key === "fuelType" || key === "transmission" || key === "bodyType" || key === "category") return value !== "all";
     return value !== "";
   }).length;
+
+  const handleBudgetChange = (maxPrice: number) => {
+    setFilters(prev => ({ ...prev, budgetMax: maxPrice.toString() }));
+  };
+
+  const handleCitySelect = (city: string) => {
+    setFilters(prev => ({ ...prev, city }));
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -173,6 +211,11 @@ const Listings = () => {
               </SheetHeader>
               
               <div className="space-y-6 mt-6">
+                {/* Budget Calculator */}
+                {listingType === "sale" && (
+                  <BudgetCalculator onBudgetChange={handleBudgetChange} />
+                )}
+
                 {/* Sort */}
                 <div className="space-y-2">
                   <Label>Trier par</Label>
@@ -278,6 +321,24 @@ const Listings = () => {
                   </Select>
                 </div>
 
+                {/* Category */}
+                <div className="space-y-2">
+                  <Label>Catégorie</Label>
+                  <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes</SelectItem>
+                      {VEHICLE_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Body Type */}
                 <div className="space-y-2">
                   <Label>Type de carrosserie</Label>
@@ -300,10 +361,27 @@ const Listings = () => {
                 <div className="space-y-2">
                   <Label>Ville</Label>
                   <Input
-                    placeholder="Ex: Paris"
+                    placeholder="Ex: Abidjan"
                     value={filters.city}
                     onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
                   />
+                  
+                  {/* Popular Cities */}
+                  {POPULAR_CITIES[selectedCountry.code] && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {POPULAR_CITIES[selectedCountry.code].map((city) => (
+                        <Button
+                          key={city}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCitySelect(city)}
+                          className={filters.city === city ? "bg-primary text-primary-foreground" : ""}
+                        >
+                          {city}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
