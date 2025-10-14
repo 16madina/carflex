@@ -7,7 +7,9 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
-import Sell from "./pages/Sell";
+import SellType from "./pages/SellType";
+import SellForm from "./pages/SellForm";
+import RentForm from "./pages/RentForm";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
@@ -29,7 +31,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/listings" element={<Listings />} />
           <Route path="/listing/:id" element={<ListingDetail />} />
-          <Route path="/sell" element={<Sell />} />
+          <Route path="/sell" element={<SellType />} />
+          <Route path="/sell/vendre" element={<SellForm />} />
+          <Route path="/sell/louer" element={<RentForm />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />

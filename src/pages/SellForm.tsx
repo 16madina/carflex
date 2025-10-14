@@ -10,10 +10,32 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const Sell = () => {
+// Marques de véhicules populaires
+const CAR_BRANDS = [
+  "Toyota", "Mercedes-Benz", "BMW", "Audi", "Volkswagen", "Ford", "Honda", "Nissan",
+  "Hyundai", "Kia", "Mazda", "Peugeot", "Renault", "Citroën", "Fiat", "Jeep",
+  "Land Rover", "Range Rover", "Lexus", "Infiniti", "Acura", "Chevrolet", "Dodge",
+  "Subaru", "Mitsubishi", "Suzuki", "Isuzu", "Daihatsu", "Volvo", "Porsche",
+  "Ferrari", "Lamborghini", "Maserati", "Bentley", "Rolls-Royce", "Aston Martin",
+  "Jaguar", "Tesla", "BYD", "Geely", "Chery", "Haval", "MG", "Autre"
+];
+
+const BODY_TYPES = [
+  "Berline", "SUV", "Coupé", "Cabriolet", "Break", "Monospace", 
+  "Pick-up", "Utilitaire", "4x4", "Citadine", "Crossover"
+];
+
+const AVAILABLE_DOCUMENTS = [
+  "Carte grise", "Certificat de dédouanement", "Assurance valide",
+  "Contrôle technique", "Carnet d'entretien", "Factures d'achat",
+  "Certificat de non-gage", "Manuel d'utilisation"
+];
+
+const SellForm = () => {
   const navigate = useNavigate();
   const { selectedCountry, convertPrice, formatPrice } = useCountry();
   const [user, setUser] = useState<any>(null);
@@ -33,9 +55,19 @@ const Sell = () => {
     condition: "used",
     description: "",
     city: "",
-    country: "France",
+    country: selectedCountry.name,
     latitude: null as number | null,
     longitude: null as number | null,
+    // Nouveaux champs
+    accidents: "0",
+    clean_title: true,
+    documents_available: [] as string[],
+    customs_cleared: false,
+    previous_owners: "1",
+    exterior_color: "",
+    interior_color: "",
+    body_type: "",
+    features: [] as string[],
   });
 
   useEffect(() => {
@@ -128,6 +160,24 @@ const Sell = () => {
     return imageUrls;
   };
 
+  const handleDocumentToggle = (doc: string) => {
+    setFormData(prev => ({
+      ...prev,
+      documents_available: prev.documents_available.includes(doc)
+        ? prev.documents_available.filter(d => d !== doc)
+        : [...prev.documents_available, doc]
+    }));
+  };
+
+  const handleFeatureToggle = (feature: string) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.includes(feature)
+        ? prev.features.filter(f => f !== feature)
+        : [...prev.features, feature]
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -159,7 +209,7 @@ const Sell = () => {
           model: formData.model,
           year: formData.year,
           mileage: parseInt(formData.mileage),
-          price: priceInXOF, // Store in base currency (XOF)
+          price: priceInXOF,
           transmission: formData.transmission as "automatic" | "manual",
           fuel_type: formData.fuel_type as "petrol" | "diesel" | "electric" | "hybrid",
           condition: formData.condition as "new" | "used" | "certified",
@@ -169,6 +219,13 @@ const Sell = () => {
           latitude: formData.latitude,
           longitude: formData.longitude,
           images: imageUrls,
+          accidents: parseInt(formData.accidents),
+          clean_title: formData.clean_title,
+          previous_owners: parseInt(formData.previous_owners),
+          exterior_color: formData.exterior_color,
+          interior_color: formData.interior_color,
+          body_type: formData.body_type,
+          features: formData.features,
         });
 
       if (error) throw error;
@@ -201,9 +258,9 @@ const Sell = () => {
 
         <Card className="max-w-2xl mx-auto shadow-elevated">
           <CardHeader>
-            <CardTitle className="text-3xl">Poster une annonce</CardTitle>
+            <CardTitle className="text-3xl">Vendre mon véhicule</CardTitle>
             <CardDescription>
-              Remplissez les informations de votre véhicule
+              Remplissez les informations de votre véhicule à vendre
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -215,13 +272,22 @@ const Sell = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="brand">Marque *</Label>
-                    <Input
-                      id="brand"
-                      placeholder="BMW"
+                    <Select
                       value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      onValueChange={(value) => setFormData({ ...formData, brand: value, model: "" })}
                       required
-                    />
+                    >
+                      <SelectTrigger id="brand">
+                        <SelectValue placeholder="Sélectionnez une marque" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CAR_BRANDS.map((brand) => (
+                          <SelectItem key={brand} value={brand}>
+                            {brand}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
@@ -337,6 +403,47 @@ const Sell = () => {
                   </Select>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="body_type">Type de carrosserie</Label>
+                    <Select
+                      value={formData.body_type}
+                      onValueChange={(value) => setFormData({ ...formData, body_type: value })}
+                    >
+                      <SelectTrigger id="body_type">
+                        <SelectValue placeholder="Sélectionnez un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BODY_TYPES.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="exterior_color">Couleur extérieure</Label>
+                    <Input
+                      id="exterior_color"
+                      placeholder="Noir"
+                      value={formData.exterior_color}
+                      onChange={(e) => setFormData({ ...formData, exterior_color: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="interior_color">Couleur intérieure</Label>
+                  <Input
+                    id="interior_color"
+                    placeholder="Beige"
+                    value={formData.interior_color}
+                    onChange={(e) => setFormData({ ...formData, interior_color: e.target.value })}
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
@@ -346,6 +453,102 @@ const Sell = () => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
+                </div>
+              </div>
+
+              {/* Historique et Documents */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Historique et Documents</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="accidents">Nombre d'accidents *</Label>
+                    <Select
+                      value={formData.accidents}
+                      onValueChange={(value) => setFormData({ ...formData, accidents: value })}
+                    >
+                      <SelectTrigger id="accidents">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Aucun accident</SelectItem>
+                        <SelectItem value="1">1 accident</SelectItem>
+                        <SelectItem value="2">2 accidents</SelectItem>
+                        <SelectItem value="3">3 accidents ou plus</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="previous_owners">Propriétaires précédents *</Label>
+                    <Select
+                      value={formData.previous_owners}
+                      onValueChange={(value) => setFormData({ ...formData, previous_owners: value })}
+                    >
+                      <SelectTrigger id="previous_owners">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1er propriétaire</SelectItem>
+                        <SelectItem value="2">2 propriétaires</SelectItem>
+                        <SelectItem value="3">3 propriétaires</SelectItem>
+                        <SelectItem value="4">4 propriétaires ou plus</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Documents disponibles</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {AVAILABLE_DOCUMENTS.map((doc) => (
+                      <div key={doc} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={doc}
+                          checked={formData.documents_available.includes(doc)}
+                          onCheckedChange={() => handleDocumentToggle(doc)}
+                        />
+                        <label
+                          htmlFor={doc}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {doc}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="customs_cleared"
+                    checked={formData.customs_cleared}
+                    onCheckedChange={(checked) => 
+                      setFormData({ ...formData, customs_cleared: checked as boolean })
+                    }
+                  />
+                  <label
+                    htmlFor="customs_cleared"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Véhicule dédouané
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="clean_title"
+                    checked={formData.clean_title}
+                    onCheckedChange={(checked) => 
+                      setFormData({ ...formData, clean_title: checked as boolean })
+                    }
+                  />
+                  <label
+                    htmlFor="clean_title"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Titre de propriété clair
+                  </label>
                 </div>
               </div>
 
@@ -455,4 +658,4 @@ const Sell = () => {
   );
 };
 
-export default Sell;
+export default SellForm;
