@@ -522,7 +522,7 @@ const Profile = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-2xl font-bold">{pkg.price} DH</p>
+                      <p className="text-2xl font-bold">{formatPrice(pkg.price)}</p>
                       <p className="text-sm text-muted-foreground">
                         pour {pkg.duration_days} jours
                       </p>
