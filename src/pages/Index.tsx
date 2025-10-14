@@ -15,12 +15,24 @@ const Index = () => {
 
   useEffect(() => {
     const fetchCars = async () => {
-      // Fetch premium listings
-      const { data: premiumData } = await supabase
+      // Fetch premium listings with a direct join
+      const { data: premiumData, error: premiumError } = await supabase
         .from("premium_listings")
         .select(`
-          *,
-          sale_listings (*)
+          listing_id,
+          sale_listings!inner (
+            id,
+            brand,
+            model,
+            year,
+            price,
+            mileage,
+            city,
+            country,
+            transmission,
+            fuel_type,
+            images
+          )
         `)
         .eq("is_active", true)
         .eq("listing_type", "sale")
@@ -28,7 +40,12 @@ const Index = () => {
         .order("created_at", { ascending: false })
         .limit(4);
 
-      if (premiumData) {
+      if (premiumError) {
+        console.error("Error fetching premium listings:", premiumError);
+      }
+
+      if (premiumData && premiumData.length > 0) {
+        console.log("Premium data:", premiumData);
         const premiumListings = premiumData
           .map((p: any) => p.sale_listings)
           .filter((car: any) => car !== null);
