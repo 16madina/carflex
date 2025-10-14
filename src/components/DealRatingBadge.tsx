@@ -14,6 +14,7 @@ interface DealRatingBadgeProps {
   listingId: string;
   listingType?: "sale" | "rental";
   showDetails?: boolean;
+  onRatingCalculated?: (rating: "excellent" | "good" | "fair" | "poor") => void;
 }
 
 interface DealRating {
@@ -27,7 +28,8 @@ interface DealRating {
 const DealRatingBadge = ({ 
   listingId, 
   listingType = "sale",
-  showDetails = false 
+  showDetails = false,
+  onRatingCalculated
 }: DealRatingBadgeProps) => {
   const [rating, setRating] = useState<DealRating | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,9 @@ const DealRatingBadge = ({
 
       if (error) throw error;
       setRating(data);
+      if (data?.dealRating) {
+        onRatingCalculated?.(data.dealRating);
+      }
     } catch (error) {
       console.error("Error fetching AI price evaluation:", error);
       // Fallback to basic calculation if AI fails
@@ -52,7 +57,12 @@ const DealRatingBadge = ({
         const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke("calculate-deal-rating", {
           body: { listingId, listingType }
         });
-        if (!fallbackError) setRating(fallbackData);
+        if (!fallbackError) {
+          setRating(fallbackData);
+          if (fallbackData?.dealRating) {
+            onRatingCalculated?.(fallbackData.dealRating);
+          }
+        }
       } catch (fallbackErr) {
         console.error("Fallback also failed:", fallbackErr);
       }

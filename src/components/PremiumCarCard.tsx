@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Heart, MapPin, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import ImageCarousel from "@/components/ImageCarousel";
-import { useDealRating } from "@/hooks/useDealRating";
+import DealRatingBadge from "@/components/DealRatingBadge";
 
 interface PremiumCarCardProps {
   id: string;
@@ -46,7 +47,7 @@ const PremiumCarCard = ({
 }: PremiumCarCardProps) => {
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
-  const { rating } = useDealRating(id, 'sale');
+  const [rating, setRating] = useState<string | null>(null);
 
   const priceQualityConfig = {
     excellent: { label: "Excellent prix", color: "bg-green-500" },
@@ -103,9 +104,11 @@ const PremiumCarCard = ({
           </Button>
         </div>
         <div className="absolute bottom-3 left-3 z-10">
-          <Badge className={`${qualityInfo.color} text-white font-medium`}>
-            {qualityInfo.label}
-          </Badge>
+          <DealRatingBadge 
+            listingId={id} 
+            listingType="sale"
+            onRatingCalculated={setRating}
+          />
         </div>
       </div>
 

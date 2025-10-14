@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Heart, MapPin, Calendar, Gauge } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import DealRatingBadge from "./DealRatingBadge";
 import ImageCarousel from "./ImageCarousel";
-import { useDealRating } from "@/hooks/useDealRating";
 
 interface CarCardProps {
   id: string;
@@ -45,7 +45,7 @@ const CarCard = ({
 }: CarCardProps) => {
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
-  const { rating } = useDealRating(id, isRental ? 'rental' : 'sale');
+  const [rating, setRating] = useState<string | null>(null);
 
   const handleCardClick = () => {
     navigate(isRental ? `/rental/${id}` : `/listing/${id}`);
@@ -99,7 +99,11 @@ const CarCard = ({
           <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
         </Button>
         <div className="absolute bottom-3 left-3 z-10">
-          <DealRatingBadge listingId={id} listingType={isRental ? "rental" : "sale"} />
+          <DealRatingBadge 
+            listingId={id} 
+            listingType={isRental ? "rental" : "sale"}
+            onRatingCalculated={setRating}
+          />
         </div>
       </div>
 
