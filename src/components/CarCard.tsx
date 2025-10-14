@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import DealRatingBadge from "./DealRatingBadge";
 import ImageCarousel from "./ImageCarousel";
+import { useDealRating } from "@/hooks/useDealRating";
 
 interface CarCardProps {
   id: string;
@@ -44,12 +45,26 @@ const CarCard = ({
 }: CarCardProps) => {
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
+  const { rating } = useDealRating(id, isRental ? 'rental' : 'sale');
 
   const handleCardClick = () => {
     navigate(isRental ? `/rental/${id}` : `/listing/${id}`);
   };
 
   const displayImages = images && images.length > 0 ? images : (image ? [image] : []);
+
+  const getPriceColorClass = (dealRating: string | null) => {
+    switch(dealRating) {
+      case 'excellent':
+      case 'good':
+        return 'text-green-600';
+      case 'fair':
+      case 'poor':
+        return 'text-orange-500';
+      default:
+        return 'text-accent';
+    }
+  };
 
   return (
     <Card 
@@ -93,16 +108,6 @@ const CarCard = ({
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary">{transmission}</Badge>
-            {sellerName && sellerType && (
-              <Badge variant="outline" className="text-xs">
-                {sellerName} • {
-                  sellerType === 'dealer' ? 'Concessionnaire' :
-                  sellerType === 'seller' ? 'Vendeur' :
-                  sellerType === 'agent' ? 'Agent' :
-                  'Propriétaire'
-                }
-              </Badge>
-            )}
           </div>
         </div>
 
@@ -123,11 +128,21 @@ const CarCard = ({
 
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-xl font-bold text-accent">
+            <div className={`text-xl font-bold ${getPriceColorClass(rating)}`}>
               {formatPrice(price)}
-            </span>
-            {isRental && (
-              <span className="text-sm text-muted-foreground ml-1">/jour</span>
+              {isRental && (
+                <span className="text-sm text-muted-foreground ml-1">/jour</span>
+              )}
+            </div>
+            {sellerName && sellerType && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {sellerName} • {
+                  sellerType === 'dealer' ? 'Concessionnaire' :
+                  sellerType === 'seller' ? 'Vendeur' :
+                  sellerType === 'agent' ? 'Agent' :
+                  'Propriétaire'
+                }
+              </div>
             )}
           </div>
           <Button 

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import ImageCarousel from "@/components/ImageCarousel";
+import { useDealRating } from "@/hooks/useDealRating";
 
 interface PremiumCarCardProps {
   id: string;
@@ -45,6 +46,7 @@ const PremiumCarCard = ({
 }: PremiumCarCardProps) => {
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
+  const { rating } = useDealRating(id, 'sale');
 
   const priceQualityConfig = {
     excellent: { label: "Excellent prix", color: "bg-green-500" },
@@ -53,6 +55,19 @@ const PremiumCarCard = ({
   };
 
   const qualityInfo = priceQualityConfig[priceQuality];
+
+  const getPriceColorClass = (dealRating: string | null) => {
+    switch(dealRating) {
+      case 'excellent':
+      case 'good':
+        return 'text-green-600';
+      case 'fair':
+      case 'poor':
+        return 'text-orange-500';
+      default:
+        return 'text-primary';
+    }
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
@@ -96,19 +111,19 @@ const PremiumCarCard = ({
         <h3 className="font-semibold text-lg mb-2">
           {year} {brand} {model}
         </h3>
+        <p className={`text-2xl font-bold ${getPriceColorClass(rating)} mb-1`}>
+          {formatPrice(price)}
+        </p>
         {sellerName && sellerType && (
-          <Badge variant="outline" className="text-xs mb-2">
+          <div className="text-xs text-muted-foreground mb-3">
             {sellerName} • {
               sellerType === 'dealer' ? 'Concessionnaire' :
               sellerType === 'seller' ? 'Vendeur' :
               sellerType === 'agent' ? 'Agent' :
               'Propriétaire'
             }
-          </Badge>
+          </div>
         )}
-        <p className="text-2xl font-bold text-primary mb-3">
-          {formatPrice(price)}
-        </p>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <MapPin className="h-4 w-4" />
           <span>{city}</span>
