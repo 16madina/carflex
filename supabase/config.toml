@@ -1,5 +1,8 @@
 project_id = "dgmqdovojzzbdovgkawu"
 
+[functions.ai-price-evaluation]
+verify_jwt = false
+
 [functions.evaluate-vehicle]
 verify_jwt = false
 

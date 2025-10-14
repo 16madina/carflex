@@ -38,14 +38,24 @@ const DealRatingBadge = ({
 
   const fetchDealRating = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("calculate-deal-rating", {
+      // Use AI-powered evaluation
+      const { data, error } = await supabase.functions.invoke("ai-price-evaluation", {
         body: { listingId, listingType }
       });
 
       if (error) throw error;
       setRating(data);
     } catch (error) {
-      console.error("Error fetching deal rating:", error);
+      console.error("Error fetching AI price evaluation:", error);
+      // Fallback to basic calculation if AI fails
+      try {
+        const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke("calculate-deal-rating", {
+          body: { listingId, listingType }
+        });
+        if (!fallbackError) setRating(fallbackData);
+      } catch (fallbackErr) {
+        console.error("Fallback also failed:", fallbackErr);
+      }
     } finally {
       setLoading(false);
     }
@@ -88,8 +98,13 @@ const DealRatingBadge = ({
     <Badge className={`${color} font-medium flex items-center gap-1`}>
       <Icon className="h-3 w-3" />
       {label}
-      {rating.savingsPercentage > 0 && (
-        <span className="ml-1">-{rating.savingsPercentage}%</span>
+      {rating.savingsPercentage !== 0 && (
+        <span className="ml-1">
+          {rating.savingsPercentage > 0 ? '-' : '+'}{Math.abs(rating.savingsPercentage)}%
+        </span>
+      )}
+      {(rating as any).aiPowered && (
+        <Sparkles className="h-3 w-3 ml-1" />
       )}
     </Badge>
   );
