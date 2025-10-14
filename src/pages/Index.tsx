@@ -83,40 +83,40 @@ const Index = () => {
 
       {/* Premium Listings Section */}
       {premiumCars.length > 0 && (
-        <section className="py-16 container mx-auto px-4 bg-gradient-to-b from-orange-50/50 to-background">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Annonces Premium</h2>
-              <p className="text-muted-foreground">
-                Annonces sponsorisées mises en avant
-              </p>
+        <section className="py-8 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Annonces Premium</h2>
+              <Button variant="link" asChild className="text-primary">
+                <Link to="/listings">
+                  Voir tout
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
             </div>
-            <Button variant="link" asChild>
-              <Link to="/listings">
-                Voir tout
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {premiumCars.map((car) => (
-              <PremiumCarCard
-                key={car.id}
-                id={car.id}
-                brand={car.brand}
-                model={car.model}
-                year={car.year}
-                price={car.price}
-                mileage={car.mileage}
-                city={car.city}
-                country={car.country}
-                transmission={car.transmission}
-                fuel_type={car.fuel_type}
-                images={Array.isArray(car.images) ? car.images : []}
-                priceQuality="good"
-              />
-            ))}
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-4 px-4 pb-4" style={{ width: 'max-content' }}>
+              {premiumCars.map((car) => (
+                <div key={car.id} className="w-[280px] md:w-[320px] flex-shrink-0">
+                  <PremiumCarCard
+                    id={car.id}
+                    brand={car.brand}
+                    model={car.model}
+                    year={car.year}
+                    price={car.price}
+                    mileage={car.mileage}
+                    city={car.city}
+                    country={car.country}
+                    transmission={car.transmission}
+                    fuel_type={car.fuel_type}
+                    images={Array.isArray(car.images) ? car.images : []}
+                    priceQuality="good"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
