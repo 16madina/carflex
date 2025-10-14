@@ -2,6 +2,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import Hero from "@/components/Hero";
 import CarCard from "@/components/CarCard";
+import PremiumCarCard from "@/components/PremiumCarCard";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,9 +11,31 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
+  const [premiumCars, setPremiumCars] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchFeaturedCars = async () => {
+    const fetchCars = async () => {
+      // Fetch premium listings
+      const { data: premiumData } = await supabase
+        .from("premium_listings")
+        .select(`
+          *,
+          sale_listings (*)
+        `)
+        .eq("is_active", true)
+        .eq("listing_type", "sale")
+        .gte("end_date", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(4);
+
+      if (premiumData) {
+        const premiumListings = premiumData
+          .map((p: any) => p.sale_listings)
+          .filter((car: any) => car !== null);
+        setPremiumCars(premiumListings);
+      }
+
+      // Fetch featured cars
       const { data } = await supabase
         .from("sale_listings")
         .select("*")
@@ -33,13 +56,53 @@ const Index = () => {
       }
     };
 
-    fetchFeaturedCars();
+    fetchCars();
   }, []);
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       <Hero />
+
+      {/* Premium Listings Section */}
+      {premiumCars.length > 0 && (
+        <section className="py-16 container mx-auto px-4 bg-gradient-to-b from-orange-50/50 to-background">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Annonces Premium</h2>
+              <p className="text-muted-foreground">
+                Annonces sponsorisées mises en avant
+              </p>
+            </div>
+            <Button variant="link" asChild>
+              <Link to="/listings">
+                Voir tout
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {premiumCars.map((car) => (
+              <PremiumCarCard
+                key={car.id}
+                id={car.id}
+                brand={car.brand}
+                model={car.model}
+                year={car.year}
+                price={car.price}
+                mileage={car.mileage}
+                city={car.city}
+                country={car.country}
+                transmission={car.transmission}
+                fuel_type={car.fuel_type}
+                images={Array.isArray(car.images) ? car.images : []}
+                priceQuality="good"
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Featured Cars Section */}
       <section className="py-20 container mx-auto px-4">

@@ -6,13 +6,14 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, Crown } from "lucide-react";
 import { toast } from "sonner";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,6 +36,18 @@ const Profile = () => {
         .single();
 
       setProfile(profileData);
+
+      // Check if user is admin
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin");
+
+      if (roles && roles.length > 0) {
+        setIsAdmin(true);
+      }
+
       setLoading(false);
     };
 
@@ -117,6 +130,12 @@ const Profile = () => {
                 <Button variant="outline" className="w-full" onClick={() => navigate("/profile/edit")}>
                   Modifier le profil
                 </Button>
+                {isAdmin && (
+                  <Button variant="outline" className="w-full bg-amber-50 hover:bg-amber-100 border-amber-200" onClick={() => navigate("/admin")}>
+                    <Crown className="mr-2 h-4 w-4 text-amber-500" />
+                    Panneau Admin
+                  </Button>
+                )}
                 <Button variant="outline" className="w-full" onClick={() => navigate("/favorites")}>
                   Mes favoris
                 </Button>
