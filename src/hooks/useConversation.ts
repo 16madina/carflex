@@ -14,7 +14,7 @@ export const useConversation = (listingId: string, sellerId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (!user || !sellerId || !listingId) {
         setLoading(false);
         return;
       }

@@ -46,7 +46,10 @@ const ListingDetail = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [reviewsKey, setReviewsKey] = useState(0);
   const { isFavorite, toggleFavorite } = useFavorites(id);
-  const { conversationId, loading: convLoading } = useConversation(id || "", listing?.seller_id || "");
+  const { conversationId, loading: convLoading } = useConversation(
+    id || "", 
+    listing?.seller_id || ""
+  );
   const { formatPrice } = useCountry();
 
   useEffect(() => {
