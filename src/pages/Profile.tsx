@@ -166,6 +166,10 @@ const Profile = () => {
                 <Button variant="outline" className="w-full" onClick={() => navigate("/favorites")}>
                   Mes favoris
                 </Button>
+                <Button variant="default" className="w-full bg-gradient-to-r from-primary to-primary/80" onClick={() => navigate("/promote")}>
+                  <Crown className="mr-2 h-4 w-4" />
+                  Promouvoir une annonce
+                </Button>
                 <Button variant="destructive" className="w-full" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Se déconnecter

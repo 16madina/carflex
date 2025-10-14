@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
 import Favorites from "./pages/Favorites";
 import AdminPanel from "./pages/AdminPanel";
+import PromoteListing from "./pages/PromoteListing";
 import NotFound from "./pages/NotFound";
 import AuthSync from "./components/AuthSync";
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/profile/edit" element={<ProfileEdit />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/promote" element={<PromoteListing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
