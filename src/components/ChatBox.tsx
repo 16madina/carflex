@@ -30,9 +30,13 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initializingRef = useRef(false);
 
   useEffect(() => {
-    initChat();
+    if (!initializingRef.current) {
+      initializingRef.current = true;
+      initChat();
+    }
   }, [conversationId]);
 
   useEffect(() => {
@@ -46,7 +50,7 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
   }, [messages]);
 
   const initChat = async () => {
-    console.log("🔵 InitChat démarré");
+    console.log("🔵 InitChat démarré pour conversation:", conversationId);
     try {
       if (!conversationId) {
         console.error("❌ No conversation ID provided");
@@ -77,6 +81,7 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
     } finally {
       console.log("🔵 Finally block - setLoading(false)");
       setLoading(false);
+      initializingRef.current = false;
     }
   };
 
