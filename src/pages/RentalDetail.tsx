@@ -23,12 +23,15 @@ import {
   Heart,
   Share2,
   ArrowLeft,
-  MessageCircle
+  MessageCircle,
+  User as UserIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useConversation } from "@/hooks/useConversation";
 import { useCountry } from "@/contexts/CountryContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 
 const RentalDetail = () => {
   const { id } = useParams();
@@ -50,7 +53,17 @@ const RentalDetail = () => {
     
     const { data, error } = await supabase
       .from("rental_listings")
-      .select("*")
+      .select(`
+        *,
+        profiles!rental_listings_owner_id_fkey (
+          first_name,
+          last_name,
+          user_type,
+          avatar_url,
+          phone,
+          email
+        )
+      `)
       .eq("id", id)
       .single();
 
@@ -182,6 +195,49 @@ const RentalDetail = () => {
             {formatPrice(listing.price_per_day)}
           </p>
         </div>
+
+        {/* Owner Info - Enhanced */}
+        {listing.profiles && (
+          <Card className="mb-6 shadow-card">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-bold mb-4">À propos du propriétaire</h2>
+              <div className="flex items-start gap-4 mb-4">
+                <Avatar className="h-16 w-16 cursor-pointer" onClick={() => navigate(`/profile/${listing.owner_id}`)}>
+                  <AvatarImage src={listing.profiles.avatar_url} />
+                  <AvatarFallback>
+                    <UserIcon className="h-8 w-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 
+                    className="font-semibold text-lg cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => navigate(`/profile/${listing.owner_id}`)}
+                  >
+                    {listing.profiles.first_name} {listing.profiles.last_name}
+                  </h3>
+                  <Badge variant="secondary" className="mt-1">
+                    {listing.profiles.user_type === 'buyer' && 'Acheteur'}
+                    {listing.profiles.user_type === 'seller' && 'Vendeur'}
+                    {listing.profiles.user_type === 'agent' && 'Agent'}
+                    {listing.profiles.user_type === 'dealer' && 'Concessionnaire'}
+                  </Badge>
+                  {listing.profiles.phone && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {listing.profiles.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate(`/profile/${listing.owner_id}`)}
+              >
+                Voir toutes les annonces de ce propriétaire
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Specifications */}
         <div className="bg-card rounded-lg p-6 mb-6 shadow-card">

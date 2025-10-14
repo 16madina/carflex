@@ -15,6 +15,7 @@ import VehicleEvaluation from "./pages/VehicleEvaluation";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
+import PublicProfile from "./pages/PublicProfile";
 import Favorites from "./pages/Favorites";
 import AdminPanel from "./pages/AdminPanel";
 import PromoteListing from "./pages/PromoteListing";
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />
+          <Route path="/profile/:userId" element={<PublicProfile />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/promote" element={<PromoteListing />} />

@@ -204,28 +204,45 @@ const ListingDetail = () => {
           </p>
         </div>
 
-        {/* Seller Info */}
+        {/* Seller Info - Enhanced */}
         {listing.profiles && (
-          <Card className="mb-6">
+          <Card className="mb-6 shadow-card">
             <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
+              <h2 className="text-lg font-bold mb-4">À propos du vendeur</h2>
+              <div className="flex items-start gap-4 mb-4">
+                <Avatar className="h-16 w-16 cursor-pointer" onClick={() => navigate(`/profile/${listing.seller_id}`)}>
                   <AvatarImage src={listing.profiles.avatar_url} />
                   <AvatarFallback>
                     <UserIcon className="h-8 w-8" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg">
+                  <h3 
+                    className="font-semibold text-lg cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => navigate(`/profile/${listing.seller_id}`)}
+                  >
                     {listing.profiles.first_name} {listing.profiles.last_name}
                   </h3>
                   <Badge variant="secondary" className="mt-1">
                     {listing.profiles.user_type === 'buyer' && 'Acheteur'}
                     {listing.profiles.user_type === 'seller' && 'Vendeur'}
+                    {listing.profiles.user_type === 'agent' && 'Agent'}
                     {listing.profiles.user_type === 'dealer' && 'Concessionnaire'}
                   </Badge>
+                  {listing.profiles.phone && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {listing.profiles.phone}
+                    </p>
+                  )}
                 </div>
               </div>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate(`/profile/${listing.seller_id}`)}
+              >
+                Voir toutes les annonces de ce vendeur
+              </Button>
             </CardContent>
           </Card>
         )}
