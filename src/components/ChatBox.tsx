@@ -253,7 +253,7 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
           </ScrollArea>
 
           {/* Input */}
-          <div className="p-6 border-t border-border bg-card">
+          <div className="p-4 md:p-6 pb-6 md:pb-8 border-t border-border bg-card">
             <div className="flex gap-3">
               <Textarea
                 value={newMessage}
