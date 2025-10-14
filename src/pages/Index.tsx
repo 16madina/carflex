@@ -54,25 +54,14 @@ const Index = () => {
         setPremiumCars(premiumListings);
       }
 
-      // Fetch featured cars
-      const { data } = await supabase
+      // Fetch latest cars (show all recent cars, not just featured)
+      const { data: latestData } = await supabase
         .from("sale_listings")
         .select("*")
-        .eq("is_featured", true)
-        .limit(3);
+        .order("created_at", { ascending: false })
+        .limit(6);
 
-      if (data && data.length > 0) {
-        setFeaturedCars(data);
-      } else {
-        // Fallback to latest cars if no featured cars
-        const { data: latestData } = await supabase
-          .from("sale_listings")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(3);
-
-        setFeaturedCars(latestData || []);
-      }
+      setFeaturedCars(latestData || []);
 
       // Fetch rental cars
       const { data: rentalData } = await supabase
@@ -80,7 +69,7 @@ const Index = () => {
         .select("*")
         .eq("available", true)
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(6);
 
       setRentalCars(rentalData || []);
     };

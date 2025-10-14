@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useCountry } from "@/contexts/CountryContext";
 
 interface PremiumPackage {
   id: string;
@@ -35,6 +36,7 @@ interface UserListing {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { formatPrice } = useCountry();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -329,8 +331,8 @@ const Profile = () => {
                                 </div>
                                 <Badge variant="outline">
                                   {listing.type === 'sale' 
-                                    ? `${listing.price} DH` 
-                                    : `${listing.price_per_day} DH/jour`}
+                                    ? formatPrice(listing.price || 0)
+                                    : `${formatPrice(listing.price_per_day || 0)}/jour`}
                                 </Badge>
                               </div>
                               <Button 
