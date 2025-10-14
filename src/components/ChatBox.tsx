@@ -33,8 +33,13 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
 
   useEffect(() => {
     initChat();
-    setupRealtimeSubscription();
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
+  }, [conversationId, currentUserId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -43,6 +48,13 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
   const initChat = async () => {
     setLoading(true);
     try {
+      if (!conversationId) {
+        console.error("No conversation ID provided");
+        toast.error("ID de conversation invalide");
+        setLoading(false);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error("No user found");
@@ -51,8 +63,11 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
       }
 
       setCurrentUserId(user.id);
+      console.log("Fetching messages for conversation:", conversationId);
       await fetchMessages();
+      console.log("Marking messages as read for user:", user.id);
       await markMessagesAsRead(user.id);
+      console.log("Chat initialized successfully");
     } catch (error) {
       console.error("Error initializing chat:", error);
       toast.error("Erreur lors du chargement du chat");
@@ -62,27 +77,41 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
   };
 
   const fetchMessages = async () => {
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching messages:", error);
-      toast.error("Erreur lors du chargement des messages");
-    } else {
+      if (error) {
+        console.error("Error fetching messages:", error);
+        toast.error("Erreur lors du chargement des messages");
+        return;
+      }
+      
+      console.log("Messages fetched:", data?.length || 0);
       setMessages(data || []);
+    } catch (error) {
+      console.error("Unexpected error in fetchMessages:", error);
     }
   };
 
   const markMessagesAsRead = async (userId: string) => {
-    await supabase
-      .from("messages")
-      .update({ is_read: true })
-      .eq("conversation_id", conversationId)
-      .neq("sender_id", userId)
-      .eq("is_read", false);
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("conversation_id", conversationId)
+        .neq("sender_id", userId)
+        .eq("is_read", false);
+      
+      if (error) {
+        console.error("Error marking messages as read:", error);
+      }
+    } catch (error) {
+      console.error("Unexpected error in markMessagesAsRead:", error);
+    }
   };
 
   const setupRealtimeSubscription = () => {
