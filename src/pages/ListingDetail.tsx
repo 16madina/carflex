@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   Calendar, 
   Gauge, 
@@ -22,7 +24,14 @@ import {
   Heart,
   Share2,
   ArrowLeft,
-  MessageCircle
+  MessageCircle,
+  Palette,
+  Car,
+  Users,
+  Wrench,
+  Shield,
+  AlertCircle,
+  User as UserIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -49,7 +58,17 @@ const ListingDetail = () => {
     
     const { data, error } = await supabase
       .from("sale_listings")
-      .select("*")
+      .select(`
+        *,
+        profiles!sale_listings_seller_id_fkey (
+          first_name,
+          last_name,
+          user_type,
+          avatar_url,
+          phone,
+          email
+        )
+      `)
       .eq("id", id)
       .single();
 
@@ -182,9 +201,35 @@ const ListingDetail = () => {
           </p>
         </div>
 
+        {/* Seller Info */}
+        {listing.profiles && (
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={listing.profiles.avatar_url} />
+                  <AvatarFallback>
+                    <UserIcon className="h-8 w-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">
+                    {listing.profiles.first_name} {listing.profiles.last_name}
+                  </h3>
+                  <Badge variant="secondary" className="mt-1">
+                    {listing.profiles.user_type === 'buyer' && 'Acheteur'}
+                    {listing.profiles.user_type === 'seller' && 'Vendeur'}
+                    {listing.profiles.user_type === 'dealer' && 'Concessionnaire'}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Specifications */}
         <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-          <h2 className="text-xl font-bold mb-4">Caractéristiques</h2>
+          <h2 className="text-xl font-bold mb-4">Caractéristiques principales</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-primary" />
@@ -213,6 +258,135 @@ const ListingDetail = () => {
                 <p className="text-sm text-muted-foreground">Carburant</p>
                 <p className="font-semibold capitalize">{listing.fuel_type}</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Specifications */}
+        <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
+          <h2 className="text-xl font-bold mb-4">Détails complets</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Exterior & Interior */}
+            {(listing.exterior_color || listing.interior_color) && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Palette className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Couleurs</h3>
+                </div>
+                {listing.exterior_color && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Extérieur</span>
+                    <span className="font-medium">{listing.exterior_color}</span>
+                  </div>
+                )}
+                {listing.interior_color && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Intérieur</span>
+                    <span className="font-medium">{listing.interior_color}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Body & Capacity */}
+            {(listing.body_type || listing.doors || listing.seats) && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Car className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Carrosserie</h3>
+                </div>
+                {listing.body_type && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Type</span>
+                    <span className="font-medium">{listing.body_type}</span>
+                  </div>
+                )}
+                {listing.doors && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Portes</span>
+                    <span className="font-medium">{listing.doors}</span>
+                  </div>
+                )}
+                {listing.seats && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Sièges</span>
+                    <span className="font-medium">{listing.seats}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Engine */}
+            {(listing.engine || listing.horsepower || listing.cylinders) && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Wrench className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Moteur</h3>
+                </div>
+                {listing.engine && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Type</span>
+                    <span className="font-medium">{listing.engine}</span>
+                  </div>
+                )}
+                {listing.horsepower && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Puissance</span>
+                    <span className="font-medium">{listing.horsepower} ch</span>
+                  </div>
+                )}
+                {listing.cylinders && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Cylindres</span>
+                    <span className="font-medium">{listing.cylinders}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* History */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Historique</h3>
+              </div>
+              {listing.condition && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">État</span>
+                  <Badge variant={listing.condition === 'new' ? 'default' : 'secondary'}>
+                    {listing.condition === 'new' ? 'Neuf' : 'Occasion'}
+                  </Badge>
+                </div>
+              )}
+              {listing.previous_owners !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Propriétaires</span>
+                  <span className="font-medium">{listing.previous_owners}</span>
+                </div>
+              )}
+              {listing.accidents !== undefined && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Accidents</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{listing.accidents}</span>
+                    {listing.accidents > 0 && <AlertCircle className="h-4 w-4 text-destructive" />}
+                  </div>
+                </div>
+              )}
+              {listing.clean_title !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Titre propre</span>
+                  <Badge variant={listing.clean_title ? 'default' : 'destructive'}>
+                    {listing.clean_title ? 'Oui' : 'Non'}
+                  </Badge>
+                </div>
+              )}
+              {listing.last_service && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Dernier service</span>
+                  <span className="font-medium">{new Date(listing.last_service).toLocaleDateString('fr-FR')}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

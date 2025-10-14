@@ -91,12 +91,38 @@ const Profile = () => {
   const fetchUserListings = async (userId: string) => {
     const { data: saleData } = await supabase
       .from("sale_listings")
-      .select("id, brand, model, year, price, images")
+      .select(`
+        id, 
+        brand, 
+        model, 
+        year, 
+        price, 
+        images,
+        seller_id,
+        profiles!sale_listings_seller_id_fkey (
+          first_name,
+          last_name,
+          user_type
+        )
+      `)
       .eq("seller_id", userId);
 
     const { data: rentalData } = await supabase
       .from("rental_listings")
-      .select("id, brand, model, year, price_per_day, images")
+      .select(`
+        id, 
+        brand, 
+        model, 
+        year, 
+        price_per_day, 
+        images,
+        owner_id,
+        profiles!rental_listings_owner_id_fkey (
+          first_name,
+          last_name,
+          user_type
+        )
+      `)
       .eq("owner_id", userId);
 
     const sales = (saleData || []).map(item => ({ ...item, type: 'sale' as const }));
@@ -328,6 +354,18 @@ const Profile = () => {
                                   <p className="text-sm text-muted-foreground">
                                     {listing.year} • {listing.type === 'sale' ? 'Vente' : 'Location'}
                                   </p>
+                                  {(listing as any).profiles && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Badge variant="secondary" className="text-xs">
+                                        {(listing as any).profiles.user_type === 'buyer' && 'Acheteur'}
+                                        {(listing as any).profiles.user_type === 'seller' && 'Vendeur'}
+                                        {(listing as any).profiles.user_type === 'dealer' && 'Concessionnaire'}
+                                      </Badge>
+                                      <span className="text-sm text-muted-foreground">
+                                        {(listing as any).profiles.first_name} {(listing as any).profiles.last_name}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                                 <Badge variant="outline">
                                   {listing.type === 'sale' 
