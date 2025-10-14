@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
+import { useCountry } from "@/contexts/CountryContext";
 
 interface PremiumPackage {
   id: string;
@@ -30,6 +31,7 @@ interface UserListing {
 
 const PromoteListing = () => {
   const navigate = useNavigate();
+  const { formatPrice } = useCountry();
   const [user, setUser] = useState<any>(null);
   const [packages, setPackages] = useState<PremiumPackage[]>([]);
   const [userListings, setUserListings] = useState<UserListing[]>([]);
@@ -198,7 +200,7 @@ const PromoteListing = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-3xl font-bold">{pkg.price} DH</p>
+                    <p className="text-3xl font-bold">{formatPrice(pkg.price)}</p>
                     <p className="text-sm text-muted-foreground">
                       pour {pkg.duration_days} jours
                     </p>
