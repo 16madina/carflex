@@ -175,50 +175,50 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="flex flex-col h-full bg-background">
       {loading ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <p className="text-gray-400 text-sm">Chargement...</p>
+            <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p className="text-muted-foreground text-sm">Chargement...</p>
           </div>
         </div>
       ) : (
         <>
           {/* Header */}
-          <div className="bg-gradient-to-r from-gray-900 to-black p-4 border-b border-gray-800 flex items-center justify-between">
+          <div className="bg-card p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="md:hidden text-gray-400 hover:text-white hover:bg-white/5"
+                className="md:hidden"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <Avatar className="h-10 w-10 ring-2 ring-yellow-500/20">
+              <Avatar className="h-10 w-10 ring-2 ring-accent/20">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-yellow-500/10 text-yellow-500">
+                <AvatarFallback className="bg-accent/10 text-accent">
                   <User className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold text-white">Conversation</h3>
-                <p className="text-xs text-gray-400">En ligne</p>
+                <h3 className="font-semibold text-foreground">Conversation</h3>
+                <p className="text-xs text-muted-foreground">En ligne</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="hidden md:flex text-gray-400 hover:text-white hover:bg-white/5"
+              className="hidden md:flex"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
           {/* Messages */}
-          <ScrollArea className="flex-1 p-4 bg-black">
+          <ScrollArea className="flex-1 p-4 bg-background">
             <div className="space-y-4">
               {messages.map((message) => {
                 const isOwnMessage = message.sender_id === currentUserId;
@@ -230,14 +230,14 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
                     <div
                       className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                         isOwnMessage
-                          ? "bg-gradient-to-br from-yellow-500 to-yellow-600 text-black shadow-lg shadow-yellow-500/20"
-                          : "bg-gray-800 text-white border border-gray-700"
+                          ? "bg-accent text-accent-foreground shadow-card"
+                          : "bg-muted text-foreground border border-border"
                       }`}
                     >
                       <p className="text-sm break-words">{message.content}</p>
                       <p
                         className={`text-xs mt-1 ${
-                          isOwnMessage ? "text-black/60" : "text-gray-500"
+                          isOwnMessage ? "text-accent-foreground/70" : "text-muted-foreground"
                         }`}
                       >
                         {format(new Date(message.created_at), "HH:mm")}
@@ -251,8 +251,8 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
           </ScrollArea>
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-800 bg-gradient-to-r from-gray-900 to-black">
-            <div className="flex gap-2">
+          <div className="p-6 border-t border-border bg-card">
+            <div className="flex gap-3">
               <Textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -263,17 +263,17 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
                   }
                 }}
                 placeholder="Tapez votre message..."
-                className="min-h-[44px] max-h-32 resize-none bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-yellow-500/50 focus:ring-yellow-500/20"
+                className="min-h-[44px] max-h-32 resize-none bg-background border-input text-foreground placeholder:text-muted-foreground"
                 disabled={sending}
               />
               <Button
                 onClick={(e) => sendMessage(e)}
                 disabled={!newMessage.trim() || sending}
                 size="icon"
-                className="h-[44px] w-[44px] bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black shadow-lg shadow-yellow-500/30 disabled:opacity-50"
+                className="h-[44px] w-[44px] bg-accent hover:bg-accent/90 text-accent-foreground shadow-card disabled:opacity-50"
               >
                 {sending ? (
-                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
