@@ -56,7 +56,7 @@ const ImageCarousel = ({ images, alt, showNavigation = true }: ImageCarouselProp
       </Carousel>
 
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <DialogContent className="max-w-5xl p-0">
+        <DialogContent className="max-w-5xl p-2">
           <Carousel 
             className="w-full" 
             opts={{ 

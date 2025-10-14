@@ -84,7 +84,7 @@ const CarCard = ({
 
       <CardContent className="p-5">
         <div className="mb-3">
-          <h3 className="font-bold text-xl mb-1">
+          <h3 className="font-bold text-lg mb-1">
             {brand} {model}
           </h3>
           <Badge variant="secondary">{transmission}</Badge>
@@ -107,7 +107,7 @@ const CarCard = ({
 
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-2xl font-bold text-accent">
+            <span className="text-xl font-bold text-accent">
               {formatPrice(price)}
             </span>
             {isRental && (

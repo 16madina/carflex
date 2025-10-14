@@ -32,6 +32,11 @@ interface UserListing {
   price?: number;
   price_per_day?: number;
   images?: any;
+  profiles?: {
+    first_name: string;
+    last_name: string;
+    user_type: string;
+  };
 }
 
 const Profile = () => {
@@ -348,26 +353,27 @@ const Profile = () => {
                             <div className="flex-1">
                               <div className="flex items-start justify-between mb-2">
                                 <div>
-                                  <h3 className="font-semibold text-lg">
+                                  <h3 className="font-semibold text-base">
                                     {listing.brand} {listing.model}
                                   </h3>
                                   <p className="text-sm text-muted-foreground">
                                     {listing.year} • {listing.type === 'sale' ? 'Vente' : 'Location'}
                                   </p>
-                                  {(listing as any).profiles && (
+                                  {listing.profiles && (
                                     <div className="flex items-center gap-2 mt-1">
                                       <Badge variant="secondary" className="text-xs">
-                                        {(listing as any).profiles.user_type === 'buyer' && 'Acheteur'}
-                                        {(listing as any).profiles.user_type === 'seller' && 'Vendeur'}
-                                        {(listing as any).profiles.user_type === 'dealer' && 'Concessionnaire'}
+                                        {listing.profiles.user_type === 'buyer' && 'Acheteur'}
+                                        {listing.profiles.user_type === 'seller' && 'Vendeur'}
+                                        {listing.profiles.user_type === 'agent' && 'Agent'}
+                                        {listing.profiles.user_type === 'dealer' && 'Concessionnaire'}
                                       </Badge>
-                                      <span className="text-sm text-muted-foreground">
-                                        {(listing as any).profiles.first_name} {(listing as any).profiles.last_name}
+                                      <span className="text-xs text-muted-foreground">
+                                        {listing.profiles.first_name} {listing.profiles.last_name}
                                       </span>
                                     </div>
                                   )}
                                 </div>
-                                <Badge variant="outline">
+                                <Badge variant="outline" className="text-sm">
                                   {listing.type === 'sale' 
                                     ? formatPrice(listing.price || 0)
                                     : `${formatPrice(listing.price_per_day || 0)}/jour`}

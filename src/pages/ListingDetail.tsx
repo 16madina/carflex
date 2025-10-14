@@ -165,7 +165,7 @@ const ListingDetail = () => {
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-2xl font-bold">
                 {listing.brand} {listing.model}
               </h1>
               <DealRatingBadge listingId={id!} listingType="sale" />
@@ -196,7 +196,7 @@ const ListingDetail = () => {
         {/* Price */}
         <div className="bg-gradient-card rounded-lg p-6 mb-6">
           <p className="text-sm text-muted-foreground mb-1">Prix</p>
-          <p className="text-4xl font-bold text-accent">
+          <p className="text-2xl font-bold text-accent">
             {formatPrice(listing.price)}
           </p>
         </div>
