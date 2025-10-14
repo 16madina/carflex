@@ -188,7 +188,7 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
       ) : (
         <>
           {/* Header */}
-          <div className="bg-card p-4 border-b border-border flex items-center justify-between">
+          <div className="bg-card p-4 border-b border-border flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -253,8 +253,8 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
           </ScrollArea>
 
           {/* Input */}
-          <div className="p-4 md:p-6 pb-6 md:pb-8 border-t border-border bg-card">
-            <div className="flex gap-3">
+          <div className="p-4 border-t border-border bg-card flex-shrink-0">
+            <form onSubmit={sendMessage} className="flex gap-3">
               <Textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -269,7 +269,7 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
                 disabled={sending}
               />
               <Button
-                onClick={(e) => sendMessage(e)}
+                type="submit"
                 disabled={!newMessage.trim() || sending}
                 size="icon"
                 className="h-[44px] w-[44px] bg-accent hover:bg-accent/90 text-accent-foreground shadow-card disabled:opacity-50"
@@ -280,7 +280,7 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
                   <Send className="h-4 w-4" />
                 )}
               </Button>
-            </div>
+            </form>
           </div>
         </>
       )}

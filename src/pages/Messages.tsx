@@ -266,7 +266,7 @@ const Messages = () => {
         </div>
 
         {/* ChatBox - Colonne droite */}
-        <div className="flex-1 flex flex-col bg-background">
+        <div className={`flex-1 flex flex-col bg-background ${selectedConversation ? '' : 'hidden md:flex'}`}>
           {selectedConversation ? (
             (() => {
               const conv = conversations.find(c => c.id === selectedConversation);
@@ -287,7 +287,7 @@ const Messages = () => {
               );
             })()
           ) : (
-            <div className="hidden md:flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
               <MessageCircle className="h-20 w-20 text-muted-foreground mb-4 opacity-50" />
               <h2 className="text-xl font-semibold mb-2">Sélectionnez une conversation</h2>
               <p className="text-muted-foreground max-w-md">
@@ -298,10 +298,12 @@ const Messages = () => {
         </div>
       </div>
 
-      {/* BottomNav uniquement sur mobile */}
-      <div className="md:hidden">
-        <BottomNav />
-      </div>
+      {/* BottomNav uniquement sur mobile quand pas de conversation sélectionnée */}
+      {!selectedConversation && (
+        <div className="md:hidden">
+          <BottomNav />
+        </div>
+      )}
     </div>
   );
 };
