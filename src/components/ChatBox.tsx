@@ -181,40 +181,32 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-[400px] h-[650px] flex flex-col shadow-2xl rounded-3xl border-0 bg-black/95 backdrop-blur-sm overflow-hidden">
+    <Card className="fixed bottom-4 right-4 w-[400px] h-[600px] flex flex-col shadow-elevated rounded-2xl border-0">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black/80 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b bg-card rounded-t-2xl">
         <div className="flex items-center gap-3">
-          <Avatar className="h-11 w-11 ring-2 ring-yellow-500/20">
-            <AvatarFallback className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black">
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="bg-primary text-primary-foreground">
               <UserIcon className="h-5 w-5" />
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h3 className="font-semibold text-white text-base">Messagerie</h3>
-            <p className="text-xs text-gray-400">En ligne</p>
-          </div>
+          <h3 className="font-semibold">Messagerie</h3>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onClose} 
-          className="rounded-full hover:bg-white/10 text-gray-400 hover:text-white"
-        >
+        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
           <X className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4 bg-black">
+      <ScrollArea className="flex-1 p-4">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-center text-gray-500 text-sm">
+            <p className="text-center text-muted-foreground text-sm">
               Aucun message pour le moment
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {messages.map((message, index) => {
               const isOwn = message.sender_id === currentUserId;
               const showAvatar = index === messages.length - 1 || 
@@ -226,31 +218,26 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
                   className={`flex gap-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}
                 >
                   {!isOwn && (
-                    <Avatar className={`h-8 w-8 flex-shrink-0 ${showAvatar ? '' : 'invisible'}`}>
-                      <AvatarFallback className="bg-gray-800 text-gray-400 border border-gray-700">
+                    <Avatar className={`h-7 w-7 flex-shrink-0 ${showAvatar ? '' : 'invisible'}`}>
+                      <AvatarFallback className="bg-muted text-muted-foreground">
                         <UserIcon className="h-4 w-4" />
                       </AvatarFallback>
                     </Avatar>
                   )}
-                  <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} max-w-[75%]`}>
+                  <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} max-w-[70%]`}>
                     <div
-                      className={`rounded-3xl px-5 py-3 ${
+                      className={`rounded-2xl px-4 py-2 ${
                         isOwn
-                          ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-br-lg shadow-lg shadow-yellow-500/20"
-                          : "bg-gray-900 text-white rounded-bl-lg border border-gray-800"
+                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          : "bg-muted text-foreground rounded-bl-md"
                       }`}
                     >
-                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                      <p className="text-sm break-words">{message.content}</p>
                     </div>
                     {showAvatar && (
-                      <div className={`flex items-center gap-1 mt-1.5 px-2 ${isOwn ? 'flex-row' : 'flex-row'}`}>
-                        <span className="text-xs text-gray-500">
-                          il y a {format(new Date(message.created_at), "HH:mm", { locale: fr })}
-                        </span>
-                        {isOwn && (
-                          <span className="text-gray-500 text-xs">✓</span>
-                        )}
-                      </div>
+                      <span className="text-xs text-muted-foreground mt-1 px-1">
+                        {format(new Date(message.created_at), "HH:mm", { locale: fr })}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -262,7 +249,7 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
       </ScrollArea>
 
       {/* Input */}
-      <form onSubmit={sendMessage} className="p-4 border-t border-white/10 flex items-end gap-3 bg-black/80 rounded-b-3xl">
+      <form onSubmit={sendMessage} className="p-3 border-t flex items-end gap-2 bg-card rounded-b-2xl">
         <Textarea
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
@@ -274,16 +261,16 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
           }}
           placeholder="Écrivez un message..."
           disabled={sending}
-          className="min-h-[50px] max-h-[120px] resize-none rounded-3xl bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus:border-yellow-500/50 focus:ring-yellow-500/20"
+          className="min-h-[44px] max-h-[120px] resize-none rounded-3xl"
           rows={1}
         />
         <Button 
           type="submit" 
           size="icon" 
           disabled={sending || !newMessage.trim()}
-          className="rounded-full h-12 w-12 flex-shrink-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black shadow-lg shadow-yellow-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-full h-10 w-10 flex-shrink-0"
         >
-          <Send className="h-5 w-5" />
+          <Send className="h-4 w-4" />
         </Button>
       </form>
     </Card>
