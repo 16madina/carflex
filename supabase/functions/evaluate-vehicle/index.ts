@@ -20,6 +20,33 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Generate vehicle image
+    const imagePrompt = `A professional, high-quality photograph of a ${year} ${brand} ${model} car in ${condition} condition. The car should be shown from a 3/4 front angle in a clean, modern showroom setting with good lighting. Photorealistic style.`;
+    
+    const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: imagePrompt
+          }
+        ],
+        modalities: ['image', 'text']
+      }),
+    });
+
+    let vehicleImage = null;
+    if (imageResponse.ok) {
+      const imageData = await imageResponse.json();
+      vehicleImage = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    }
+
     const prompt = `Tu es un expert en évaluation de véhicules. Analyse le véhicule suivant et fournis une estimation de prix détaillée basée sur les données du marché:
 
 Véhicule:
@@ -90,7 +117,7 @@ Sois précis et professionnel dans ton analyse.`;
     console.log('Evaluation completed successfully');
 
     return new Response(
-      JSON.stringify({ evaluation }),
+      JSON.stringify({ evaluation, vehicleImage }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

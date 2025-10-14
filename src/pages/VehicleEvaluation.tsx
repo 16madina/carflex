@@ -22,6 +22,7 @@ const VehicleEvaluation = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [evaluation, setEvaluation] = useState<string | null>(null);
+  const [vehicleImage, setVehicleImage] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     brand: "",
@@ -46,6 +47,7 @@ const VehicleEvaluation = () => {
       if (error) throw error;
 
       setEvaluation(data.evaluation);
+      setVehicleImage(data.vehicleImage);
       toast.success("Évaluation terminée !");
     } catch (error) {
       console.error('Error:', error);
@@ -215,13 +217,72 @@ const VehicleEvaluation = () => {
             </form>
 
             {evaluation && (
-              <div className="mt-8 p-6 bg-gradient-to-br from-accent/5 to-accent/10 rounded-xl border-2 border-accent/30 shadow-inner">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-6 w-6 text-accent" />
-                  <h3 className="font-bold text-xl text-accent">Résultat de l'évaluation</h3>
-                </div>
-                <div className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground/90 leading-relaxed">
-                  {evaluation}
+              <div className="mt-8 space-y-6">
+                {vehicleImage && (
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl animate-fade-in">
+                    <img 
+                      src={vehicleImage} 
+                      alt={`${formData.brand} ${formData.model}`}
+                      className="w-full h-64 object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                      <h4 className="text-white font-bold text-xl">
+                        {formData.brand} {formData.model} {formData.year}
+                      </h4>
+                      <p className="text-white/90 text-sm">
+                        {parseInt(formData.mileage).toLocaleString()} km • {formData.city}, {formData.country}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 rounded-2xl border-2 border-orange-400/40 p-6 shadow-lg animate-fade-in">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-orange-500 rounded-full p-2">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="font-bold text-2xl text-orange-600 dark:text-orange-400">
+                      Résultat de l'évaluation
+                    </h3>
+                  </div>
+                  
+                  <div className="prose prose-sm max-w-none text-foreground/90 leading-relaxed space-y-4">
+                    {evaluation.split('\n\n').map((section, index) => (
+                      <div key={index} className="bg-white/50 dark:bg-black/20 rounded-lg p-4 backdrop-blur-sm">
+                        {section.split('\n').map((line, lineIndex) => {
+                          // Check if line is a header (starts with ** or #)
+                          if (line.startsWith('**') && line.endsWith('**')) {
+                            return (
+                              <h4 key={lineIndex} className="font-bold text-lg text-orange-600 dark:text-orange-400 mb-2">
+                                {line.replace(/\*\*/g, '')}
+                              </h4>
+                            );
+                          }
+                          if (line.startsWith('#')) {
+                            return (
+                              <h5 key={lineIndex} className="font-semibold text-base text-foreground mt-3 mb-1">
+                                {line.replace(/^#+\s/, '')}
+                              </h5>
+                            );
+                          }
+                          // Check if line is a bullet point
+                          if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+                            return (
+                              <li key={lineIndex} className="ml-4 text-foreground/80">
+                                {line.replace(/^[-•]\s*/, '')}
+                              </li>
+                            );
+                          }
+                          // Regular text
+                          return line.trim() ? (
+                            <p key={lineIndex} className="text-foreground/90">
+                              {line}
+                            </p>
+                          ) : null;
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
