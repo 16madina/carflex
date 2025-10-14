@@ -29,48 +29,39 @@ const SellType = () => {
     <div className="min-h-screen bg-primary pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-4 text-white hover:bg-white/10"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour
-        </Button>
-
-        <div className="max-w-4xl mx-auto space-y-6">
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
           <div className="grid md:grid-cols-2 gap-6">
             <Card 
-              className="cursor-pointer hover:shadow-xl transition-all hover:scale-105 bg-white"
+              className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] bg-white border-0 shadow-lg overflow-hidden"
               onClick={() => navigate("/sell/vendre")}
             >
-              <CardContent className="flex flex-col items-center justify-center p-8 space-y-4">
-                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
-                  <DollarSign className="w-12 h-12 text-primary" />
+              <CardContent className="flex flex-col items-center justify-center p-10 space-y-6">
+                <div className="w-28 h-28 rounded-full bg-primary/10 flex items-center justify-center">
+                  <DollarSign className="w-14 h-14 text-primary" strokeWidth={2.5} />
                 </div>
-                <h2 className="text-2xl font-bold text-center">
+                <h2 className="text-2xl font-bold text-center text-foreground leading-tight">
                   Je veux vendre<br />mon véhicule
                 </h2>
               </CardContent>
             </Card>
 
             <Card 
-              className="cursor-pointer hover:shadow-xl transition-all hover:scale-105 bg-white"
+              className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] bg-white border-0 shadow-lg overflow-hidden"
               onClick={() => navigate("/sell/louer")}
             >
-              <CardContent className="flex flex-col items-center justify-center p-8 space-y-4">
-                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Key className="w-12 h-12 text-primary" />
+              <CardContent className="flex flex-col items-center justify-center p-10 space-y-6">
+                <div className="w-28 h-28 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Key className="w-14 h-14 text-primary" strokeWidth={2.5} />
                 </div>
-                <h2 className="text-2xl font-bold text-center">
+                <h2 className="text-2xl font-bold text-center text-foreground leading-tight">
                   Je veux louer<br />mon véhicule
                 </h2>
               </CardContent>
             </Card>
           </div>
 
-          <p className="text-center text-white text-lg">
+          <p className="text-center text-white text-lg font-medium px-4">
             La publication est rapide et gratuite. Commencez dès maintenant !
           </p>
         </div>
