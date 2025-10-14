@@ -6,8 +6,9 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, Crown } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2 } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -90,10 +91,36 @@ const Profile = () => {
                     <UserIcon className="h-10 w-10" />
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h2 className="text-2xl font-bold">
-                    {profile?.first_name} {profile?.last_name}
-                  </h2>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-2xl font-bold">
+                      {profile?.first_name} {profile?.last_name}
+                    </h2>
+                    {profile?.user_type === "buyer" && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <ShoppingCart className="h-3 w-3" />
+                        Acheteur
+                      </Badge>
+                    )}
+                    {profile?.user_type === "seller" && (
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
+                        <Store className="h-3 w-3" />
+                        Vendeur
+                      </Badge>
+                    )}
+                    {profile?.user_type === "agent" && (
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-800 hover:bg-blue-200">
+                        <UserCheck className="h-3 w-3" />
+                        Agent
+                      </Badge>
+                    )}
+                    {profile?.user_type === "dealer" && (
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-purple-100 text-purple-800 hover:bg-purple-200">
+                        <Building2 className="h-3 w-3" />
+                        Concessionnaire
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-muted-foreground">{profile?.email}</p>
                 </div>
               </div>

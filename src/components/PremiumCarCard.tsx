@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
+import ImageCarousel from "@/components/ImageCarousel";
 
 interface PremiumCarCardProps {
   id: string;
@@ -52,18 +53,18 @@ const PremiumCarCard = ({
   return (
     <Card className="overflow-hidden hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
       <div className="relative">
-        <img
-          src={images[0] || "/placeholder.svg"}
+        <ImageCarousel 
+          images={images.length > 0 ? images : ["/placeholder.svg"]} 
           alt={`${brand} ${model}`}
-          className="w-full h-48 object-cover"
+          showNavigation={false}
         />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 z-10">
           <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center gap-1">
             <Zap className="h-3 w-3" />
             Premium
           </Badge>
         </div>
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 z-10">
           <Button
             variant="ghost"
             size="icon"
@@ -80,7 +81,7 @@ const PremiumCarCard = ({
             />
           </Button>
         </div>
-        <div className="absolute bottom-3 left-3">
+        <div className="absolute bottom-3 left-3 z-10">
           <Badge className={`${qualityInfo.color} text-white font-medium`}>
             {qualityInfo.label}
           </Badge>

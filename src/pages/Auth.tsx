@@ -324,18 +324,6 @@ const Auth = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-phone">Téléphone <span className="text-destructive">*</span></Label>
-                    <Input
-                      id="signup-phone"
-                      type="tel"
-                      placeholder="+225 01 23 45 67 89"
-                      value={signupData.phone}
-                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                      required
-                    />
-                  </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="signup-country">Pays <span className="text-destructive">*</span></Label>
@@ -363,6 +351,18 @@ const Auth = () => {
                       country={signupData.country}
                       value={signupData.city}
                       onChange={(city) => setSignupData({ ...signupData, city })}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Téléphone <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+225 01 23 45 67 89"
+                      value={signupData.phone}
+                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
                       required
                     />
                   </div>
