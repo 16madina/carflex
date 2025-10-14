@@ -58,6 +58,7 @@ const CarCard = ({
             <ImageCarousel 
               images={displayImages} 
               alt={`${brand} ${model}`}
+              showNavigation={false}
             />
           </div>
         ) : (

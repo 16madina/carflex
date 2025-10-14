@@ -5,9 +5,10 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 interface ImageCarouselProps {
   images: string[];
   alt: string;
+  showNavigation?: boolean;
 }
 
-const ImageCarousel = ({ images, alt }: ImageCarouselProps) => {
+const ImageCarousel = ({ images, alt, showNavigation = true }: ImageCarouselProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -46,7 +47,7 @@ const ImageCarousel = ({ images, alt }: ImageCarouselProps) => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        {images.length > 1 && (
+        {showNavigation && images.length > 1 && (
           <>
             <CarouselPrevious className="left-2" />
             <CarouselNext className="right-2" />
