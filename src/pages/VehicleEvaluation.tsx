@@ -15,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { CAR_BRANDS } from "@/constants/vehicles";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { CAR_BRANDS, CAR_MODELS } from "@/constants/vehicles";
 
 const VehicleEvaluation = () => {
   const navigate = useNavigate();
@@ -55,54 +55,75 @@ const VehicleEvaluation = () => {
     }
   };
 
+  const availableModels = formData.brand ? CAR_MODELS[formData.brand] || [] : [];
+
   return (
-    <div className="min-h-screen bg-primary pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-8">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-4 text-white hover:bg-white/10"
+          className="mb-6 text-white hover:bg-white/10 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
 
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl">Évaluation de véhicule</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="brand">Marque *</Label>
-                <Select
-                  value={formData.brand}
-                  onValueChange={(value) => setFormData({ ...formData, brand: value })}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une marque" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CAR_BRANDS.map((brand) => (
-                      <SelectItem key={brand} value={brand}>
-                        {brand}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-accent/20 rounded-full mb-4">
+              <Sparkles className="h-8 w-8 text-accent" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">Évaluation intelligente</h1>
+            <p className="text-white/70">Obtenez une estimation précise basée sur le marché local</p>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="model">Modèle *</Label>
-                <Input
-                  id="model"
-                  value={formData.model}
-                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                  required
-                />
+          <Card className="shadow-2xl border-accent/20">
+            <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="brand">Marque *</Label>
+                  <Select
+                    value={formData.brand}
+                    onValueChange={(value) => setFormData({ ...formData, brand: value, model: "" })}
+                    required
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Sélectionner une marque" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {CAR_BRANDS.map((brand) => (
+                        <SelectItem key={brand} value={brand}>
+                          {brand}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="model">Modèle *</Label>
+                  <Select
+                    value={formData.model}
+                    onValueChange={(value) => setFormData({ ...formData, model: value })}
+                    required
+                    disabled={!formData.brand}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder={formData.brand ? "Sélectionner un modèle" : "Choisissez d'abord une marque"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {availableModels.map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -174,28 +195,39 @@ const VehicleEvaluation = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full bg-accent hover:bg-accent/90 text-white font-semibold py-6 text-lg shadow-lg transition-all hover:shadow-xl" 
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Évaluation en cours...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Analyse en cours...
                   </>
                 ) : (
-                  "Obtenir l'évaluation"
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Obtenir l'évaluation AI
+                  </>
                 )}
               </Button>
             </form>
 
             {evaluation && (
-              <div className="mt-6 p-6 bg-accent/10 rounded-lg border border-accent/20">
-                <h3 className="font-bold text-lg mb-3 text-accent">Résultat de l'évaluation</h3>
-                <div className="prose prose-sm max-w-none whitespace-pre-wrap">
+              <div className="mt-8 p-6 bg-gradient-to-br from-accent/5 to-accent/10 rounded-xl border-2 border-accent/30 shadow-inner">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-6 w-6 text-accent" />
+                  <h3 className="font-bold text-xl text-accent">Résultat de l'évaluation</h3>
+                </div>
+                <div className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground/90 leading-relaxed">
                   {evaluation}
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
+        </div>
       </main>
 
       <BottomNav />

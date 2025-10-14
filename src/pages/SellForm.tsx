@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { CAR_BRANDS, BODY_TYPES, AVAILABLE_DOCUMENTS } from "@/constants/vehicles";
+import { CAR_BRANDS, BODY_TYPES, AVAILABLE_DOCUMENTS, CAR_MODELS } from "@/constants/vehicles";
 
 const SellForm = () => {
   const navigate = useNavigate();
@@ -221,6 +221,7 @@ const SellForm = () => {
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
+  const availableModels = formData.brand ? CAR_MODELS[formData.brand] || [] : [];
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -260,7 +261,7 @@ const SellForm = () => {
                       <SelectTrigger id="brand">
                         <SelectValue placeholder="Sélectionnez une marque" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[300px]">
                         {CAR_BRANDS.map((brand) => (
                           <SelectItem key={brand} value={brand}>
                             {brand}
@@ -272,13 +273,23 @@ const SellForm = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor="model">Modèle *</Label>
-                    <Input
-                      id="model"
-                      placeholder="Série 3"
+                    <Select
                       value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                      onValueChange={(value) => setFormData({ ...formData, model: value })}
                       required
-                    />
+                      disabled={!formData.brand}
+                    >
+                      <SelectTrigger id="model">
+                        <SelectValue placeholder={formData.brand ? "Sélectionnez un modèle" : "Choisissez d'abord une marque"} />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {availableModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
