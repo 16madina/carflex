@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import DealRatingBadge from "./DealRatingBadge";
+import ImageCarousel from "./ImageCarousel";
 
 interface CarCardProps {
   id: string;
@@ -15,6 +16,7 @@ interface CarCardProps {
   mileage: number;
   city: string;
   image?: string;
+  images?: string[];
   transmission: string;
   isFavorite?: boolean;
   onFavoriteToggle?: () => void;
@@ -30,6 +32,7 @@ const CarCard = ({
   mileage,
   city,
   image,
+  images,
   transmission,
   isFavorite = false,
   onFavoriteToggle,
@@ -42,35 +45,38 @@ const CarCard = ({
     navigate(isRental ? `/rental/${id}` : `/listing/${id}`);
   };
 
+  const displayImages = images && images.length > 0 ? images : (image ? [image] : []);
+
   return (
     <Card 
       className="group overflow-hidden hover:shadow-elevated transition-all duration-300 cursor-pointer"
       onClick={handleCardClick}
     >
       <div className="relative h-48 overflow-hidden">
-        {image ? (
-          <img
-            src={image}
-            alt={`${brand} ${model}`}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+        {displayImages.length > 0 ? (
+          <div onClick={(e) => e.stopPropagation()}>
+            <ImageCarousel 
+              images={displayImages} 
+              alt={`${brand} ${model}`}
+            />
+          </div>
         ) : (
-          <div className="w-full h-full bg-gradient-card flex items-center justify-center">
+          <div className="w-full h-48 bg-gradient-card flex items-center justify-center">
             <span className="text-muted-foreground">Image non disponible</span>
           </div>
         )}
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-3 right-3 rounded-full shadow-lg"
+          className="absolute top-3 right-3 rounded-full shadow-lg z-10"
           onClick={(e) => {
-            e.preventDefault();
+            e.stopPropagation();
             onFavoriteToggle?.();
           }}
         >
           <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
         </Button>
-        <div className="absolute bottom-3 left-3">
+        <div className="absolute bottom-3 left-3 z-10">
           <DealRatingBadge listingId={id} listingType={isRental ? "rental" : "sale"} />
         </div>
       </div>

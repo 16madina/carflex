@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import CarCard from "@/components/CarCard";
 import PremiumCarCard from "@/components/PremiumCarCard";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -11,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
+  const [rentalCars, setRentalCars] = useState<any[]>([]);
   const [premiumCars, setPremiumCars] = useState<any[]>([]);
 
   useEffect(() => {
@@ -71,6 +73,16 @@ const Index = () => {
 
         setFeaturedCars(latestData || []);
       }
+
+      // Fetch rental cars
+      const { data: rentalData } = await supabase
+        .from("rental_listings")
+        .select("*")
+        .eq("available", true)
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      setRentalCars(rentalData || []);
     };
 
     fetchCars();
@@ -121,7 +133,7 @@ const Index = () => {
         </section>
       )}
 
-      {/* Featured Cars Section */}
+      {/* Featured Cars Section with Tabs */}
       <section className="py-20 container mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div>
@@ -130,30 +142,61 @@ const Index = () => {
               Découvrez notre sélection des meilleures offres
             </p>
           </div>
-          <Button variant="outline" asChild>
-            <Link to="/listings">
-              Voir tout
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredCars.map((car) => (
-            <CarCard
-              key={car.id}
-              id={car.id}
-              brand={car.brand}
-              model={car.model}
-              year={car.year}
-              price={car.price}
-              mileage={car.mileage}
-              city={car.city}
-              transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
-              image={Array.isArray(car.images) && car.images.length > 0 ? car.images[0] : undefined}
-            />
-          ))}
-        </div>
+        <Tabs defaultValue="sale" className="w-full">
+          <div className="flex items-center justify-between mb-6">
+            <TabsList>
+              <TabsTrigger value="sale">Vente</TabsTrigger>
+              <TabsTrigger value="rental">Location</TabsTrigger>
+            </TabsList>
+            <Button variant="outline" asChild>
+              <Link to="/listings">
+                Voir tout
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <TabsContent value="sale">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCars.map((car) => (
+                <CarCard
+                  key={car.id}
+                  id={car.id}
+                  brand={car.brand}
+                  model={car.model}
+                  year={car.year}
+                  price={car.price}
+                  mileage={car.mileage}
+                  city={car.city}
+                  transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                  images={Array.isArray(car.images) ? car.images : []}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="rental">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {rentalCars.map((car) => (
+                <CarCard
+                  key={car.id}
+                  id={car.id}
+                  brand={car.brand}
+                  model={car.model}
+                  year={car.year}
+                  price={car.price_per_day}
+                  mileage={car.mileage}
+                  city={car.city}
+                  transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                  images={Array.isArray(car.images) ? car.images : []}
+                  isRental={true}
+                />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </section>
 
       {/* CTA Section */}

@@ -35,19 +35,21 @@ const ImageCarousel = ({ images, alt }: ImageCarouselProps) => {
                 <img
                   src={image}
                   alt={`${alt} - Image ${index + 1}`}
-                  className="w-full h-[400px] object-cover rounded-lg shadow-card"
+                  className="w-full h-48 object-cover"
                 />
-                <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full text-sm">
-                  {index + 1} / {images.length}
-                </div>
+                {images.length > 1 && (
+                  <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs">
+                    {index + 1} / {images.length}
+                  </div>
+                )}
               </div>
             </CarouselItem>
           ))}
         </CarouselContent>
         {images.length > 1 && (
           <>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
           </>
         )}
       </Carousel>
