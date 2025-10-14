@@ -11,6 +11,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface ChatBoxProps {
   conversationId: string;
   onClose: () => void;
+  otherParticipantName?: string;
+  otherParticipantAvatar?: string;
 }
 
 interface Message {
@@ -21,7 +23,7 @@ interface Message {
   is_read: boolean;
 }
 
-const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
+const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -196,14 +198,14 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <Avatar className="h-10 w-10 ring-2 ring-accent/20">
-                <AvatarImage src="" />
-                <AvatarFallback className="bg-accent/10 text-accent">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={otherParticipantAvatar} alt={otherParticipantName} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
                   <User className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold text-foreground">Conversation</h3>
+                <h3 className="font-semibold text-foreground">{otherParticipantName}</h3>
                 <p className="text-xs text-muted-foreground">En ligne</p>
               </div>
             </div>

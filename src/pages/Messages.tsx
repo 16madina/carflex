@@ -268,10 +268,24 @@ const Messages = () => {
         {/* ChatBox - Colonne droite */}
         <div className="flex-1 flex flex-col bg-background">
           {selectedConversation ? (
-            <ChatBox 
-              conversationId={selectedConversation}
-              onClose={() => setSelectedConversation(null)}
-            />
+            (() => {
+              const conv = conversations.find(c => c.id === selectedConversation);
+              const otherParticipant = conv?.participant1_id === currentUserId 
+                ? conv?.participant2_profile 
+                : conv?.participant1_profile;
+              const participantName = otherParticipant 
+                ? `${otherParticipant.first_name} ${otherParticipant.last_name}`
+                : "Utilisateur";
+              
+              return (
+                <ChatBox 
+                  conversationId={selectedConversation}
+                  onClose={() => setSelectedConversation(null)}
+                  otherParticipantName={participantName}
+                  otherParticipantAvatar={otherParticipant?.avatar_url}
+                />
+              );
+            })()
           ) : (
             <div className="hidden md:flex flex-col items-center justify-center h-full text-center p-8">
               <MessageCircle className="h-20 w-20 text-muted-foreground mb-4 opacity-50" />
