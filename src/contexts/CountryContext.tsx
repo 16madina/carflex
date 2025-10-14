@@ -109,6 +109,15 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     currencySymbol: 'FG',
     exchangeRate: 14,
     dialCode: '+224'
+  },
+  {
+    code: 'MA',
+    name: 'Maroc',
+    flag: '🇲🇦',
+    currency: 'MAD',
+    currencySymbol: 'DH',
+    exchangeRate: 0.055,
+    dialCode: '+212'
   }
 ];
 
