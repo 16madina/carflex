@@ -59,9 +59,11 @@ const PremiumCarCard = ({
   const getPriceColorClass = (dealRating: string | null) => {
     switch(dealRating) {
       case 'excellent':
-      case 'good':
         return 'text-green-600';
+      case 'good':
+        return 'text-blue-600';
       case 'fair':
+        return 'text-amber-600';
       case 'poor':
         return 'text-orange-500';
       default:
