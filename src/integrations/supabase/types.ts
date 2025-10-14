@@ -196,6 +196,13 @@ export type Database = {
             referencedRelation: "premium_packages"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "premium_listings_sale_listing_fk"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "sale_listings"
+            referencedColumns: ["id"]
+          },
         ]
       }
       premium_packages: {
