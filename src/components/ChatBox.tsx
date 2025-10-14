@@ -2,12 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, X, User as UserIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Send, X, User, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatBoxProps {
@@ -176,108 +174,115 @@ const ChatBox = ({ conversationId, onClose }: ChatBoxProps) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  if (loading) {
-    return (
-      <Card className="fixed bottom-4 right-4 w-96 h-[500px] flex items-center justify-center shadow-elevated">
-        <p className="text-muted-foreground">Chargement...</p>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="fixed bottom-4 right-4 w-[400px] h-[600px] flex flex-col shadow-elevated rounded-2xl border-0">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card rounded-t-2xl">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              <UserIcon className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
-          <h3 className="font-semibold">Messagerie</h3>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-          <X className="h-5 w-5" />
-        </Button>
-      </div>
-
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-center text-muted-foreground text-sm">
-              Aucun message pour le moment
-            </p>
+    <div className="flex flex-col h-full bg-gradient-to-br from-gray-900 via-black to-gray-900">
+      {loading ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p className="text-gray-400 text-sm">Chargement...</p>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {messages.map((message, index) => {
-              const isOwn = message.sender_id === currentUserId;
-              const showAvatar = index === messages.length - 1 || 
-                messages[index + 1]?.sender_id !== message.sender_id;
-              
-              return (
-                <div
-                  key={message.id}
-                  className={`flex gap-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}
-                >
-                  {!isOwn && (
-                    <Avatar className={`h-7 w-7 flex-shrink-0 ${showAvatar ? '' : 'invisible'}`}>
-                      <AvatarFallback className="bg-muted text-muted-foreground">
-                        <UserIcon className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} max-w-[70%]`}>
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="bg-gradient-to-r from-gray-900 to-black p-4 border-b border-gray-800 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="md:hidden text-gray-400 hover:text-white hover:bg-white/5"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Avatar className="h-10 w-10 ring-2 ring-yellow-500/20">
+                <AvatarImage src="" />
+                <AvatarFallback className="bg-yellow-500/10 text-yellow-500">
+                  <User className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold text-white">Conversation</h3>
+                <p className="text-xs text-gray-400">En ligne</p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="hidden md:flex text-gray-400 hover:text-white hover:bg-white/5"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Messages */}
+          <ScrollArea className="flex-1 p-4 bg-black">
+            <div className="space-y-4">
+              {messages.map((message) => {
+                const isOwnMessage = message.sender_id === currentUserId;
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} animate-fade-in`}
+                  >
                     <div
-                      className={`rounded-2xl px-4 py-2 ${
-                        isOwn
-                          ? "bg-primary text-primary-foreground rounded-br-md"
-                          : "bg-muted text-foreground rounded-bl-md"
+                      className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+                        isOwnMessage
+                          ? "bg-gradient-to-br from-yellow-500 to-yellow-600 text-black shadow-lg shadow-yellow-500/20"
+                          : "bg-gray-800 text-white border border-gray-700"
                       }`}
                     >
                       <p className="text-sm break-words">{message.content}</p>
+                      <p
+                        className={`text-xs mt-1 ${
+                          isOwnMessage ? "text-black/60" : "text-gray-500"
+                        }`}
+                      >
+                        {format(new Date(message.created_at), "HH:mm")}
+                      </p>
                     </div>
-                    {showAvatar && (
-                      <span className="text-xs text-muted-foreground mt-1 px-1">
-                        {format(new Date(message.created_at), "HH:mm", { locale: fr })}
-                      </span>
-                    )}
                   </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </ScrollArea>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
 
-      {/* Input */}
-      <form onSubmit={sendMessage} className="p-3 border-t flex items-end gap-2 bg-card rounded-b-2xl">
-        <Textarea
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              sendMessage(e);
-            }
-          }}
-          placeholder="Écrivez un message..."
-          disabled={sending}
-          className="min-h-[44px] max-h-[120px] resize-none rounded-3xl"
-          rows={1}
-        />
-        <Button 
-          type="submit" 
-          size="icon" 
-          disabled={sending || !newMessage.trim()}
-          className="rounded-full h-10 w-10 flex-shrink-0"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
-      </form>
-    </Card>
+          {/* Input */}
+          <div className="p-4 border-t border-gray-800 bg-gradient-to-r from-gray-900 to-black">
+            <div className="flex gap-2">
+              <Textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage(e);
+                  }
+                }}
+                placeholder="Tapez votre message..."
+                className="min-h-[44px] max-h-32 resize-none bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-yellow-500/50 focus:ring-yellow-500/20"
+                disabled={sending}
+              />
+              <Button
+                onClick={(e) => sendMessage(e)}
+                disabled={!newMessage.trim() || sending}
+                size="icon"
+                className="h-[44px] w-[44px] bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black shadow-lg shadow-yellow-500/30 disabled:opacity-50"
+              >
+                {sending ? (
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 

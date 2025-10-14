@@ -136,111 +136,135 @@ const Messages = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="flex flex-col h-screen bg-background">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour
-        </Button>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Liste des conversations - Colonne gauche */}
+        <div className={`
+          ${selectedConversation ? 'hidden md:flex' : 'flex'} 
+          flex-col w-full md:w-[380px] border-r border-border bg-card
+        `}>
+          {/* Header */}
+          <div className="p-4 border-b border-border">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="mb-3"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Button>
+            <h1 className="text-2xl font-bold">Messages</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {conversations.length} conversation{conversations.length > 1 ? 's' : ''}
+            </p>
+          </div>
 
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Messages</h1>
-          <p className="text-muted-foreground">
-            Gérez vos conversations avec les acheteurs et vendeurs
-          </p>
-        </div>
-
-        {conversations.length === 0 ? (
-          <Card className="shadow-card">
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <MessageCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Aucune conversation pour le moment
+          {/* Liste scrollable */}
+          <div className="flex-1 overflow-y-auto">
+            {conversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <MessageCircle className="h-16 w-16 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground font-medium">
+                  Aucune conversation
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Vos conversations avec les vendeurs apparaîtront ici
+                  Vos messages apparaîtront ici
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {conversations.map((conv) => {
-              // Détermine l'autre participant
-              const otherParticipant = conv.participant1_id === currentUserId 
-                ? conv.participant2_profile 
-                : conv.participant1_profile;
-              
-              const lastMessage = conv.messages?.[conv.messages.length - 1];
-              const hasUnreadMessages = conv.messages?.some(
-                msg => !msg.is_read && msg.sender_id !== currentUserId
-              );
+            ) : (
+              <div className="p-2">
+                {conversations.map((conv) => {
+                  const otherParticipant = conv.participant1_id === currentUserId 
+                    ? conv.participant2_profile 
+                    : conv.participant1_profile;
+                  
+                  const lastMessage = conv.messages?.[conv.messages.length - 1];
+                  const hasUnreadMessages = conv.messages?.some(
+                    msg => !msg.is_read && msg.sender_id !== currentUserId
+                  );
 
-              const participantName = otherParticipant 
-                ? `${otherParticipant.first_name} ${otherParticipant.last_name}`
-                : "Utilisateur";
+                  const participantName = otherParticipant 
+                    ? `${otherParticipant.first_name} ${otherParticipant.last_name}`
+                    : "Utilisateur";
 
-              return (
-                <Card
-                  key={conv.id}
-                  className={`cursor-pointer hover:bg-accent/50 transition-smooth border-0 ${
-                    hasUnreadMessages ? 'bg-accent/20' : ''
-                  }`}
-                  onClick={() => setSelectedConversation(conv.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar className="h-14 w-14">
-                          <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} />
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            <UserIcon className="h-7 w-7" />
-                          </AvatarFallback>
-                        </Avatar>
-                        {hasUnreadMessages && (
-                          <div className="absolute -top-1 -right-1 h-3 w-3 bg-blue-500 rounded-full border-2 border-background" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h3 className={`font-semibold truncate ${hasUnreadMessages ? 'text-foreground' : ''}`}>
-                            {participantName}
-                          </h3>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {lastMessage && format(new Date(lastMessage.created_at), "HH:mm", { locale: fr })}
-                          </span>
+                  const isSelected = selectedConversation === conv.id;
+
+                  return (
+                    <div
+                      key={conv.id}
+                      className={`
+                        p-3 rounded-lg cursor-pointer transition-all mb-1
+                        ${isSelected ? 'bg-accent' : 'hover:bg-accent/50'}
+                        ${hasUnreadMessages ? 'bg-accent/20' : ''}
+                      `}
+                      onClick={() => setSelectedConversation(conv.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              <UserIcon className="h-6 w-6" />
+                            </AvatarFallback>
+                          </Avatar>
+                          {hasUnreadMessages && (
+                            <div className="absolute -top-1 -right-1 h-4 w-4 bg-blue-500 rounded-full border-2 border-card flex items-center justify-center">
+                              <span className="text-[10px] font-bold text-white">
+                                {conv.messages.filter(m => !m.is_read && m.sender_id !== currentUserId).length}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <p className={`text-sm truncate ${
-                          hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'
-                        }`}>
-                          {lastMessage?.sender_id === currentUserId && "Vous: "}
-                          {lastMessage?.content || "Nouvelle conversation"}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-0.5">
+                            <h3 className={`font-semibold truncate ${hasUnreadMessages ? 'text-foreground' : ''}`}>
+                              {participantName}
+                            </h3>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {lastMessage && format(new Date(lastMessage.created_at), "HH:mm", { locale: fr })}
+                            </span>
+                          </div>
+                          <p className={`text-sm truncate ${
+                            hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'
+                          }`}>
+                            {lastMessage?.sender_id === currentUserId && "Vous: "}
+                            {lastMessage?.content || "Nouvelle conversation"}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-      </main>
+        </div>
 
-      <BottomNav />
+        {/* ChatBox - Colonne droite */}
+        <div className="flex-1 flex flex-col bg-background">
+          {selectedConversation ? (
+            <ChatBox 
+              conversationId={selectedConversation}
+              onClose={() => setSelectedConversation(null)}
+            />
+          ) : (
+            <div className="hidden md:flex flex-col items-center justify-center h-full text-center p-8">
+              <MessageCircle className="h-20 w-20 text-muted-foreground mb-4 opacity-50" />
+              <h2 className="text-xl font-semibold mb-2">Sélectionnez une conversation</h2>
+              <p className="text-muted-foreground max-w-md">
+                Choisissez une conversation dans la liste pour commencer à discuter
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
-      {selectedConversation && (
-        <ChatBox 
-          conversationId={selectedConversation}
-          onClose={() => setSelectedConversation(null)}
-        />
-      )}
+      {/* BottomNav uniquement sur mobile */}
+      <div className="md:hidden">
+        <BottomNav />
+      </div>
     </div>
   );
 };
