@@ -184,11 +184,23 @@ const Index = () => {
         </div>
 
         <Tabs defaultValue="sale" className="w-full">
+          <TabsList className="h-auto p-1 bg-muted/50 mb-8">
+            <TabsTrigger 
+              value="sale" 
+              className="text-lg px-8 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Vente
+            </TabsTrigger>
+            <TabsTrigger 
+              value="rental"
+              className="text-lg px-8 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Location
+            </TabsTrigger>
+          </TabsList>
+          
           <div className="flex items-center justify-between mb-6">
-            <TabsList>
-              <TabsTrigger value="sale">Vente</TabsTrigger>
-              <TabsTrigger value="rental">Location</TabsTrigger>
-            </TabsList>
+            <div></div>
             <div className="flex gap-2">
               <AdvancedFilters
                 listingType="sale"
