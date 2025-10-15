@@ -170,8 +170,15 @@ const Profile = () => {
     }
 
     try {
+      console.log('Initiation du paiement...');
       const { data: sessionData } = await supabase.auth.getSession();
       
+      console.log('Appel de l\'edge function avec:', {
+        package_id: selectedPackage,
+        listing_id: selectedListing,
+        listing_type: listing.type
+      });
+
       const { data, error } = await supabase.functions.invoke('initiate-payment', {
         body: {
           package_id: selectedPackage,
@@ -183,17 +190,24 @@ const Profile = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('Réponse edge function:', { data, error });
+
+      if (error) {
+        console.error('Erreur edge function:', error);
+        throw error;
+      }
 
       if (data?.url) {
+        console.log('Redirection vers:', data.url);
         // Rediriger vers la page de paiement Fedapay
         window.location.href = data.url;
       } else {
+        console.error('Pas d\'URL dans la réponse:', data);
         throw new Error("URL de paiement non reçue");
       }
 
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Erreur complète:', error);
       toast.error("Impossible d'initier le paiement");
       setSubmitting(false);
     }
