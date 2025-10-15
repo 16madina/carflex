@@ -207,7 +207,7 @@ const Bookings = () => {
       <main className="container mx-auto px-4 py-8 pb-24">
         <h1 className="text-3xl font-bold mb-6">Mes réservations</h1>
 
-        <Tabs defaultValue="my-bookings" className="w-full">
+        <Tabs defaultValue={receivedBookings.filter(b => b.status === 'pending').length > 0 ? "received" : "my-bookings"} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="my-bookings">
               Mes locations
