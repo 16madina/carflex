@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'CarFlex',
   webDir: 'dist',
   server: {
-    url: 'https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com?forceHideBadge=true',
+    url: 'https://caflexapp.com',
     cleartext: true
   },
   ios: {
