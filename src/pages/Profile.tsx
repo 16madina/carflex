@@ -163,37 +163,40 @@ const Profile = () => {
 
     setSubmitting(true);
 
-    const pkg = packages.find(p => p.id === selectedPackage);
-    if (!pkg) return;
-
     const listing = userListings.find(l => l.id === selectedListing);
-    if (!listing) return;
-
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + pkg.duration_days);
-
-    const { error } = await supabase
-      .from("premium_listings")
-      .insert([{
-        listing_id: selectedListing,
-        listing_type: listing.type,
-        package_id: selectedPackage,
-        user_id: user.id,
-        end_date: endDate.toISOString(),
-      }]);
-
-    setSubmitting(false);
-
-    if (error) {
-      toast.error("Impossible de promouvoir l'annonce");
-      console.error(error);
+    if (!listing) {
+      setSubmitting(false);
       return;
     }
 
-    toast.success("Annonce promue avec succès !");
-    setDialogOpen(false);
-    setSelectedListing("");
-    setSelectedPackage("");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('initiate-payment', {
+        body: {
+          package_id: selectedPackage,
+          listing_id: selectedListing,
+          listing_type: listing.type
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Rediriger vers la page de paiement Fedapay
+        window.location.href = data.url;
+      } else {
+        throw new Error("URL de paiement non reçue");
+      }
+
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error("Impossible d'initier le paiement");
+      setSubmitting(false);
+    }
   };
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
