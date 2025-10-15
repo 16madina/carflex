@@ -9,14 +9,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, LayoutDashboard, LogOut, LogIn, UserCircle } from "lucide-react";
+import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 const UserMenu = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [pendingBookings, setPendingBookings] = useState(0);
 
   useEffect(() => {
     // Check current session
@@ -24,6 +26,7 @@ const UserMenu = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+        fetchPendingBookings(session.user.id);
       }
     });
 
@@ -32,8 +35,10 @@ const UserMenu = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+        fetchPendingBookings(session.user.id);
       } else {
         setProfile(null);
+        setPendingBookings(0);
       }
     });
 
@@ -48,6 +53,43 @@ const UserMenu = () => {
       .single();
     
     setProfile(data);
+  };
+
+  const fetchPendingBookings = async (userId: string) => {
+    const { count } = await supabase
+      .from("rental_bookings")
+      .select("*", { count: 'exact', head: true })
+      .eq("owner_id", userId)
+      .eq("status", "pending");
+    
+    setPendingBookings(count || 0);
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('pending-bookings')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rental_bookings',
+          filter: `owner_id=eq.${userId}`
+        },
+        () => {
+          // Refetch count when changes occur
+          supabase
+            .from("rental_bookings")
+            .select("*", { count: 'exact', head: true })
+            .eq("owner_id", userId)
+            .eq("status", "pending")
+            .then(({ count }) => setPendingBookings(count || 0));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const handleLogout = async () => {
@@ -75,6 +117,14 @@ const UserMenu = () => {
               <User className="h-5 w-5" />
             </AvatarFallback>
           </Avatar>
+          {pendingBookings > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]"
+            >
+              {pendingBookings}
+            </Badge>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-background" align="end" forceMount>
@@ -89,6 +139,15 @@ const UserMenu = () => {
           </div>
         </div>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/bookings")}>
+          <Calendar className="mr-2 h-4 w-4" />
+          <span className="flex-1">Mes réservations</span>
+          {pendingBookings > 0 && (
+            <Badge variant="destructive" className="ml-2">
+              {pendingBookings}
+            </Badge>
+          )}
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/dashboard")}>
           <LayoutDashboard className="mr-2 h-4 w-4" />
           Dashboard
