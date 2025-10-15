@@ -19,16 +19,27 @@ export const useConversation = (listingId: string, sellerId: string, listingType
         return;
       }
 
-      // Check if conversation already exists
+      // Check if conversation already exists (with any listing_type)
       const { data: existing } = await supabase
         .from("conversations")
-        .select("id")
+        .select("id, listing_type")
         .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${sellerId}),and(participant1_id.eq.${sellerId},participant2_id.eq.${user.id})`)
         .eq("listing_id", listingId)
-        .eq("listing_type", listingType)
         .maybeSingle();
 
       if (existing) {
+        // Si le listing_type est incorrect, le corriger
+        if (existing.listing_type !== listingType) {
+          const { error: updateError } = await supabase
+            .from("conversations")
+            .update({ listing_type: listingType })
+            .eq("id", existing.id);
+
+          if (updateError) {
+            console.error("Error updating conversation listing_type:", updateError);
+          }
+        }
+        
         setConversationId(existing.id);
         setLoading(false);
         return;
