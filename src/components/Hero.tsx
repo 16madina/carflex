@@ -32,11 +32,11 @@ const Hero = () => {
 
       <div className="container mx-auto px-4 relative z-10 py-8">
         <div className="max-w-2xl text-primary-foreground">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight whitespace-nowrap">
             Trouvez votre voiture idéale
           </h1>
           <p className="text-lg mb-6 text-primary-foreground/90">
-            Des milliers de véhicules à vendre et à louer dans toute la France
+            Des milliers de véhicules à vendre et à louer dans toute l'Afrique
           </p>
 
           <div className="bg-background rounded-xl p-4 shadow-elevated">
