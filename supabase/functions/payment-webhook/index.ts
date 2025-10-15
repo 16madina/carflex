@@ -79,10 +79,32 @@ serve(async (req) => {
 
     console.log('Premium activé avec succès pour:', metadata.listing_id);
 
-    return new Response(
-      JSON.stringify({ message: 'Paiement traité avec succès' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    // Redirection vers l'application
+    // Détecter si la requête vient d'une app mobile via le User-Agent ou un header personnalisé
+    const userAgent = req.headers.get('user-agent') || '';
+    const isMobile = userAgent.includes('Capacitor') || req.headers.get('x-mobile-app') === 'true';
+    
+    if (isMobile) {
+      // Deep link pour mobile
+      const deepLink = `carflex://payment-success?transaction_id=${payload.entity?.id}&listing_id=${metadata.listing_id}`;
+      return new Response(
+        JSON.stringify({ 
+          message: 'Paiement traité avec succès',
+          redirect_url: deepLink
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else {
+      // URL web classique
+      const webUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/payment-success?listing_id=${metadata.listing_id}`;
+      return new Response(
+        JSON.stringify({ 
+          message: 'Paiement traité avec succès',
+          redirect_url: webUrl
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
   } catch (error) {
     console.error('Erreur webhook:', error);
