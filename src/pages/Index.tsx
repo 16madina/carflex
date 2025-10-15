@@ -1,6 +1,7 @@
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import Hero from "@/components/Hero";
+import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
 import PremiumCarCard from "@/components/PremiumCarCard";
 import { Button } from "@/components/ui/button";
@@ -243,46 +244,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4">CarFlex</h3>
-              <p className="text-sm text-muted-foreground">
-                La plateforme de référence pour acheter, vendre et louer des véhicules.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Acheter</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/listings" className="hover:text-primary">Toutes les annonces</Link></li>
-                <li><Link to="/listings" className="hover:text-primary">Voitures neuves</Link></li>
-                <li><Link to="/listings" className="hover:text-primary">Voitures d'occasion</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Vendre</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/sell" className="hover:text-primary">Créer une annonce</Link></li>
-                <li><Link to="/sell" className="hover:text-primary">Estimateur de prix</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">À propos</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Contact</a></li>
-                <li><a href="#" className="hover:text-primary">Aide</a></li>
-                <li><a href="#" className="hover:text-primary">CGU</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            © 2025 CarFlex. Tous droits réservés.
-          </div>
-        </div>
-      </footer>
-
+      <Footer />
       <BottomNav />
     </div>
   );

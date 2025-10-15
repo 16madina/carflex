@@ -20,6 +20,9 @@ import Favorites from "./pages/Favorites";
 import AdminPanel from "./pages/AdminPanel";
 import PromoteListing from "./pages/PromoteListing";
 import Dashboard from "./pages/Dashboard";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import DataProtection from "./pages/DataProtection";
 import NotFound from "./pages/NotFound";
 import AuthSync from "./components/AuthSync";
 
@@ -50,6 +53,9 @@ const App = () => (
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/promote" element={<PromoteListing />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/data-protection" element={<DataProtection />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
