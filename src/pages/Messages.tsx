@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useConversation } from "@/hooks/useConversation";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import ChatBox from "@/components/ChatBox";
@@ -42,14 +43,31 @@ interface Conversation {
 
 const Messages = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlUserId = searchParams.get("userId");
+  const urlListingId = searchParams.get("listingId");
+  
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // Use the conversation hook to get or create conversation from URL params
+  const { conversationId: urlConversationId, loading: conversationLoading } = useConversation(
+    urlListingId || "",
+    urlUserId || ""
+  );
+
   useEffect(() => {
     checkAuthAndFetchConversations();
   }, []);
+
+  // Auto-select conversation when URL params are present
+  useEffect(() => {
+    if (urlConversationId && !conversationLoading) {
+      setSelectedConversation(urlConversationId);
+    }
+  }, [urlConversationId, conversationLoading]);
 
   const checkAuthAndFetchConversations = async () => {
     const { data: { user } } = await supabase.auth.getUser();
