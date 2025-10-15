@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           id: string
           listing_id: string | null
+          listing_type: string
           participant1_id: string
           participant2_id: string
           updated_at: string
@@ -27,6 +28,7 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id?: string | null
+          listing_type: string
           participant1_id: string
           participant2_id: string
           updated_at?: string
@@ -35,19 +37,12 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id?: string | null
+          listing_type?: string
           participant1_id?: string
           participant2_id?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "conversations_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "sale_listings"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       favorites: {
         Row: {

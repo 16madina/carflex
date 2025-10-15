@@ -25,10 +25,11 @@ interface Conversation {
   participant1_id: string;
   participant2_id: string;
   listing_id: string;
+  listing_type: string;
   updated_at: string;
   participant1_profile?: Profile;
   participant2_profile?: Profile;
-  sale_listings: {
+  listing?: {
     brand: string;
     model: string;
     images: any;
@@ -46,6 +47,7 @@ const Messages = () => {
   const [searchParams] = useSearchParams();
   const urlUserId = searchParams.get("userId");
   const urlListingId = searchParams.get("listingId");
+  const urlListingType = searchParams.get("listingType") as 'sale' | 'rental' || 'sale';
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,8 @@ const Messages = () => {
   // Use the conversation hook to get or create conversation from URL params
   const { conversationId: urlConversationId, loading: conversationLoading } = useConversation(
     urlListingId || "",
-    urlUserId || ""
+    urlUserId || "",
+    urlListingType
   );
 
   useEffect(() => {
@@ -88,11 +91,6 @@ const Messages = () => {
         .from("conversations")
         .select(`
           *,
-          sale_listings (
-            brand,
-            model,
-            images
-          ),
           messages (
             content,
             created_at,
@@ -110,11 +108,21 @@ const Messages = () => {
         return;
       }
 
-      // Récupérer les profils des participants
+      // Récupérer les profils des participants et les listings
       const participantIds = new Set<string>();
+      const saleListingIds: string[] = [];
+      const rentalListingIds: string[] = [];
+      
       data?.forEach(conv => {
         participantIds.add(conv.participant1_id);
         participantIds.add(conv.participant2_id);
+        if (conv.listing_id) {
+          if (conv.listing_type === 'sale') {
+            saleListingIds.push(conv.listing_id);
+          } else if (conv.listing_type === 'rental') {
+            rentalListingIds.push(conv.listing_id);
+          }
+        }
       });
 
       const { data: profiles } = await supabase
@@ -122,15 +130,41 @@ const Messages = () => {
         .select("id, first_name, last_name, avatar_url")
         .in("id", Array.from(participantIds));
 
-      // Créer un map des profils
-      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      // Fetch sale listings
+      const { data: saleListings } = saleListingIds.length > 0 ? await supabase
+        .from("sale_listings")
+        .select("id, brand, model, images")
+        .in("id", saleListingIds) : { data: [] };
 
-      // Ajouter les profils aux conversations
-      const conversationsWithProfiles = data?.map(conv => ({
-        ...conv,
-        participant1_profile: profilesMap.get(conv.participant1_id),
-        participant2_profile: profilesMap.get(conv.participant2_id),
-      })) || [];
+      // Fetch rental listings
+      const { data: rentalListings } = rentalListingIds.length > 0 ? await supabase
+        .from("rental_listings")
+        .select("id, brand, model, images")
+        .in("id", rentalListingIds) : { data: [] };
+
+      // Créer des maps
+      const profilesMap = new Map(profiles?.map(p => [p.id, p] as const) || []);
+      const saleListingsMap = new Map(saleListings?.map(l => [l.id, l] as const) || []);
+      const rentalListingsMap = new Map(rentalListings?.map(l => [l.id, l] as const) || []);
+
+      // Ajouter les profils et listings aux conversations
+      const conversationsWithProfiles = data?.map(conv => {
+        let listing = null;
+        if (conv.listing_id) {
+          if (conv.listing_type === 'sale') {
+            listing = saleListingsMap.get(conv.listing_id);
+          } else if (conv.listing_type === 'rental') {
+            listing = rentalListingsMap.get(conv.listing_id);
+          }
+        }
+        
+        return {
+          ...conv,
+          participant1_profile: profilesMap.get(conv.participant1_id),
+          participant2_profile: profilesMap.get(conv.participant2_id),
+          listing,
+        };
+      }) || [];
 
       setConversations(conversationsWithProfiles as Conversation[]);
     } catch (error) {
@@ -209,9 +243,9 @@ const Messages = () => {
 
                   const isSelected = selectedConversation === conv.id;
 
-                  const listingImage = conv.sale_listings?.images?.[0] || null;
-                  const vehicleInfo = conv.sale_listings 
-                    ? `${conv.sale_listings.brand} ${conv.sale_listings.model}`
+                  const listingImage = conv.listing?.images?.[0] || null;
+                  const vehicleInfo = conv.listing 
+                    ? `${conv.listing.brand} ${conv.listing.model}`
                     : "Annonce";
 
                   return (

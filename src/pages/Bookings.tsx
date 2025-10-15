@@ -121,9 +121,8 @@ const Bookings = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleSendMessage = async (renterId: string, listingId: string) => {
-    // Navigate to messages page with conversation params
-    navigate(`/messages?userId=${renterId}&listingId=${listingId}`);
+  const handleSendMessage = (renterId: string, listingId: string) => {
+    navigate(`/messages?userId=${renterId}&listingId=${listingId}&listingType=rental`);
   };
 
   const BookingCard = ({ booking, isOwner = false }: { booking: any; isOwner?: boolean }) => {

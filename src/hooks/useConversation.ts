@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const useConversation = (listingId: string, sellerId: string) => {
+export const useConversation = (listingId: string, sellerId: string, listingType: 'sale' | 'rental' = 'sale') => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getOrCreateConversation();
-  }, [listingId, sellerId]);
+  }, [listingId, sellerId, listingType]);
 
   const getOrCreateConversation = async () => {
     try {
@@ -25,6 +25,7 @@ export const useConversation = (listingId: string, sellerId: string) => {
         .select("id")
         .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${sellerId}),and(participant1_id.eq.${sellerId},participant2_id.eq.${user.id})`)
         .eq("listing_id", listingId)
+        .eq("listing_type", listingType)
         .maybeSingle();
 
       if (existing) {
@@ -39,7 +40,8 @@ export const useConversation = (listingId: string, sellerId: string) => {
         .insert({
           participant1_id: user.id,
           participant2_id: sellerId,
-          listing_id: listingId
+          listing_id: listingId,
+          listing_type: listingType
         })
         .select("id")
         .single();
