@@ -286,6 +286,71 @@ export type Database = {
         }
         Relationships: []
       }
+      rental_bookings: {
+        Row: {
+          cancellation_reason: string | null
+          created_at: string
+          daily_rate: number
+          end_date: string
+          id: string
+          notes: string | null
+          owner_id: string
+          payment_id: string | null
+          payment_status: string
+          rental_listing_id: string
+          renter_id: string
+          start_date: string
+          status: string
+          total_days: number
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          cancellation_reason?: string | null
+          created_at?: string
+          daily_rate: number
+          end_date: string
+          id?: string
+          notes?: string | null
+          owner_id: string
+          payment_id?: string | null
+          payment_status?: string
+          rental_listing_id: string
+          renter_id: string
+          start_date: string
+          status?: string
+          total_days: number
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          cancellation_reason?: string | null
+          created_at?: string
+          daily_rate?: number
+          end_date?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          payment_id?: string | null
+          payment_status?: string
+          rental_listing_id?: string
+          renter_id?: string
+          start_date?: string
+          status?: string
+          total_days?: number
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_bookings_rental_listing_id_fkey"
+            columns: ["rental_listing_id"]
+            isOneToOne: false
+            referencedRelation: "rental_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rental_listings: {
         Row: {
           available: boolean | null

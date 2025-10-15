@@ -13,6 +13,7 @@ import SellForm from "./pages/SellForm";
 import RentForm from "./pages/RentForm";
 import VehicleEvaluation from "./pages/VehicleEvaluation";
 import Messages from "./pages/Messages";
+import Bookings from "./pages/Bookings";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
 import PublicProfile from "./pages/PublicProfile";
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/sell/louer" element={<RentForm />} />
           <Route path="/sell/evaluer" element={<VehicleEvaluation />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/bookings" element={<Bookings />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />
           <Route path="/profile/:userId" element={<PublicProfile />} />

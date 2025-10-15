@@ -10,6 +10,7 @@ import AddReview from "@/components/AddReview";
 import FinanceCalculator from "@/components/FinanceCalculator";
 import DealRatingBadge from "@/components/DealRatingBadge";
 import ReviewsSection from "@/components/ReviewsSection";
+import BookingRequest from "@/components/BookingRequest";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -319,27 +320,27 @@ const RentalDetail = () => {
 
         <Separator className="my-6" />
 
-        {/* Tabs for Contact */}
-        <Tabs defaultValue="contact" className="mb-6">
-          <TabsList className="grid w-full grid-cols-1">
+        {/* Tabs for Contact & Booking */}
+        <Tabs defaultValue="booking" className="mb-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="booking">Réserver</TabsTrigger>
             <TabsTrigger value="contact">Contact</TabsTrigger>
           </TabsList>
           
+          <TabsContent value="booking" className="space-y-4">
+            <BookingRequest listing={listing} />
+          </TabsContent>
+
           <TabsContent value="contact" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button 
-                size="lg" 
-                className="w-full"
-                onClick={handleContactOwner}
-                disabled={convLoading}
-              >
-                <MessageCircle className="h-5 w-5 mr-2" />
-                Contacter le propriétaire
-              </Button>
-              <Button size="lg" variant="outline" className="w-full">
-                Réserver maintenant
-              </Button>
-            </div>
+            <Button 
+              size="lg" 
+              className="w-full"
+              onClick={handleContactOwner}
+              disabled={convLoading}
+            >
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Contacter le propriétaire
+            </Button>
           </TabsContent>
         </Tabs>
       </main>
