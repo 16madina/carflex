@@ -132,16 +132,13 @@ const CountryContext = createContext<CountryContextType | undefined>(undefined);
 
 export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(() => {
-    const saved = localStorage.getItem('selectedCountry');
-    if (saved) {
-      return JSON.parse(saved);
-    }
+    // Ne pas utiliser localStorage pour le pays par défaut
+    // Toujours commencer avec la Côte d'Ivoire
     return WEST_AFRICAN_COUNTRIES[1]; // Default: Côte d'Ivoire
   });
 
-  useEffect(() => {
-    localStorage.setItem('selectedCountry', JSON.stringify(selectedCountry));
-  }, [selectedCountry]);
+  // Ne plus sauvegarder automatiquement le pays dans localStorage
+  // Le pays sera synchronisé depuis le profil utilisateur via AuthSync
 
   const convertPrice = (price: number, fromCurrency: string = 'XOF'): number => {
     // Convert from source currency to XOF first

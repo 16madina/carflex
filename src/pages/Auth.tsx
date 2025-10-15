@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Car, Upload } from "lucide-react";
+import { Car, Upload, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { WEST_AFRICAN_COUNTRIES } from "@/contexts/CountryContext";
 import CitySelector from "@/components/CitySelector";
@@ -19,15 +19,18 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
     firstName: "",
     lastName: "",
     phone: "",
-    country: WEST_AFRICAN_COUNTRIES[0].code,
+    country: WEST_AFRICAN_COUNTRIES[1].code, // Côte d'Ivoire par défaut
     city: "",
     userType: "buyer" as "buyer" | "seller" | "agent" | "dealer",
     companyName: "",
@@ -91,6 +94,13 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation des mots de passe
+    if (signupData.password !== signupData.confirmPassword) {
+      toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -151,10 +161,15 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-card flex flex-col">
       <header className="border-b bg-background/95 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-            <Car className="h-6 w-6 text-primary" />
-            <span className="bg-gradient-hero bg-clip-text text-transparent">CarFlex</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="h-6 w-6" />
+            </Link>
+            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+              <Car className="h-6 w-6 text-primary" />
+              <span className="bg-gradient-hero bg-clip-text text-transparent">CarFlex</span>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -230,14 +245,23 @@ const Auth = () => {
                           Mot de passe oublié ?
                         </button>
                       </div>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="login-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={loginData.password}
+                          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? "Connexion..." : "Se connecter"}
@@ -314,14 +338,44 @@ const Auth = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Mot de passe <span className="text-destructive">*</span></Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={signupData.password}
-                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={signupData.password}
+                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Retaper le mot de passe <span className="text-destructive">*</span></Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-confirm-password"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={signupData.confirmPassword}
+                        onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
