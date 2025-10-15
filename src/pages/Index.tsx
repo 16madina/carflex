@@ -132,7 +132,7 @@ const Index = () => {
 
       {/* Premium Listings Section */}
       {premiumCars.length > 0 && (
-        <section className="py-8 bg-background">
+        <section className="py-6 bg-background">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Annonces Premium</h2>
@@ -173,7 +173,7 @@ const Index = () => {
       )}
 
       {/* Featured Cars Section with Tabs */}
-      <section className="py-20 container mx-auto px-4">
+      <section className="py-8 container mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div>
             <h2 className="text-3xl font-bold mb-2">Véhicules en vedette</h2>
