@@ -103,7 +103,8 @@ const ListingDetail = () => {
       return;
     }
 
-    setChatOpen(true);
+    // Redirect to Messages page
+    navigate("/messages");
   };
 
   const handleShare = () => {
