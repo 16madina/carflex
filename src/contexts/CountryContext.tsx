@@ -136,7 +136,7 @@ export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (saved) {
       return JSON.parse(saved);
     }
-    return WEST_AFRICAN_COUNTRIES[0]; // Default: Sénégal
+    return WEST_AFRICAN_COUNTRIES[1]; // Default: Côte d'Ivoire
   });
 
   useEffect(() => {

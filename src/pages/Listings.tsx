@@ -386,11 +386,26 @@ const Listings = () => {
 
                 <div className="space-y-2">
                   <Label>Pays</Label>
-                  <Input
-                    placeholder="Ex: France"
-                    value={filters.country}
-                    onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}
-                  />
+                  <Select value={filters.country} onValueChange={(value) => setFilters(prev => ({ ...prev, country: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tous les pays" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Tous les pays</SelectItem>
+                      <SelectItem value="Côte d'Ivoire">Côte d'Ivoire</SelectItem>
+                      <SelectItem value="Mali">Mali</SelectItem>
+                      <SelectItem value="Sénégal">Sénégal</SelectItem>
+                      <SelectItem value="Bénin">Bénin</SelectItem>
+                      <SelectItem value="Burkina Faso">Burkina Faso</SelectItem>
+                      <SelectItem value="Niger">Niger</SelectItem>
+                      <SelectItem value="Togo">Togo</SelectItem>
+                      <SelectItem value="Guinée-Bissau">Guinée-Bissau</SelectItem>
+                      <SelectItem value="Nigeria">Nigeria</SelectItem>
+                      <SelectItem value="Ghana">Ghana</SelectItem>
+                      <SelectItem value="Guinée">Guinée</SelectItem>
+                      <SelectItem value="Maroc">Maroc</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </SheetContent>
