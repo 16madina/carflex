@@ -228,22 +228,6 @@ const Index = () => {
         </Tabs>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-hero py-20">
-        <div className="container mx-auto px-4 text-center text-primary-foreground">
-          <h2 className="text-4xl font-bold mb-4">Prêt à vendre votre voiture ?</h2>
-          <p className="text-xl mb-8 text-primary-foreground/90">
-            Créez une annonce gratuitement en quelques minutes
-          </p>
-          <Button size="lg" variant="secondary" asChild>
-            <Link to="/sell">
-              Créer une annonce
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-      </section>
-
       <Footer />
       <BottomNav />
     </div>
