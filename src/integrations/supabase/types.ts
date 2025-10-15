@@ -343,10 +343,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "rental_bookings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rental_bookings_rental_listing_id_fkey"
             columns: ["rental_listing_id"]
             isOneToOne: false
             referencedRelation: "rental_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
