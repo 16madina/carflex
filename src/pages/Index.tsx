@@ -10,11 +10,25 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import AdvancedFilters, { FilterState } from "@/components/AdvancedFilters";
 
 const Index = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
   const [rentalCars, setRentalCars] = useState<any[]>([]);
   const [premiumCars, setPremiumCars] = useState<any[]>([]);
+  const [sortBy, setSortBy] = useState("created_at");
+  const [filters, setFilters] = useState<FilterState>({
+    priceMin: "",
+    priceMax: "",
+    mileageMin: "",
+    mileageMax: "",
+    yearMin: "",
+    yearMax: "",
+    fuelType: "all",
+    transmission: "all",
+    budgetMax: "",
+    sortBy: "created_at",
+  });
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -83,7 +97,7 @@ const Index = () => {
             user_type
           )
         `)
-        .order("created_at", { ascending: false })
+        .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
         .limit(6);
 
       console.log("Latest cars with profiles:", latestData);
@@ -101,7 +115,7 @@ const Index = () => {
           )
         `)
         .eq("available", true)
-        .order("created_at", { ascending: false })
+        .order(sortBy === "price_per_day" ? "price_per_day" : "created_at", { ascending: sortBy === "price" })
         .limit(6);
 
       console.log("Rental cars with profiles:", rentalData);
@@ -109,7 +123,7 @@ const Index = () => {
     };
 
     fetchCars();
-  }, []);
+  }, [sortBy]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -175,17 +189,41 @@ const Index = () => {
               <TabsTrigger value="sale">Vente</TabsTrigger>
               <TabsTrigger value="rental">Location</TabsTrigger>
             </TabsList>
-            <Button variant="outline" asChild>
-              <Link to="/listings">
-                Voir tout
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <AdvancedFilters
+                listingType="sale"
+                filters={filters}
+                onFiltersChange={setFilters}
+                onSortChange={setSortBy}
+                sortBy={sortBy}
+              />
+              <Button variant="outline" asChild>
+                <Link to="/listings">
+                  Voir tout
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <TabsContent value="sale">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredCars.map((car) => (
+              {featuredCars.filter((car) => {
+                const matchesPrice = 
+                  (!filters.priceMin || car.price >= parseInt(filters.priceMin)) &&
+                  (!filters.priceMax || car.price <= parseInt(filters.priceMax));
+                const matchesMileage = 
+                  (!filters.mileageMin || car.mileage >= parseInt(filters.mileageMin)) &&
+                  (!filters.mileageMax || car.mileage <= parseInt(filters.mileageMax));
+                const matchesYear = 
+                  (!filters.yearMin || car.year >= parseInt(filters.yearMin)) &&
+                  (!filters.yearMax || car.year <= parseInt(filters.yearMax));
+                const matchesFuel = filters.fuelType === "all" || car.fuel_type === filters.fuelType;
+                const matchesTransmission = filters.transmission === "all" || car.transmission === filters.transmission;
+                const matchesBudget = !filters.budgetMax || car.price <= parseInt(filters.budgetMax);
+                
+                return matchesPrice && matchesMileage && matchesYear && matchesFuel && matchesTransmission && matchesBudget;
+              }).map((car) => (
                 <CarCard
                   key={car.id}
                   id={car.id}
@@ -206,7 +244,21 @@ const Index = () => {
 
           <TabsContent value="rental">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rentalCars.map((car) => (
+              {rentalCars.filter((car) => {
+                const matchesPrice = 
+                  (!filters.priceMin || car.price_per_day >= parseInt(filters.priceMin)) &&
+                  (!filters.priceMax || car.price_per_day <= parseInt(filters.priceMax));
+                const matchesMileage = 
+                  (!filters.mileageMin || car.mileage >= parseInt(filters.mileageMin)) &&
+                  (!filters.mileageMax || car.mileage <= parseInt(filters.mileageMax));
+                const matchesYear = 
+                  (!filters.yearMin || car.year >= parseInt(filters.yearMin)) &&
+                  (!filters.yearMax || car.year <= parseInt(filters.yearMax));
+                const matchesFuel = filters.fuelType === "all" || car.fuel_type === filters.fuelType;
+                const matchesTransmission = filters.transmission === "all" || car.transmission === filters.transmission;
+                
+                return matchesPrice && matchesMileage && matchesYear && matchesFuel && matchesTransmission;
+              }).map((car) => (
                 <CarCard
                   key={car.id}
                   id={car.id}
