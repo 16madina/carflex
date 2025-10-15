@@ -41,9 +41,14 @@ const Listings = () => {
     budgetMax: ""
   });
 
+  // Sync country filter with selectedCountry
+  useEffect(() => {
+    setFilters(prev => ({ ...prev, country: selectedCountry.name }));
+  }, [selectedCountry]);
+
   useEffect(() => {
     fetchListings();
-  }, [sortBy, listingType]);
+  }, [sortBy, listingType, selectedCountry]);
 
   const fetchListings = async () => {
     setLoading(true);
@@ -55,6 +60,7 @@ const Listings = () => {
     let query = supabase
       .from(tableName)
       .select("*")
+      .eq("country", selectedCountry.name)
       .order(orderField, { ascending: sortBy === "price" || sortBy === "price_per_day" });
 
     const { data, error } = await query;

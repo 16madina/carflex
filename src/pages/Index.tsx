@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdvancedFilters, { FilterState } from "@/components/AdvancedFilters";
+import { useCountry } from "@/contexts/CountryContext";
 
 const Index = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
@@ -29,6 +30,8 @@ const Index = () => {
     budgetMax: "",
     sortBy: "created_at",
   });
+
+  const { selectedCountry } = useCountry();
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -59,6 +62,7 @@ const Index = () => {
         `)
         .eq("is_active", true)
         .eq("listing_type", "sale")
+        .eq("sale_listings.country", selectedCountry.name)
         .gte("end_date", new Date().toISOString())
         .order("created_at", { ascending: false })
         .limit(4);
@@ -97,6 +101,7 @@ const Index = () => {
             user_type
           )
         `)
+        .eq("country", selectedCountry.name)
         .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
         .limit(6);
 
@@ -115,6 +120,7 @@ const Index = () => {
           )
         `)
         .eq("available", true)
+        .eq("country", selectedCountry.name)
         .order(sortBy === "price_per_day" ? "price_per_day" : "created_at", { ascending: sortBy === "price" })
         .limit(6);
 
@@ -123,7 +129,7 @@ const Index = () => {
     };
 
     fetchCars();
-  }, [sortBy]);
+  }, [sortBy, selectedCountry]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
