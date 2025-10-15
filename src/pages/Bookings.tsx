@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Car, User, Check, X, Clock } from "lucide-react";
+import { Calendar, Car, User, Check, X, Clock, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useCountry } from "@/contexts/CountryContext";
@@ -121,9 +121,15 @@ const Bookings = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const handleSendMessage = async (renterId: string, listingId: string) => {
+    // Navigate to messages page with conversation params
+    navigate(`/messages?userId=${renterId}&listingId=${listingId}`);
+  };
+
   const BookingCard = ({ booking, isOwner = false }: { booking: any; isOwner?: boolean }) => {
     const listing = booking.rental_listings;
     const profile = isOwner ? booking.profiles : booking.profiles;
+    const otherUserId = isOwner ? booking.renter_id : booking.owner_id;
     
     return (
       <Card key={booking.id}>
@@ -161,31 +167,42 @@ const Bookings = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="font-semibold text-primary">
                   {formatPrice(parseFloat(booking.total_price))}
                 </span>
-                {isOwner && booking.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleUpdateStatus(booking.id, 'confirmed')}
-                      className="gap-1"
-                    >
-                      <Check className="h-4 w-4" />
-                      Accepter
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleUpdateStatus(booking.id, 'rejected')}
-                      className="gap-1"
-                    >
-                      <X className="h-4 w-4" />
-                      Refuser
-                    </Button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleSendMessage(otherUserId, listing.id)}
+                    className="gap-1"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Message
+                  </Button>
+                  {isOwner && booking.status === 'pending' && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpdateStatus(booking.id, 'confirmed')}
+                        className="gap-1"
+                      >
+                        <Check className="h-4 w-4" />
+                        Accepter
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleUpdateStatus(booking.id, 'rejected')}
+                        className="gap-1"
+                      >
+                        <X className="h-4 w-4" />
+                        Refuser
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {booking.notes && (
