@@ -50,6 +50,48 @@ serve(async (req) => {
       .eq('id', user.id)
       .single();
 
+    // Formatter le numéro de téléphone au format international
+    let phoneNumber = profile?.phone || '';
+    
+    // Déterminer le code pays selon le pays du profil
+    const countryCodes: { [key: string]: string } = {
+      'Sénégal': 'SN',
+      'Côte d\'Ivoire': 'CI',
+      'Bénin': 'BJ',
+      'Burkina Faso': 'BF',
+      'Mali': 'ML',
+      'Niger': 'NE',
+      'Togo': 'TG',
+      'France': 'FR'
+    };
+    
+    const countryCode = countryCodes[profile?.country || 'Sénégal'] || 'SN';
+    
+    // Nettoyer le numéro (enlever espaces et caractères spéciaux)
+    phoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    
+    // Ajouter l'indicatif international si nécessaire
+    if (phoneNumber && !phoneNumber.startsWith('+')) {
+      const phonePrefixes: { [key: string]: string } = {
+        'SN': '+221',
+        'CI': '+225',
+        'BJ': '+229',
+        'BF': '+226',
+        'ML': '+223',
+        'NE': '+227',
+        'TG': '+228',
+        'FR': '+33'
+      };
+      const prefix = phonePrefixes[countryCode] || '+221';
+      // Enlever le 0 initial si présent
+      if (phoneNumber.startsWith('0')) {
+        phoneNumber = phoneNumber.substring(1);
+      }
+      phoneNumber = prefix + phoneNumber;
+    }
+
+    console.log('Numéro formaté:', phoneNumber);
+
     // Créer la transaction Fedapay
     const fedapayResponse = await fetch('https://api.fedapay.com/v1/transactions', {
       method: 'POST',
@@ -69,8 +111,8 @@ serve(async (req) => {
           lastname: profile?.last_name || 'CarFlex',
           email: profile?.email || user.email,
           phone_number: {
-            number: profile?.phone || '',
-            country: profile?.country || 'SN'
+            number: phoneNumber,
+            country: countryCode
           }
         },
         custom_metadata: {
