@@ -8,6 +8,7 @@ import { useSplashScreen } from "./hooks/useSplashScreen";
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import EmailVerification from "./pages/EmailVerification";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import RentalDetail from "./pages/RentalDetail";
@@ -68,6 +69,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
               <Route path="/listings" element={<Listings />} />
               <Route path="/listing/:id" element={<ListingDetail />} />
               <Route path="/rental/:id" element={<RentalDetail />} />

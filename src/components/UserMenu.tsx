@@ -11,7 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar, Crown } from "lucide-react";
+import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar, Crown, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 
 const UserMenu = () => {
@@ -130,9 +130,14 @@ const UserMenu = () => {
       <DropdownMenuContent className="w-56 bg-background" align="end" forceMount>
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {profile?.first_name} {profile?.last_name}
-            </p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm font-medium leading-none">
+                {profile?.first_name} {profile?.last_name}
+              </p>
+              {profile?.email_verified && (
+                <BadgeCheck className="h-4 w-4 text-primary" />
+              )}
+            </div>
             <p className="text-xs leading-none text-muted-foreground">
               {profile?.email}
             </p>

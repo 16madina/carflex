@@ -148,7 +148,24 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast.success("Inscription réussie ! Vous êtes maintenant connecté.");
+      // Send verification email
+      try {
+        const { data: { user: newUser } } = await supabase.auth.getUser();
+        if (newUser) {
+          await supabase.functions.invoke('send-verification-email', {
+            body: {
+              userId: newUser.id,
+              email: signupData.email,
+              firstName: signupData.firstName,
+            }
+          });
+          toast.success("Inscription réussie ! Un email de vérification vous a été envoyé.");
+        }
+      } catch (emailError) {
+        console.error("Error sending verification email:", emailError);
+        toast.warning("Compte créé, mais l'email de vérification n'a pas pu être envoyé.");
+      }
+      
       navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'inscription");
