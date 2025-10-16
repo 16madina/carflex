@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
+import { useFavorites } from "@/hooks/useFavorites";
 import DealRatingBadge from "./DealRatingBadge";
 import ImageCarousel from "./ImageCarousel";
 
@@ -19,7 +20,6 @@ interface CarCardProps {
   image?: string;
   images?: string[];
   transmission: string;
-  isFavorite?: boolean;
   onFavoriteToggle?: () => void;
   isRental?: boolean;
   sellerName?: string;
@@ -37,7 +37,6 @@ const CarCard = ({
   image,
   images,
   transmission,
-  isFavorite = false,
   onFavoriteToggle,
   isRental = false,
   sellerName,
@@ -46,9 +45,15 @@ const CarCard = ({
   const navigate = useNavigate();
   const { formatPrice } = useCountry();
   const [rating, setRating] = useState<string | null>(null);
+  const { isFavorite, toggleFavorite } = useFavorites(id, isRental ? "rental" : "sale");
 
   const handleCardClick = () => {
     navigate(isRental ? `/rental/${id}` : `/listing/${id}`);
+  };
+
+  const handleFavoriteClick = () => {
+    toggleFavorite();
+    onFavoriteToggle?.();
   };
 
   const displayImages = images && images.length > 0 ? images : (image ? [image] : []);
@@ -93,7 +98,7 @@ const CarCard = ({
           className="absolute top-3 right-3 rounded-full shadow-lg z-10"
           onClick={(e) => {
             e.stopPropagation();
-            onFavoriteToggle?.();
+            handleFavoriteClick();
           }}
         >
           <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />

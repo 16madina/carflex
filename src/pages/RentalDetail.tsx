@@ -41,7 +41,7 @@ const RentalDetail = () => {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [reviewsKey, setReviewsKey] = useState(0);
-  const { isFavorite, toggleFavorite } = useFavorites(id);
+  const { isFavorite, toggleFavorite } = useFavorites(id, "rental");
   const { conversationId, loading: convLoading } = useConversation(id || "", listing?.owner_id || "");
   const { formatPrice } = useCountry();
 

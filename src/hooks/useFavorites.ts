@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const useFavorites = (listingId?: string) => {
+export const useFavorites = (listingId?: string, listingType: "sale" | "rental" = "sale") => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -10,7 +10,7 @@ export const useFavorites = (listingId?: string) => {
     if (listingId) {
       checkFavorite();
     }
-  }, [listingId]);
+  }, [listingId, listingType]);
 
   const checkFavorite = async () => {
     try {
@@ -26,7 +26,7 @@ export const useFavorites = (listingId?: string) => {
         .select("id")
         .eq("user_id", user.id)
         .eq("listing_id", listingId)
-        .eq("listing_type", "sale")
+        .eq("listing_type", listingType)
         .maybeSingle();
 
       if (error) {
@@ -58,7 +58,7 @@ export const useFavorites = (listingId?: string) => {
           .delete()
           .eq("user_id", user.id)
           .eq("listing_id", listingId)
-          .eq("listing_type", "sale");
+          .eq("listing_type", listingType);
 
         if (error) {
           toast.error("Erreur lors du retrait des favoris");
@@ -73,7 +73,7 @@ export const useFavorites = (listingId?: string) => {
           .insert({
             user_id: user.id,
             listing_id: listingId,
-            listing_type: "sale"
+            listing_type: listingType
           });
 
         if (error) {

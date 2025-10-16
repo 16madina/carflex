@@ -45,7 +45,7 @@ const ListingDetail = () => {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [reviewsKey, setReviewsKey] = useState(0);
-  const { isFavorite, toggleFavorite } = useFavorites(id);
+  const { isFavorite, toggleFavorite } = useFavorites(id, "sale");
   const { conversationId, loading: convLoading } = useConversation(
     id || "", 
     listing?.seller_id || ""

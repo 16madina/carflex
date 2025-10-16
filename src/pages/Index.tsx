@@ -110,25 +110,48 @@ const Index = () => {
           .filter((car: any) => car !== null);
         console.log("Processed premium listings:", premiumListings);
         setPremiumCars(premiumListings);
+        
+        // Store premium IDs to filter them out from latest cars
+        const premiumIds = premiumListings.map((car: any) => car.id);
+
+        // Fetch latest cars (show all recent cars, not just featured)
+        const { data: latestData } = await supabase
+          .from("sale_listings")
+          .select(`
+            *,
+            profiles!sale_listings_seller_id_fkey (
+              first_name,
+              last_name,
+              user_type
+            )
+          `)
+          .eq("country", selectedCountry.name)
+          .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
+          .limit(10); // Get more to compensate for filtered ones
+
+        // Filter out premium listings from latest cars
+        const filteredLatestData = (latestData || []).filter((car: any) => !premiumIds.includes(car.id)).slice(0, 6);
+        console.log("Latest cars with profiles:", filteredLatestData);
+        setFeaturedCars(filteredLatestData);
+      } else {
+        // If no premium listings, just fetch latest cars normally
+        const { data: latestData } = await supabase
+          .from("sale_listings")
+          .select(`
+            *,
+            profiles!sale_listings_seller_id_fkey (
+              first_name,
+              last_name,
+              user_type
+            )
+          `)
+          .eq("country", selectedCountry.name)
+          .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
+          .limit(6);
+
+        console.log("Latest cars with profiles:", latestData);
+        setFeaturedCars(latestData || []);
       }
-
-      // Fetch latest cars (show all recent cars, not just featured)
-      const { data: latestData } = await supabase
-        .from("sale_listings")
-        .select(`
-          *,
-          profiles!sale_listings_seller_id_fkey (
-            first_name,
-            last_name,
-            user_type
-          )
-        `)
-        .eq("country", selectedCountry.name)
-        .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
-        .limit(6);
-
-      console.log("Latest cars with profiles:", latestData);
-      setFeaturedCars(latestData || []);
 
       // Fetch rental cars
       const { data: rentalData } = await supabase
