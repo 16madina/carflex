@@ -57,9 +57,23 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "CarFlex <noreply@carflexapp.com>",
+        from: "CarFlex <contact@carflexapp.com>",
         to: [email],
         subject: "Vérifiez votre adresse email - CarFlex",
+        text: `Bonjour ${firstName},
+
+Merci de vous être inscrit sur CarFlex, la plateforme de confiance pour l'achat et la location de véhicules en Afrique de l'Ouest!
+
+Pour activer votre badge vérifié ✓ et profiter pleinement de toutes les fonctionnalités, veuillez cliquer sur le lien ci-dessous:
+
+${verificationLink}
+
+Ce lien est valide pendant 24 heures. Si vous n'avez pas créé de compte sur CarFlex, vous pouvez ignorer cet email.
+
+À bientôt sur CarFlex!
+L'équipe CarFlex
+
+© ${new Date().getFullYear()} CarFlex. Tous droits réservés.`,
         html: `
           <!DOCTYPE html>
           <html>
