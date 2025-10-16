@@ -57,9 +57,9 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "LaZone <noreply@carflexapp.com>",
+        from: "CarFlex <noreply@carflexapp.com>",
         to: [email],
-        subject: "Vérifiez votre adresse email - LaZone",
+        subject: "Vérifiez votre adresse email - CarFlex",
         html: `
           <!DOCTYPE html>
           <html>
@@ -76,21 +76,21 @@ const handler = async (req: Request): Promise<Response> => {
           <body>
             <div class="container">
               <div class="header">
-                <h1>🚗 Bienvenue sur LaZone!</h1>
+                <h1>🚗 Bienvenue sur CarFlex!</h1>
               </div>
               <div class="content">
                 <p>Bonjour ${firstName},</p>
-                <p>Merci de vous être inscrit sur LaZone, la plateforme de confiance pour l'achat et la location de véhicules en Afrique de l'Ouest!</p>
+                <p>Merci de vous être inscrit sur CarFlex, la plateforme de confiance pour l'achat et la location de véhicules en Afrique de l'Ouest!</p>
                 <p>Pour activer votre badge vérifié ✓ et profiter pleinement de toutes les fonctionnalités, veuillez cliquer sur le bouton ci-dessous:</p>
                 <center>
                   <a href="${verificationLink}" class="button">Vérifier mon email</a>
                 </center>
-                <p style="color: #666; font-size: 14px;">Ce lien est valide pendant 24 heures. Si vous n'avez pas créé de compte sur LaZone, vous pouvez ignorer cet email.</p>
-                <p>À bientôt sur LaZone!</p>
-                <p style="margin-top: 30px;">L'équipe LaZone</p>
+                <p style="color: #666; font-size: 14px;">Ce lien est valide pendant 24 heures. Si vous n'avez pas créé de compte sur CarFlex, vous pouvez ignorer cet email.</p>
+                <p>À bientôt sur CarFlex!</p>
+                <p style="margin-top: 30px;">L'équipe CarFlex</p>
               </div>
               <div class="footer">
-                <p>© ${new Date().getFullYear()} LaZone. Tous droits réservés.</p>
+                <p>© ${new Date().getFullYear()} CarFlex. Tous droits réservés.</p>
                 <p>Ceci est un email automatique, merci de ne pas y répondre.</p>
               </div>
             </div>
