@@ -35,21 +35,22 @@ const AdBanner = () => {
     }
   };
 
-  const handleClick = async () => {
+  const handleClick = () => {
     if (!banner) return;
 
-    // Incrémenter le compteur de clics
-    const { error } = await supabase
+    // Ouvrir le lien immédiatement pour éviter le blocage des popups
+    window.open(banner.link_url, "_blank");
+
+    // Incrémenter le compteur de clics en arrière-plan
+    supabase
       .from("ad_banners")
       .update({ click_count: banner.click_count + 1 })
-      .eq("id", banner.id);
-
-    if (error) {
-      console.error("Error updating click count:", error);
-    }
-
-    // Ouvrir le lien dans un nouvel onglet
-    window.open(banner.link_url, "_blank");
+      .eq("id", banner.id)
+      .then(({ error }) => {
+        if (error) {
+          console.error("Error updating click count:", error);
+        }
+      });
   };
 
   if (!banner) return null;
