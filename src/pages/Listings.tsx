@@ -138,11 +138,13 @@ const Listings = () => {
       fuelType: "all",
       transmission: "all",
       city: "",
-      country: "all",
+      country: selectedCountry.name,
       bodyType: "all",
       category: "all",
       budgetMax: ""
     });
+    setSortBy("created_at");
+    setSearchQuery("");
   };
 
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
@@ -363,21 +365,41 @@ const Listings = () => {
                     onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
                   />
                   
-                  {POPULAR_CITIES[selectedCountry.code] && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {POPULAR_CITIES[selectedCountry.code].map((city) => (
-                        <Button
-                          key={city}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleCitySelect(city)}
-                          className={filters.city === city ? "bg-primary text-primary-foreground" : ""}
-                        >
-                          {city}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
+                  {(() => {
+                    const countryCodeMap: Record<string, string> = {
+                      "Côte d'Ivoire": "CI",
+                      "Sénégal": "SN",
+                      "Bénin": "BJ",
+                      "Burkina Faso": "BF",
+                      "Mali": "ML",
+                      "Niger": "NE",
+                      "Togo": "TG",
+                      "Guinée-Bissau": "GW",
+                      "Nigeria": "NG",
+                      "Ghana": "GH",
+                      "Guinée": "GN",
+                    };
+                    
+                    const countryCode = filters.country !== "all" 
+                      ? countryCodeMap[filters.country] 
+                      : selectedCountry.code;
+                    
+                    return POPULAR_CITIES[countryCode] && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {POPULAR_CITIES[countryCode].map((city) => (
+                          <Button
+                            key={city}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCitySelect(city)}
+                            className={filters.city === city ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            {city}
+                          </Button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-2">
