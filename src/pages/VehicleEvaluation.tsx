@@ -46,12 +46,18 @@ const VehicleEvaluation = () => {
 
       if (error) throw error;
 
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
       setEvaluation(data.evaluation);
       setVehicleImage(data.vehicleImage);
       toast.success("Évaluation terminée !");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
-      toast.error("Erreur lors de l'évaluation du véhicule");
+      const errorMessage = error?.message || "Erreur lors de l'évaluation du véhicule";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
