@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Car } from "lucide-react";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -20,35 +21,47 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-600 via-blue-500 to-red-500 transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-background transition-opacity duration-500 ${
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="text-center animate-scale-in">
-        {/* Logo animé */}
-        <div className="mb-8 animate-fade-in">
-          <div className="inline-block">
-            <h1 className="text-7xl font-bold tracking-tight">
-              <span className="inline-block text-white drop-shadow-2xl animate-[fade-in_0.6s_ease-out]">
-                Car
-              </span>
-              <span className="inline-block text-red-100 drop-shadow-2xl animate-[fade-in_0.6s_ease-out_0.2s_both]">
-                Flex
-              </span>
-            </h1>
+      <div className="text-center">
+        {/* Icône de voiture animée en haut */}
+        <div className="mb-6 flex justify-center animate-[fade-in_0.5s_ease-out]">
+          <div className="relative">
+            <Car 
+              size={64} 
+              className="text-blue-600 animate-[slide-in-right_1s_ease-out]" 
+              strokeWidth={2}
+            />
+            {/* Roues qui tournent */}
+            <div className="absolute -bottom-1 left-3 w-3 h-3 bg-gray-800 rounded-full animate-spin"></div>
+            <div className="absolute -bottom-1 right-3 w-3 h-3 bg-gray-800 rounded-full animate-spin"></div>
           </div>
         </div>
 
+        {/* Logo CarFlex */}
+        <div className="mb-4 animate-scale-in">
+          <h1 className="text-7xl font-bold tracking-tight">
+            <span className="text-blue-600 drop-shadow-lg animate-[fade-in_0.6s_ease-out_0.3s_both]">
+              Car
+            </span>
+            <span className="text-red-600 drop-shadow-lg animate-[fade-in_0.6s_ease-out_0.5s_both]">
+              Flex
+            </span>
+          </h1>
+        </div>
+
         {/* Slogan */}
-        <p className="text-xl text-white/90 font-light animate-[fade-in_0.8s_ease-out_0.6s_both]">
+        <p className="text-lg text-muted-foreground font-light animate-[fade-in_0.8s_ease-out_0.8s_both]">
           Votre marketplace automobile
         </p>
 
-        {/* Animation de chargement */}
-        <div className="mt-12 flex justify-center gap-2 animate-[fade-in_1s_ease-out_1s_both]">
-          <div className="w-3 h-3 bg-white rounded-full animate-[bounce_1s_infinite_0s]"></div>
-          <div className="w-3 h-3 bg-white rounded-full animate-[bounce_1s_infinite_0.2s]"></div>
-          <div className="w-3 h-3 bg-white rounded-full animate-[bounce_1s_infinite_0.4s]"></div>
+        {/* Points de chargement */}
+        <div className="mt-8 flex justify-center gap-2 animate-[fade-in_1s_ease-out_1.2s_both]">
+          <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-[bounce_1s_infinite_0s]"></div>
+          <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-[bounce_1s_infinite_0.2s]"></div>
+          <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-[bounce_1s_infinite_0.4s]"></div>
         </div>
       </div>
     </div>
