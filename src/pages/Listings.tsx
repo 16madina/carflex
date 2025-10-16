@@ -181,6 +181,11 @@ const Listings = () => {
                   ? "Découvrez notre sélection de véhicules à vendre"
                   : "Découvrez notre sélection de véhicules à louer"}
               </p>
+              {!loading && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  {filteredListings.length} résultat{filteredListings.length > 1 ? 's' : ''} trouvé{filteredListings.length > 1 ? 's' : ''}
+                </p>
+              )}
             </div>
 
         {/* Search and Filters */}

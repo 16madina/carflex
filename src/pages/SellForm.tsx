@@ -322,6 +322,8 @@ const SellForm = () => {
                       value={formData.mileage}
                       onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
                       required
+                      onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Veuillez renseigner le kilométrage')}
+                      onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                     />
                   </div>
                 </div>
@@ -335,6 +337,8 @@ const SellForm = () => {
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     required
+                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Veuillez renseigner le prix')}
+                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   />
                   <p className="text-xs text-muted-foreground">
                     Les prix sont enregistrés en CFA et convertis automatiquement
@@ -555,6 +559,8 @@ const SellForm = () => {
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     required
+                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Veuillez renseigner la ville')}
+                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   />
                 </div>
 
