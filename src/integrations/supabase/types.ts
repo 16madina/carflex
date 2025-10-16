@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_banners: {
+        Row: {
+          click_count: number | null
+          created_at: string
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          click_count?: number | null
+          created_at?: string
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          link_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          click_count?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          link_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string

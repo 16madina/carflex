@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import CarCard from "@/components/CarCard";
+import AdBanner from "@/components/AdBanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -217,12 +218,10 @@ const Listings = () => {
               </SheetHeader>
               
               <div className="space-y-6 mt-6">
-                {/* Budget Calculator */}
                 {listingType === "sale" && (
                   <BudgetCalculator onBudgetChange={handleBudgetChange} />
                 )}
 
-                {/* Sort */}
                 <div className="space-y-2">
                   <Label>Trier par</Label>
                   <Select value={sortBy} onValueChange={setSortBy}>
@@ -238,7 +237,6 @@ const Listings = () => {
                   </Select>
                 </div>
 
-                {/* Price Range */}
                 <div className="space-y-2">
                   <Label>{listingType === "sale" ? "Prix" : "Prix par jour"}</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -257,7 +255,6 @@ const Listings = () => {
                   </div>
                 </div>
 
-                {/* Mileage Range */}
                 <div className="space-y-2">
                   <Label>Kilométrage (km)</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -276,7 +273,6 @@ const Listings = () => {
                   </div>
                 </div>
 
-                {/* Year Range */}
                 <div className="space-y-2">
                   <Label>Année</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -295,7 +291,6 @@ const Listings = () => {
                   </div>
                 </div>
 
-                {/* Fuel Type */}
                 <div className="space-y-2">
                   <Label>Carburant</Label>
                   <Select value={filters.fuelType} onValueChange={(value) => setFilters(prev => ({ ...prev, fuelType: value }))}>
@@ -312,7 +307,6 @@ const Listings = () => {
                   </Select>
                 </div>
 
-                {/* Transmission */}
                 <div className="space-y-2">
                   <Label>Transmission</Label>
                   <Select value={filters.transmission} onValueChange={(value) => setFilters(prev => ({ ...prev, transmission: value }))}>
@@ -327,7 +321,6 @@ const Listings = () => {
                   </Select>
                 </div>
 
-                {/* Category */}
                 <div className="space-y-2">
                   <Label>Catégorie</Label>
                   <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
@@ -345,7 +338,6 @@ const Listings = () => {
                   </Select>
                 </div>
 
-                {/* Body Type */}
                 <div className="space-y-2">
                   <Label>Type de carrosserie</Label>
                   <Select value={filters.bodyType} onValueChange={(value) => setFilters(prev => ({ ...prev, bodyType: value }))}>
@@ -363,7 +355,6 @@ const Listings = () => {
                   </Select>
                 </div>
 
-                {/* Location */}
                 <div className="space-y-2">
                   <Label>Ville</Label>
                   <Input
@@ -372,7 +363,6 @@ const Listings = () => {
                     onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
                   />
                   
-                  {/* Popular Cities */}
                   {POPULAR_CITIES[selectedCountry.code] && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {POPULAR_CITIES[selectedCountry.code].map((city) => (
@@ -432,20 +422,26 @@ const Listings = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing) => (
-              <CarCard
-                key={listing.id}
-                id={listing.id}
-                brand={listing.brand}
-                model={listing.model}
-                year={listing.year}
-                price={listingType === "sale" ? listing.price : listing.price_per_day}
-                mileage={listing.mileage}
-                city={listing.city}
-                transmission={listing.transmission === "automatic" ? "Automatique" : "Manuelle"}
-                images={Array.isArray(listing.images) ? listing.images : []}
-                isRental={listingType === "rental"}
-              />
+            {filteredListings.map((listing, index) => (
+              <>
+                <CarCard
+                  key={listing.id}
+                  id={listing.id}
+                  brand={listing.brand}
+                  model={listing.model}
+                  year={listing.year}
+                  price={listingType === "sale" ? listing.price : listing.price_per_day}
+                  mileage={listing.mileage}
+                  city={listing.city}
+                  transmission={listing.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                  images={Array.isArray(listing.images) ? listing.images : []}
+                  isRental={listingType === "rental"}
+                />
+                {/* Insérer une bannière toutes les 5 annonces */}
+                {(index + 1) % 5 === 0 && index < filteredListings.length - 1 && (
+                  <AdBanner key={`ad-${index}`} />
+                )}
+              </>
             ))}
           </div>
         )}
