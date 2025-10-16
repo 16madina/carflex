@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
@@ -42,6 +42,27 @@ const Subscription = () => {
   const { subscribed, productId, subscriptionEnd, loading, refreshSubscription } = useSubscription();
   const [subscribing, setSubscribing] = useState(false);
   const [managing, setManaging] = useState(false);
+  const [proPrice, setProPrice] = useState(SUBSCRIPTION_TIERS.pro.price);
+
+  useEffect(() => {
+    fetchProPrice();
+  }, []);
+
+  const fetchProPrice = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-stripe-product-price', {
+        body: { productId: SUBSCRIPTION_TIERS.pro.productId }
+      });
+
+      if (error) throw error;
+
+      if (data?.amount) {
+        setProPrice(data.amount / 100);
+      }
+    } catch (error) {
+      console.error("Error fetching pro price:", error);
+    }
+  };
 
   const handleSubscribe = async () => {
     setSubscribing(true);
@@ -145,7 +166,7 @@ const Subscription = () => {
                 {isPro && <Badge className="bg-primary">Plan actuel</Badge>}
               </div>
               <CardDescription>
-                <span className="text-3xl font-bold">{formatPrice(SUBSCRIPTION_TIERS.pro.price)}</span>
+                <span className="text-3xl font-bold">{formatPrice(proPrice)}</span>
                 <span className="text-muted-foreground">/mois</span>
               </CardDescription>
             </CardHeader>

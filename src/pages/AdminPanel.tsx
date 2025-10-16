@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
@@ -299,6 +299,7 @@ const AdminPanel = () => {
           <TabsList>
             <TabsTrigger value="packages">Packages Premium</TabsTrigger>
             <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
+            <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
           </TabsList>
 
           <TabsContent value="packages" className="space-y-6">
@@ -497,11 +498,163 @@ const AdminPanel = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="pro-plan">
+            <ProPlanSettings />
+          </TabsContent>
         </Tabs>
       </main>
 
       <BottomNav />
     </div>
+  );
+};
+
+const ProPlanSettings = () => {
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [proPlanData, setProPlanData] = useState({
+    productId: "prod_TF9Qwq8CkwzIUw",
+    priceId: "",
+    currentPrice: 0,
+    newPrice: 0,
+  });
+  const { toast } = useToast();
+  const { formatPrice, selectedCountry } = useCountry();
+
+  useEffect(() => {
+    fetchProPlanPrice();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchProPlanPrice = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-stripe-product-price', {
+        body: { productId: proPlanData.productId }
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        const priceInUserCurrency = (data.amount / 100) * selectedCountry.exchangeRate;
+        setProPlanData({
+          ...proPlanData,
+          priceId: data.priceId,
+          currentPrice: data.amount / 100,
+          newPrice: priceInUserCurrency,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching pro plan price:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger le prix du plan pro",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePrice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdating(true);
+
+    try {
+      // Convert from user's currency to XOF
+      const priceInXOF = proPlanData.newPrice / selectedCountry.exchangeRate;
+      const amountInCents = Math.round(priceInXOF * 100);
+
+      const { data, error } = await supabase.functions.invoke('update-stripe-price', {
+        body: {
+          productId: proPlanData.productId,
+          oldPriceId: proPlanData.priceId,
+          newAmount: amountInCents,
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Le prix du plan pro a été mis à jour avec succès",
+      });
+
+      // Refresh the price data
+      await fetchProPlanPrice();
+    } catch (error) {
+      console.error("Error updating pro plan price:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le prix du plan pro",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p>Chargement...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Crown className="h-5 w-5 text-primary" />
+          Gestion du Plan Pro
+        </CardTitle>
+        <CardDescription>
+          Modifiez le prix mensuel du plan d'abonnement Pro
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleUpdatePrice} className="space-y-4">
+          <div>
+            <Label>Prix actuel</Label>
+            <div className="text-2xl font-bold text-primary">
+              {formatPrice(proPlanData.currentPrice)}/mois
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="newPrice">Nouveau prix ({selectedCountry.currencySymbol})</Label>
+            <Input
+              id="newPrice"
+              type="number"
+              step="0.01"
+              value={proPlanData.newPrice}
+              onChange={(e) => setProPlanData({ ...proPlanData, newPrice: parseFloat(e.target.value) })}
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Équivalent: {formatPrice(proPlanData.newPrice / selectedCountry.exchangeRate)} XOF
+            </p>
+          </div>
+
+          <Button type="submit" disabled={updating} className="w-full">
+            {updating ? (
+              <>
+                <Edit className="mr-2 h-4 w-4 animate-spin" />
+                Mise à jour...
+              </>
+            ) : (
+              <>
+                <Edit className="mr-2 h-4 w-4" />
+                Mettre à jour le prix
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
