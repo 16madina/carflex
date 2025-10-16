@@ -170,34 +170,34 @@ const Bookings = () => {
                 <span className="font-semibold text-primary">
                   {formatPrice(parseFloat(booking.total_price))}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleSendMessage(otherUserId, listing.id)}
-                    className="gap-1"
+                    className="gap-1 h-8 px-2 text-xs"
                   >
-                    <MessageSquare className="h-4 w-4" />
-                    Message
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Message</span>
                   </Button>
                   {isOwner && booking.status === 'pending' && (
                     <>
                       <Button
                         size="sm"
                         onClick={() => handleUpdateStatus(booking.id, 'confirmed')}
-                        className="gap-1"
+                        className="gap-1 h-8 px-2 text-xs"
                       >
-                        <Check className="h-4 w-4" />
-                        Accepter
+                        <Check className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Accepter</span>
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => handleUpdateStatus(booking.id, 'rejected')}
-                        className="gap-1"
+                        className="gap-1 h-8 px-2 text-xs"
                       >
-                        <X className="h-4 w-4" />
-                        Refuser
+                        <X className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Refuser</span>
                       </Button>
                     </>
                   )}
