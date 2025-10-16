@@ -32,40 +32,79 @@ const Favorites = () => {
   const fetchFavorites = async (userId: string) => {
     setLoading(true);
 
-    const { data: favoritesData, error: favError } = await supabase
-      .from("favorites")
-      .select("listing_id")
-      .eq("user_id", userId)
-      .eq("listing_type", "sale");
+    try {
+      console.log("Fetching favorites for user:", userId);
+      
+      const { data: favoritesData, error: favError } = await supabase
+        .from("favorites")
+        .select("listing_id, listing_type")
+        .eq("user_id", userId);
 
-    if (favError) {
-      console.error("Error fetching favorites:", favError);
-      toast.error("Erreur lors du chargement des favoris");
+      console.log("Favorites data:", favoritesData);
+
+      if (favError) {
+        console.error("Error fetching favorites:", favError);
+        toast.error("Erreur lors du chargement des favoris");
+        setLoading(false);
+        return;
+      }
+
+      if (!favoritesData || favoritesData.length === 0) {
+        console.log("No favorites found");
+        setFavorites([]);
+        setLoading(false);
+        return;
+      }
+
+      // Séparer les favoris par type
+      const saleFavorites = favoritesData
+        .filter(fav => fav.listing_type === "sale")
+        .map(fav => fav.listing_id);
+      
+      const rentalFavorites = favoritesData
+        .filter(fav => fav.listing_type === "rental")
+        .map(fav => fav.listing_id);
+
+      const allListings: any[] = [];
+
+      // Récupérer les annonces de vente
+      if (saleFavorites.length > 0) {
+        const { data: saleListings, error: saleError } = await supabase
+          .from("sale_listings")
+          .select("*")
+          .in("id", saleFavorites);
+
+        if (saleError) {
+          console.error("Error fetching sale listings:", saleError);
+        } else if (saleListings) {
+          console.log("Sale listings found:", saleListings.length);
+          allListings.push(...saleListings.map(l => ({ ...l, listing_type: 'sale' })));
+        }
+      }
+
+      // Récupérer les annonces de location
+      if (rentalFavorites.length > 0) {
+        const { data: rentalListings, error: rentalError } = await supabase
+          .from("rental_listings")
+          .select("*")
+          .in("id", rentalFavorites);
+
+        if (rentalError) {
+          console.error("Error fetching rental listings:", rentalError);
+        } else if (rentalListings) {
+          console.log("Rental listings found:", rentalListings.length);
+          allListings.push(...rentalListings.map(l => ({ ...l, listing_type: 'rental' })));
+        }
+      }
+
+      console.log("Total listings found:", allListings.length);
+      setFavorites(allListings);
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("Erreur inattendue");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (!favoritesData || favoritesData.length === 0) {
-      setFavorites([]);
-      setLoading(false);
-      return;
-    }
-
-    const listingIds = favoritesData.map(fav => fav.listing_id);
-
-    const { data: listingsData, error: listError } = await supabase
-      .from("sale_listings")
-      .select("*")
-      .in("id", listingIds);
-
-    if (listError) {
-      console.error("Error fetching listings:", listError);
-      toast.error("Erreur lors du chargement des annonces");
-    } else {
-      setFavorites(listingsData || []);
-    }
-
-    setLoading(false);
   };
 
   const handleFavoriteToggle = () => {
@@ -116,7 +155,7 @@ const Favorites = () => {
                 brand={listing.brand}
                 model={listing.model}
                 year={listing.year}
-                price={listing.price}
+                price={listing.price || listing.price_per_day}
                 mileage={listing.mileage}
                 city={listing.city}
                 transmission={listing.transmission === "automatic" ? "Automatique" : "Manuelle"}

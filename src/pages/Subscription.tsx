@@ -23,7 +23,7 @@ const SUBSCRIPTION_TIERS = {
   },
   pro: {
     name: "Pro",
-    price: 2990,
+    price: 5000,
     productId: "prod_TF9Qwq8CkwzIUw",
     features: [
       "Annonces illimitées",
@@ -42,27 +42,8 @@ const Subscription = () => {
   const { subscribed, productId, subscriptionEnd, loading, refreshSubscription } = useSubscription();
   const [subscribing, setSubscribing] = useState(false);
   const [managing, setManaging] = useState(false);
-  const [proPrice, setProPrice] = useState(SUBSCRIPTION_TIERS.pro.price);
-
-  useEffect(() => {
-    fetchProPrice();
-  }, []);
-
-  const fetchProPrice = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('get-stripe-product-price', {
-        body: { productId: SUBSCRIPTION_TIERS.pro.productId }
-      });
-
-      if (error) throw error;
-
-      if (data?.amount) {
-        setProPrice(data.amount / 100);
-      }
-    } catch (error) {
-      console.error("Error fetching pro price:", error);
-    }
-  };
+  // Prix fixe pour éviter les variations
+  const proPrice = SUBSCRIPTION_TIERS.pro.price;
 
   const handleSubscribe = async () => {
     setSubscribing(true);

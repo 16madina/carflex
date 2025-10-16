@@ -430,8 +430,11 @@ const Profile = () => {
 
             <TabsContent value="listings" className="space-y-6">
               <Card className="shadow-card">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Mes Annonces</CardTitle>
+                  <Button onClick={() => navigate("/sell")} size="sm">
+                    Créer une annonce
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   {userListings.length === 0 ? (
