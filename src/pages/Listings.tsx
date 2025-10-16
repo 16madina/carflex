@@ -35,7 +35,7 @@ const Listings = () => {
     fuelType: "all",
     transmission: "all",
     city: "",
-    country: "",
+    country: "all",
     bodyType: "all",
     category: "all",
     budgetMax: ""
@@ -97,7 +97,7 @@ const Listings = () => {
     const matchesFuel = filters.fuelType === "all" || listing.fuel_type === filters.fuelType;
     const matchesTransmission = filters.transmission === "all" || listing.transmission === filters.transmission;
     const matchesCity = !filters.city || listing.city.toLowerCase().includes(filters.city.toLowerCase());
-    const matchesCountry = !filters.country || listing.country.toLowerCase().includes(filters.country.toLowerCase());
+    const matchesCountry = filters.country === "all" || listing.country.toLowerCase().includes(filters.country.toLowerCase());
     const matchesBodyType = filters.bodyType === "all" || !listing.body_type || listing.body_type === filters.bodyType;
     
     const matchesBudget = !filters.budgetMax || priceValue <= parseInt(filters.budgetMax);
@@ -137,7 +137,7 @@ const Listings = () => {
       fuelType: "all",
       transmission: "all",
       city: "",
-      country: "",
+      country: "all",
       bodyType: "all",
       category: "all",
       budgetMax: ""
@@ -397,7 +397,7 @@ const Listings = () => {
                       <SelectValue placeholder="Tous les pays" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous les pays</SelectItem>
+                      <SelectItem value="all">Tous les pays</SelectItem>
                       <SelectItem value="Côte d'Ivoire">Côte d'Ivoire</SelectItem>
                       <SelectItem value="Mali">Mali</SelectItem>
                       <SelectItem value="Sénégal">Sénégal</SelectItem>
