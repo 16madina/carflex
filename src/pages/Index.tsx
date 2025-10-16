@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
 import PremiumCarCard from "@/components/PremiumCarCard";
+import ProPlanPromo from "@/components/ProPlanPromo";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowRight } from "lucide-react";
@@ -135,6 +136,7 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       <Hero />
+      <ProPlanPromo />
 
       {/* Premium Listings Section */}
       {premiumCars.length > 0 && (
