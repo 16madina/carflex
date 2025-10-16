@@ -1,12 +1,30 @@
 import { Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const ProPlanPromo = () => {
+interface ProPlanPromoProps {
+  inline?: boolean;
+}
+
+const ProPlanPromo = ({ inline = false }: ProPlanPromoProps) => {
   const navigate = useNavigate();
 
   const handleNavigate = () => {
     navigate("/subscription");
   };
+
+  if (inline) {
+    return (
+      <button
+        onClick={handleNavigate}
+        className="inline-flex items-center gap-2 bg-accent/20 hover:bg-accent/30 rounded-full px-3 py-1.5 cursor-pointer group transition-all animate-fade-in"
+      >
+        <Crown className="w-4 h-4 text-accent" />
+        <span className="text-sm font-semibold text-accent">
+          Plan Pro
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button

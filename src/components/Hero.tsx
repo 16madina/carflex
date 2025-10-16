@@ -4,8 +4,13 @@ import { Input } from "@/components/ui/input";
 import heroImage from "@/assets/hero-cars.jpg";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ProPlanPromo from "./ProPlanPromo";
 
-const Hero = () => {
+interface HeroProps {
+  userFirstName?: string;
+}
+
+const Hero = ({ userFirstName }: HeroProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -32,6 +37,14 @@ const Hero = () => {
 
       <div className="container mx-auto px-4 relative z-10 py-8">
         <div className="max-w-2xl text-primary-foreground">
+          {userFirstName && (
+            <div className="flex items-center gap-3 mb-4">
+              <p className="text-xl font-medium animate-fade-in">
+                Bonjour 👋🏼 {userFirstName}
+              </p>
+              <ProPlanPromo inline />
+            </div>
+          )}
           <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight whitespace-nowrap">
             Trouvez votre voiture idéale
           </h1>

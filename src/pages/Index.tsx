@@ -20,6 +20,7 @@ const Index = () => {
   const [rentalCars, setRentalCars] = useState<any[]>([]);
   const [premiumCars, setPremiumCars] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState("created_at");
+  const [userFirstName, setUserFirstName] = useState<string>();
   const [filters, setFilters] = useState<FilterState>({
     priceMin: "",
     priceMax: "",
@@ -34,6 +35,25 @@ const Index = () => {
   });
 
   const { selectedCountry } = useCountry();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.first_name) {
+          setUserFirstName(profile.first_name);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -136,8 +156,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
-      <Hero />
-      <ProPlanPromo />
+      <Hero userFirstName={userFirstName} />
+      {!userFirstName && <ProPlanPromo />}
 
       {/* Premium Listings Section */}
       {premiumCars.length > 0 && (
