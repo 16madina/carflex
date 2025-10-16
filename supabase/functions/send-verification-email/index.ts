@@ -57,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "LaZone <onboarding@resend.dev>",
+        from: "LaZone <noreply@carflexapp.com>",
         to: [email],
         subject: "Vérifiez votre adresse email - LaZone",
         html: `
