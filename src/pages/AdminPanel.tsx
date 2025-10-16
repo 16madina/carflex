@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCountry } from "@/contexts/CountryContext";
+import { UserManagement } from "@/components/admin/UserManagement";
 
 interface PremiumPackage {
   id: string;
@@ -484,6 +485,7 @@ const AdminPanel = () => {
             <TabsTrigger value="packages">Packages Premium</TabsTrigger>
             <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
+            <TabsTrigger value="users">Gestion des Utilisateurs</TabsTrigger>
             <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
           </TabsList>
 
@@ -846,6 +848,10 @@ const AdminPanel = () => {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="pro-plan">

@@ -286,6 +286,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned: boolean | null
+          banned_at: string | null
           city: string | null
           company_name: string | null
           country: string | null
@@ -300,6 +303,9 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean | null
+          banned_at?: string | null
           city?: string | null
           company_name?: string | null
           country?: string | null
@@ -314,6 +320,9 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean | null
+          banned_at?: string | null
           city?: string | null
           company_name?: string | null
           country?: string | null
@@ -743,6 +752,30 @@ export type Database = {
           stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_warnings: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          user_id: string
+          warning_message: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+          warning_message: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          warning_message?: string
         }
         Relationships: []
       }
