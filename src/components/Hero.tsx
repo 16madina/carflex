@@ -38,11 +38,13 @@ const Hero = ({ userFirstName }: HeroProps) => {
       <div className="container mx-auto px-4 relative z-10 py-8">
         <div className="max-w-2xl text-primary-foreground">
           {userFirstName && (
-            <div className="flex items-center gap-3 mb-4">
-              <p className="text-xl font-medium animate-fade-in">
+            <div className="flex items-center justify-between mb-4 animate-fade-in">
+              <p className="text-xl font-medium">
                 Bonjour 👋🏼 {userFirstName}
               </p>
-              <ProPlanPromo inline />
+              <div className="animate-bounce">
+                <ProPlanPromo inline />
+              </div>
             </div>
           )}
           <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight whitespace-nowrap">
