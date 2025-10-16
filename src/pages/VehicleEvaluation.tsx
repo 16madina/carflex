@@ -238,7 +238,7 @@ const VehicleEvaluation = () => {
                 
                 <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 rounded-2xl border-2 border-orange-400/40 p-6 shadow-lg animate-fade-in">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-orange-500 rounded-full p-2">
+                    <div className="bg-orange-500 rounded-full p-3">
                       <Sparkles className="h-6 w-6 text-white" />
                     </div>
                     <h3 className="font-bold text-2xl text-orange-600 dark:text-orange-400">
@@ -246,42 +246,102 @@ const VehicleEvaluation = () => {
                     </h3>
                   </div>
                   
-                  <div className="prose prose-sm max-w-none text-foreground/90 leading-relaxed space-y-4">
-                    {evaluation.split('\n\n').map((section, index) => (
-                      <div key={index} className="bg-white/50 dark:bg-black/20 rounded-lg p-4 backdrop-blur-sm">
-                        {section.split('\n').map((line, lineIndex) => {
-                          // Check if line is a header (starts with ** or #)
-                          if (line.startsWith('**') && line.endsWith('**')) {
-                            return (
-                              <h4 key={lineIndex} className="font-bold text-lg text-orange-600 dark:text-orange-400 mb-2">
-                                {line.replace(/\*\*/g, '')}
-                              </h4>
-                            );
-                          }
-                          if (line.startsWith('#')) {
-                            return (
-                              <h5 key={lineIndex} className="font-semibold text-base text-foreground mt-3 mb-1">
-                                {line.replace(/^#+\s/, '')}
-                              </h5>
-                            );
-                          }
-                          // Check if line is a bullet point
-                          if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
-                            return (
-                              <li key={lineIndex} className="ml-4 text-foreground/80">
-                                {line.replace(/^[-•]\s*/, '')}
-                              </li>
-                            );
-                          }
-                          // Regular text
-                          return line.trim() ? (
-                            <p key={lineIndex} className="text-foreground/90">
-                              {line}
-                            </p>
-                          ) : null;
-                        })}
+                  <div className="space-y-4">
+                    {/* Introduction text */}
+                    <div className="bg-white/70 dark:bg-black/30 rounded-lg p-4 backdrop-blur-sm">
+                      <p className="text-foreground/90 leading-relaxed">
+                        Absolument ! En tant qu'expert en évaluation automobile, je vais vous fournir une estimation 
+                        détaillée et professionnelle pour la <strong>{formData.brand} {formData.model} {formData.year}</strong> que 
+                        vous avez décrite, en me basant sur les conditions du marché à {formData.city}, {formData.country}.
+                      </p>
+                    </div>
+
+                    {/* Main evaluation title */}
+                    <div className="bg-white/70 dark:bg-black/30 rounded-lg p-4 backdrop-blur-sm">
+                      <h4 className="font-bold text-xl text-orange-600 dark:text-orange-400">
+                        Évaluation Détaillée de la {formData.brand} {formData.model} ({formData.year}) à {formData.city}, {formData.country}
+                      </h4>
+                    </div>
+
+                    {/* Parse and display evaluation in structured format */}
+                    <div className="bg-white/70 dark:bg-black/30 rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <tbody className="divide-y divide-orange-200 dark:divide-orange-800">
+                            {evaluation.split('\n\n').map((section, sectionIndex) => {
+                              const lines = section.split('\n').filter(line => line.trim());
+                              
+                              return lines.map((line, lineIndex) => {
+                                // Headers
+                                if (line.startsWith('**') && line.endsWith('**')) {
+                                  return (
+                                    <tr key={`${sectionIndex}-${lineIndex}`} className="bg-orange-100 dark:bg-orange-900/30">
+                                      <td colSpan={2} className="px-4 py-3 font-bold text-orange-700 dark:text-orange-300">
+                                        {line.replace(/\*\*/g, '')}
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                                
+                                // Sub-headers
+                                if (line.startsWith('#')) {
+                                  return (
+                                    <tr key={`${sectionIndex}-${lineIndex}`} className="bg-orange-50 dark:bg-orange-950/20">
+                                      <td colSpan={2} className="px-4 py-2 font-semibold text-foreground">
+                                        {line.replace(/^#+\s/, '')}
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                                
+                                // Bullet points or list items
+                                if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+                                  const content = line.replace(/^[-•]\s*/, '').trim();
+                                  // Try to split by colon to create key-value pairs
+                                  const colonIndex = content.indexOf(':');
+                                  
+                                  if (colonIndex > 0) {
+                                    const key = content.substring(0, colonIndex).trim();
+                                    const value = content.substring(colonIndex + 1).trim();
+                                    return (
+                                      <tr key={`${sectionIndex}-${lineIndex}`} className="hover:bg-orange-50/50 dark:hover:bg-orange-950/10">
+                                        <td className="px-4 py-3 font-medium text-foreground/80 w-1/3 align-top">
+                                          {key}
+                                        </td>
+                                        <td className="px-4 py-3 text-foreground/90">
+                                          {value}
+                                        </td>
+                                      </tr>
+                                    );
+                                  }
+                                  
+                                  return (
+                                    <tr key={`${sectionIndex}-${lineIndex}`} className="hover:bg-orange-50/50 dark:hover:bg-orange-950/10">
+                                      <td colSpan={2} className="px-4 py-2 text-foreground/90">
+                                        <span className="inline-block mr-2">•</span>{content}
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                                
+                                // Regular paragraphs
+                                if (line.trim()) {
+                                  return (
+                                    <tr key={`${sectionIndex}-${lineIndex}`}>
+                                      <td colSpan={2} className="px-4 py-3 text-foreground/90 leading-relaxed">
+                                        {line}
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                                
+                                return null;
+                              });
+                            })}
+                          </tbody>
+                        </table>
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
               </div>
