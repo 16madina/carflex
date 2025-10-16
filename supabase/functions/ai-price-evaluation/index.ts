@@ -43,14 +43,29 @@ serve(async (req) => {
       );
     }
 
-    // Get similar vehicles for market analysis
-    const { data: similarVehicles } = await supabase
+    // Get similar vehicles for market analysis - try exact match first
+    let { data: similarVehicles } = await supabase
       .from(tableName)
       .select("*")
       .eq("brand", listing.brand)
       .eq("model", listing.model)
       .neq("id", listingId)
       .limit(50);
+
+    // If not enough exact matches, expand search to same brand with similar year/mileage
+    if (!similarVehicles || similarVehicles.length < 5) {
+      const yearRange = 3; // +/- 3 years
+      const { data: expandedResults } = await supabase
+        .from(tableName)
+        .select("*")
+        .eq("brand", listing.brand)
+        .gte("year", listing.year - yearRange)
+        .lte("year", listing.year + yearRange)
+        .neq("id", listingId)
+        .limit(30);
+      
+      similarVehicles = expandedResults || similarVehicles || [];
+    }
 
     // Calculate basic market stats
     let marketData = {
@@ -82,41 +97,42 @@ serve(async (req) => {
     const vehicleAge = currentYear - listing.year;
     const priceValue = listing[priceField];
 
-    const prompt = `En tant qu'expert automobile, analyse ce véhicule et son prix par rapport au marché:
+    const prompt = `En tant qu'expert automobile du marché ouest-africain, analyse ce véhicule et son prix:
 
-Véhicule à évaluer:
+VÉHICULE À ÉVALUER:
 - Marque/Modèle: ${listing.brand} ${listing.model}
-- Année: ${listing.year} (${vehicleAge} ans)
+- Année: ${listing.year} (${vehicleAge} ans, âge important pour la dépréciation)
 - Kilométrage: ${listing.mileage.toLocaleString()} km
 - Prix demandé: ${priceValue.toLocaleString()} XOF
 - Carburant: ${listing.fuel_type}
 - Transmission: ${listing.transmission}
-- Type de carrosserie: ${listing.body_type || 'Non spécifié'}
-- État: ${listing.condition || 'Non spécifié'}
+- Type: ${listing.body_type || 'Non spécifié'}
+- État: ${listing.condition || 'Utilisé'}
 
-Données du marché (${marketData.count} véhicules similaires):
-- Prix moyen: ${marketData.average.toLocaleString()} XOF
-- Fourchette de prix: ${marketData.min.toLocaleString()} - ${marketData.max.toLocaleString()} XOF
+DONNÉES DU MARCHÉ (${marketData.count} véhicules similaires analysés):
+- Prix moyen du marché: ${marketData.average.toLocaleString()} XOF
+- Fourchette: ${marketData.min.toLocaleString()} - ${marketData.max.toLocaleString()} XOF
 - Année moyenne: ${marketData.avgYear}
 - Kilométrage moyen: ${marketData.avgMileage.toLocaleString()} km
 
-Fournis une évaluation structurée avec:
-1. Une catégorie de prix parmi: "excellent_prix", "bon_prix", "prix_correct", "prix_eleve", "bonne_affaire"
-2. Un pourcentage d'économie ou de surcoût (nombre positif si bon prix, négatif si trop cher)
-3. Une explication courte (1-2 phrases) en français, claire et convaincante
-4. Une recommandation d'action (acheter_rapidement, bon_choix, negocier, attention)
+CONTEXTE MARCHÉ OUEST-AFRICAIN:
+- Les véhicules de moins de 5 ans avec faible kilométrage (<80k km) se vendent généralement à prix premium
+- Les véhicules diesel et automatiques ont plus de valeur
+- La dépréciation est d'environ 8-12% par an
+- Un kilométrage supérieur à 150k km réduit significativement la valeur
 
-Prends en compte:
-- L'âge du véhicule et sa dépréciation
-- Le kilométrage par rapport à la moyenne
-- Les caractéristiques spéciales (carburant, transmission, etc.)
-- L'état général si mentionné
+CONSIGNES D'ÉVALUATION:
+1. Compare le prix demandé au prix moyen du marché ajusté selon l'âge et le kilométrage
+2. Si véhicule récent (<5 ans) avec faible kilométrage, considère que c'est normal d'être proche ou au-dessus du marché
+3. Si véhicule ancien (>8 ans) ou fort kilométrage (>150k), le prix devrait être en dessous du marché
+4. Catégorie: "excellent_prix" (15%+ économie), "bon_prix" (5-15% économie), "prix_correct" (-5% à +5%), "prix_eleve" (>5% surcoût)
+5. Pourcentage: positif = économie, négatif = surcoût par rapport au marché ajusté
 
-Réponds UNIQUEMENT au format JSON suivant (sans markdown):
+Réponds UNIQUEMENT en JSON (sans markdown, sans commentaire):
 {
-  "category": "excellent_prix",
-  "savingsPercentage": 15,
-  "explanation": "Explication courte ici",
+  "category": "bon_prix",
+  "savingsPercentage": 12,
+  "explanation": "Explication claire en français",
   "recommendation": "acheter_rapidement"
 }`;
 
