@@ -19,6 +19,7 @@ export interface FilterState {
   transmission: string;
   budgetMax: string;
   sortBy: string;
+  country?: string;
 }
 
 interface AdvancedFiltersProps {
