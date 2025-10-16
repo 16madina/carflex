@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
+import { useSplashScreen } from "./hooks/useSplashScreen";
+import { usePushNotifications } from "./hooks/usePushNotifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Listings from "./pages/Listings";
@@ -32,45 +34,51 @@ import AuthSync from "./components/AuthSync";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SubscriptionProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthSync />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/listings" element={<Listings />} />
-            <Route path="/listing/:id" element={<ListingDetail />} />
-            <Route path="/rental/:id" element={<RentalDetail />} />
-            <Route path="/sell" element={<SellType />} />
-            <Route path="/sell/vendre" element={<SellForm />} />
-            <Route path="/sell/louer" element={<RentForm />} />
-            <Route path="/sell/evaluer" element={<VehicleEvaluation />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/bookings" element={<Bookings />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/edit" element={<ProfileEdit />} />
-            <Route path="/profile/:userId" element={<PublicProfile />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/promote" element={<PromoteListing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/subscription-success" element={<SubscriptionSuccess />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/data-protection" element={<DataProtection />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </SubscriptionProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Initialise le splash screen et les push notifications
+  useSplashScreen();
+  usePushNotifications();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SubscriptionProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthSync />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/listings" element={<Listings />} />
+              <Route path="/listing/:id" element={<ListingDetail />} />
+              <Route path="/rental/:id" element={<RentalDetail />} />
+              <Route path="/sell" element={<SellType />} />
+              <Route path="/sell/vendre" element={<SellForm />} />
+              <Route path="/sell/louer" element={<RentForm />} />
+              <Route path="/sell/evaluer" element={<VehicleEvaluation />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/bookings" element={<Bookings />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/edit" element={<ProfileEdit />} />
+              <Route path="/profile/:userId" element={<PublicProfile />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/promote" element={<PromoteListing />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/subscription-success" element={<SubscriptionSuccess />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/data-protection" element={<DataProtection />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </SubscriptionProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -53,6 +53,21 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* iOS Safe Areas - Compatible avec tous les iPhones (notch, Dynamic Island, etc.) */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Support pour tous les téléphones iOS avec encoche */
+  @supports (padding: max(0px)) {
+    body {
+      padding-top: max(0px, env(safe-area-inset-top));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
+    }
   }
 }
 
