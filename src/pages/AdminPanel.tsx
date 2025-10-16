@@ -480,7 +480,7 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="packages" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="packages">Packages Premium</TabsTrigger>
             <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
