@@ -14,11 +14,28 @@ export const usePushNotifications = () => {
 
     const initPushNotifications = async () => {
       try {
-        // Demande la permission
-        let permStatus = await PushNotifications.checkPermissions();
+        // Vérifie si l'API est disponible
+        if (!PushNotifications) {
+          console.log('Push notifications API non disponible');
+          return;
+        }
+
+        // Demande la permission avec gestion d'erreur
+        let permStatus;
+        try {
+          permStatus = await PushNotifications.checkPermissions();
+        } catch (error) {
+          console.log('Permissions non disponibles:', error);
+          return;
+        }
 
         if (permStatus.receive === 'prompt') {
-          permStatus = await PushNotifications.requestPermissions();
+          try {
+            permStatus = await PushNotifications.requestPermissions();
+          } catch (error) {
+            console.log('Impossible de demander les permissions:', error);
+            return;
+          }
         }
 
         if (permStatus.receive !== 'granted') {
@@ -27,7 +44,12 @@ export const usePushNotifications = () => {
         }
 
         // S'enregistrer pour recevoir les notifications
-        await PushNotifications.register();
+        try {
+          await PushNotifications.register();
+        } catch (error) {
+          console.log('Impossible d\'enregistrer pour les notifications:', error);
+          return;
+        }
 
         // Listener: notification reçue
         PushNotifications.addListener('registration', (token) => {
@@ -37,16 +59,20 @@ export const usePushNotifications = () => {
 
         // Listener: erreur d'enregistrement
         PushNotifications.addListener('registrationError', (error) => {
-          console.error('Error on registration: ' + JSON.stringify(error));
+          console.log('Error on registration: ' + JSON.stringify(error));
         });
 
         // Listener: notification reçue quand l'app est ouverte
         PushNotifications.addListener('pushNotificationReceived', (notification) => {
           console.log('Push notification received: ', notification);
-          toast({
-            title: notification.title || 'Nouvelle notification',
-            description: notification.body,
-          });
+          try {
+            toast({
+              title: notification.title || 'Nouvelle notification',
+              description: notification.body,
+            });
+          } catch (error) {
+            console.log('Erreur affichage toast:', error);
+          }
         });
 
         // Listener: notification cliquée
@@ -54,15 +80,22 @@ export const usePushNotifications = () => {
           console.log('Push notification action performed', notification.actionId, notification.notification);
         });
       } catch (error) {
-        console.error('Erreur initialisation push notifications:', error);
+        // Erreur silencieuse pour ne pas crasher l'app
+        console.log('Notifications push non configurées ou non disponibles');
       }
     };
 
     initPushNotifications();
 
-    // Cleanup
+    // Cleanup avec gestion d'erreur
     return () => {
-      PushNotifications.removeAllListeners();
+      try {
+        if (PushNotifications) {
+          PushNotifications.removeAllListeners();
+        }
+      } catch (error) {
+        console.log('Erreur lors du cleanup des notifications');
+      }
     };
   }, [toast]);
 };
