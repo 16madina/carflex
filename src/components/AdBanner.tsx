@@ -41,14 +41,14 @@ const AdBanner = () => {
     // Ouvrir le lien immédiatement pour éviter le blocage des popups
     window.open(banner.link_url, "_blank");
 
-    // Incrémenter le compteur de clics en arrière-plan
-    supabase
-      .from("ad_banners")
-      .update({ click_count: banner.click_count + 1 })
-      .eq("id", banner.id)
+    // Incrémenter le compteur de clics via edge function sécurisée
+    supabase.functions
+      .invoke("track-ad-click", {
+        body: { bannerId: banner.id },
+      })
       .then(({ error }) => {
         if (error) {
-          console.error("Error updating click count:", error);
+          console.error("Error tracking click:", error);
         }
       });
   };

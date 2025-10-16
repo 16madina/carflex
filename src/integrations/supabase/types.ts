@@ -938,6 +938,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_banner_clicks: {
+        Args: { banner_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
