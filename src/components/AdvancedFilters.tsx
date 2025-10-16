@@ -63,7 +63,7 @@ const AdvancedFilters = ({
 
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
     if (key === "fuelType" || key === "transmission") return value !== "all";
-    if (key === "sortBy" || key === "country") return false;
+    if (key === "sortBy" || key === "country" || key === "budgetMax") return false;
     return value !== "";
   }).length;
 
