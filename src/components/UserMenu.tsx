@@ -11,7 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar } from "lucide-react";
+import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar, Crown } from "lucide-react";
 import { toast } from "sonner";
 
 const UserMenu = () => {
@@ -155,6 +155,10 @@ const UserMenu = () => {
         <DropdownMenuItem onClick={() => navigate("/profile")}>
           <UserCircle className="mr-2 h-4 w-4" />
           Mon profil
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/subscription")}>
+          <Crown className="mr-2 h-4 w-4 text-primary" />
+          Plan Pro
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
