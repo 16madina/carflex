@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCountry } from "@/contexts/CountryContext";
 
@@ -33,11 +34,24 @@ interface Listing {
   seller_id: string;
 }
 
+interface AdBanner {
+  id: string;
+  title: string;
+  image_url: string;
+  link_url: string;
+  is_active: boolean;
+  click_count: number;
+  created_at: string;
+}
+
 const AdminPanel = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [packages, setPackages] = useState<PremiumPackage[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
+  const [adBanners, setAdBanners] = useState<AdBanner[]>([]);
+  const [editingBanner, setEditingBanner] = useState<AdBanner | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [editingPackage, setEditingPackage] = useState<PremiumPackage | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -50,6 +64,12 @@ const AdminPanel = () => {
     listing_id: "",
     package_id: "",
     listing_type: "sale",
+  });
+  const [bannerFormData, setBannerFormData] = useState({
+    title: "",
+    image_url: "",
+    link_url: "",
+    is_active: true,
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -88,6 +108,7 @@ const AdminPanel = () => {
       setIsAdmin(true);
       fetchPackages();
       fetchListings();
+      fetchAdBanners();
     } catch (error) {
       console.error("Error checking admin status:", error);
       navigate("/profile");
@@ -131,6 +152,169 @@ const AdminPanel = () => {
     }
 
     setListings(data || []);
+  };
+
+  const fetchAdBanners = async () => {
+    const { data, error } = await supabase
+      .from("ad_banners")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les bannières",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAdBanners(data || []);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('ad-banners')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('ad-banners')
+        .getPublicUrl(filePath);
+
+      setBannerFormData({ ...bannerFormData, image_url: publicUrl });
+
+      toast({ title: "Image uploadée avec succès" });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'uploader l'image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleBannerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!bannerFormData.title || !bannerFormData.image_url || !bannerFormData.link_url) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editingBanner) {
+      const { error } = await supabase
+        .from("ad_banners")
+        .update({
+          title: bannerFormData.title,
+          image_url: bannerFormData.image_url,
+          link_url: bannerFormData.link_url,
+          is_active: bannerFormData.is_active,
+        })
+        .eq("id", editingBanner.id);
+
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de mettre à jour la bannière",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({ title: "Bannière mise à jour avec succès" });
+    } else {
+      const { error } = await supabase
+        .from("ad_banners")
+        .insert([{
+          title: bannerFormData.title,
+          image_url: bannerFormData.image_url,
+          link_url: bannerFormData.link_url,
+          is_active: bannerFormData.is_active,
+        }]);
+
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de créer la bannière",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({ title: "Bannière créée avec succès" });
+    }
+
+    setBannerFormData({ title: "", image_url: "", link_url: "", is_active: true });
+    setEditingBanner(null);
+    fetchAdBanners();
+  };
+
+  const handleEditBanner = (banner: AdBanner) => {
+    setEditingBanner(banner);
+    setBannerFormData({
+      title: banner.title,
+      image_url: banner.image_url,
+      link_url: banner.link_url,
+      is_active: banner.is_active,
+    });
+  };
+
+  const handleDeleteBanner = async (id: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette bannière ?")) return;
+
+    const { error } = await supabase
+      .from("ad_banners")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la bannière",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({ title: "Bannière supprimée avec succès" });
+    fetchAdBanners();
+  };
+
+  const handleToggleBannerStatus = async (id: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from("ad_banners")
+      .update({ is_active: !currentStatus })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le statut",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({ title: `Bannière ${!currentStatus ? "activée" : "désactivée"}` });
+    fetchAdBanners();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -299,6 +483,7 @@ const AdminPanel = () => {
           <TabsList>
             <TabsTrigger value="packages">Packages Premium</TabsTrigger>
             <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
+            <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
             <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
           </TabsList>
 
@@ -497,6 +682,170 @@ const AdminPanel = () => {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="banners">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5 text-blue-500" />
+                    {editingBanner ? "Modifier" : "Créer"} une Bannière Publicitaire
+                  </CardTitle>
+                  <CardDescription>
+                    Gérez les bannières publicitaires affichées entre les annonces
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleBannerSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="banner-title">Titre de la bannière</Label>
+                      <Input
+                        id="banner-title"
+                        value={bannerFormData.title}
+                        onChange={(e) => setBannerFormData({ ...bannerFormData, title: e.target.value })}
+                        placeholder="Ex: Assurance Auto Afrique"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="banner-link">Lien URL</Label>
+                      <Input
+                        id="banner-link"
+                        type="url"
+                        value={bannerFormData.link_url}
+                        onChange={(e) => setBannerFormData({ ...bannerFormData, link_url: e.target.value })}
+                        placeholder="https://example.com"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="banner-image">Image de la bannière</Label>
+                      <Input
+                        id="banner-image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                      />
+                      {uploadingImage && <p className="text-sm text-muted-foreground mt-2">Upload en cours...</p>}
+                      {bannerFormData.image_url && (
+                        <div className="mt-4 relative w-full h-40 rounded-lg overflow-hidden">
+                          <img 
+                            src={bannerFormData.image_url} 
+                            alt="Aperçu" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="banner-active">Bannière active</Label>
+                      <Switch
+                        id="banner-active"
+                        checked={bannerFormData.is_active}
+                        onCheckedChange={(checked) => setBannerFormData({ ...bannerFormData, is_active: checked })}
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button type="submit" className="flex-1" disabled={uploadingImage}>
+                        {editingBanner ? <Edit className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+                        {editingBanner ? "Mettre à jour" : "Créer"}
+                      </Button>
+                      {editingBanner && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingBanner(null);
+                            setBannerFormData({ title: "", image_url: "", link_url: "", is_active: true });
+                          }}
+                        >
+                          Annuler
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold">Bannières Existantes</h2>
+                {adBanners.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      Aucune bannière créée pour le moment
+                    </CardContent>
+                  </Card>
+                ) : (
+                  adBanners.map((banner) => (
+                    <Card key={banner.id}>
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <CardTitle className="flex items-center gap-2">
+                              {banner.title}
+                              {banner.is_active ? (
+                                <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">Actif</span>
+                              ) : (
+                                <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">Inactif</span>
+                              )}
+                            </CardTitle>
+                            <CardDescription className="flex items-center gap-1 mt-1">
+                              <ExternalLink className="h-3 w-3" />
+                              {banner.link_url}
+                            </CardDescription>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => handleEditBanner(banner)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              onClick={() => handleDeleteBanner(banner.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="relative w-full h-32 rounded-lg overflow-hidden">
+                            <img 
+                              src={banner.image_url} 
+                              alt={banner.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              {banner.click_count} clics
+                            </span>
+                            <Button
+                              size="sm"
+                              variant={banner.is_active ? "outline" : "default"}
+                              onClick={() => handleToggleBannerStatus(banner.id, banner.is_active)}
+                            >
+                              {banner.is_active ? "Désactiver" : "Activer"}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="pro-plan">
