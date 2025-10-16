@@ -107,6 +107,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       messages: {
@@ -178,6 +185,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -378,6 +392,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "rental_bookings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rental_bookings_rental_listing_id_fkey"
             columns: ["rental_listing_id"]
             isOneToOne: false
@@ -389,6 +410,13 @@ export type Database = {
             columns: ["renter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -468,6 +496,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "rental_listings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       reviews: {
@@ -508,6 +543,13 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -623,6 +665,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sale_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -650,6 +699,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -692,7 +748,183 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      premium_listings_public: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string | null
+          is_active: boolean | null
+          listing_id: string | null
+          listing_type: string | null
+          package_id: string | null
+          start_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          listing_id?: string | null
+          listing_type?: string | null
+          package_id?: string | null
+          start_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          listing_id?: string | null
+          listing_type?: string | null
+          package_id?: string | null
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_listings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "premium_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "premium_listings_sale_listing_fk"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "sale_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_seller_profiles: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          company_name: string | null
+          country: string | null
+          created_at: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          user_type: Database["public"]["Enums"]["user_type"] | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Update: {
+          avatar_url?: string | null
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Relationships: []
+      }
+      rental_bookings_safe: {
+        Row: {
+          cancellation_reason: string | null
+          created_at: string | null
+          daily_rate: number | null
+          end_date: string | null
+          id: string | null
+          notes: string | null
+          owner_id: string | null
+          payment_id: string | null
+          payment_status: string | null
+          rental_listing_id: string | null
+          renter_id: string | null
+          start_date: string | null
+          status: string | null
+          total_days: number | null
+          total_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          cancellation_reason?: string | null
+          created_at?: string | null
+          daily_rate?: number | null
+          end_date?: string | null
+          id?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          payment_id?: never
+          payment_status?: string | null
+          rental_listing_id?: string | null
+          renter_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          total_days?: number | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          cancellation_reason?: string | null
+          created_at?: string | null
+          daily_rate?: number | null
+          end_date?: string | null
+          id?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          payment_id?: never
+          payment_status?: string | null
+          rental_listing_id?: string | null
+          renter_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          total_days?: number | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_bookings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_rental_listing_id_fkey"
+            columns: ["rental_listing_id"]
+            isOneToOne: false
+            referencedRelation: "rental_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       count_user_active_listings: {
