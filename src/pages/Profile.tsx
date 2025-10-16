@@ -6,7 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Camera, Calendar, Car, Check, X, Clock, MessageSquare } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Camera, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,6 +58,8 @@ const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [receivedBookings, setReceivedBookings] = useState<any[]>([]);
+  const [verifyEmailDialogOpen, setVerifyEmailDialogOpen] = useState(false);
+  const [sendingVerification, setSendingVerification] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -364,6 +366,32 @@ const Profile = () => {
     }
   };
 
+  const handleSendVerificationEmail = async () => {
+    if (!user || !profile) return;
+    
+    setSendingVerification(true);
+    
+    try {
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          userId: user.id,
+          email: profile.email,
+          firstName: profile.first_name
+        }
+      });
+
+      if (error) throw error;
+
+      setVerifyEmailDialogOpen(true);
+      toast.success("Email de vérification envoyé !");
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      toast.error("Erreur lors de l'envoi de l'email");
+    } finally {
+      setSendingVerification(false);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success("Déconnexion réussie");
@@ -467,7 +495,30 @@ const Profile = () => {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-muted-foreground">{profile?.email}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-muted-foreground">{profile?.email}</p>
+                        {profile?.email_verified ? (
+                          <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Vérifié
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleSendVerificationEmail}
+                            disabled={sendingVerification}
+                            className="h-7 px-2 text-xs"
+                          >
+                            {sendingVerification ? (
+                              <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin mr-1" />
+                            ) : (
+                              <Mail className="h-3 w-3 mr-1" />
+                            )}
+                            Vérifier mon email
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -805,6 +856,37 @@ const Profile = () => {
           </Tabs>
         </div>
       </main>
+
+      <Dialog open={verifyEmailDialogOpen} onOpenChange={setVerifyEmailDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Email de vérification envoyé
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-medium text-amber-900">Vérifiez votre dossier spam</p>
+                <p className="text-sm text-amber-700">
+                  L'email de vérification peut parfois arriver dans vos courriers indésirables ou spam. 
+                  Pensez à vérifier ce dossier si vous ne trouvez pas notre email.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>✉️ Un email a été envoyé à <strong>{profile?.email}</strong></p>
+              <p>🔗 Cliquez sur le lien dans l'email pour vérifier votre adresse</p>
+              <p>⏰ Le lien est valide pendant 24 heures</p>
+            </div>
+          </div>
+          <Button onClick={() => setVerifyEmailDialogOpen(false)} className="w-full">
+            Compris
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
