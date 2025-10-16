@@ -156,10 +156,30 @@ export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const formatPrice = (price: number): string => {
     const convertedPrice = convertPrice(price);
+    const symbol = selectedCountry.currencySymbol;
+    
+    // Pour les millions (>= 1 000 000)
+    if (convertedPrice >= 1000000) {
+      const millions = convertedPrice / 1000000;
+      // Si c'est un nombre rond de millions, pas de décimales
+      if (millions % 1 === 0) {
+        return `${millions.toLocaleString('fr-FR')} millions ${symbol}`;
+      }
+      // Sinon, 1 décimale maximum
+      return `${millions.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} millions ${symbol}`;
+    }
+    
+    // Pour les milliers (>= 10 000)
+    if (convertedPrice >= 10000) {
+      const thousands = convertedPrice / 1000;
+      return `${Math.round(thousands)}K ${symbol}`;
+    }
+    
+    // Pour les petits montants
     return `${convertedPrice.toLocaleString('fr-FR', { 
       minimumFractionDigits: 0,
       maximumFractionDigits: 0 
-    })} ${selectedCountry.currencySymbol}`;
+    })} ${symbol}`;
   };
 
   return (
