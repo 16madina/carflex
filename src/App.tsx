@@ -31,18 +31,36 @@ import TermsOfService from "./pages/TermsOfService";
 import DataProtection from "./pages/DataProtection";
 import NotFound from "./pages/NotFound";
 import AuthSync from "./components/AuthSync";
+import { SplashScreen } from "./components/SplashScreen";
+import { useState, useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+  
   // Initialise le splash screen et les push notifications
   useSplashScreen();
   usePushNotifications();
+
+  useEffect(() => {
+    // Ne montrer le splash que la première fois ou après un refresh
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    if (hasSeenSplash) {
+      setShowSplash(false);
+    }
+  }, []);
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('hasSeenSplash', 'true');
+    setShowSplash(false);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
       <SubscriptionProvider>
         <TooltipProvider>
+          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
           <Toaster />
           <Sonner />
           <BrowserRouter>
