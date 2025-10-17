@@ -46,8 +46,22 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Create verification link
-    const verificationLink = `https://carflex.lovable.app/verify-email?verify=${token}`;
+    // Get origin from request headers (referer or origin)
+    const referer = req.headers.get("referer");
+    const origin = req.headers.get("origin");
+    let baseUrl = "https://carflex.lovable.app"; // Default fallback
+    
+    if (referer) {
+      const url = new URL(referer);
+      baseUrl = `${url.protocol}//${url.host}`;
+    } else if (origin) {
+      baseUrl = origin;
+    }
+    
+    console.log("Using base URL:", baseUrl);
+
+    // Create verification link with dynamic URL
+    const verificationLink = `${baseUrl}/verify-email?verify=${token}`;
 
     // Send email via Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
