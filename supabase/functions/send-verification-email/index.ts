@@ -46,21 +46,12 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Get origin from request headers (referer or origin)
-    const referer = req.headers.get("referer");
-    const origin = req.headers.get("origin");
-    let baseUrl = "https://carflex.lovable.app"; // Default fallback
-    
-    if (referer) {
-      const url = new URL(referer);
-      baseUrl = `${url.protocol}//${url.host}`;
-    } else if (origin) {
-      baseUrl = origin;
-    }
+    // Use production domain for all verification links
+    const baseUrl = "https://carflexapp.com";
     
     console.log("Using base URL:", baseUrl);
 
-    // Create verification link with dynamic URL
+    // Create verification link - this will open the app if installed via deep link
     const verificationLink = `${baseUrl}/verify-email?verify=${token}`;
 
     // Send email via Resend API

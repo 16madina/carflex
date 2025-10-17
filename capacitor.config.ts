@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'CarFlex',
   webDir: 'dist',
   server: {
-    url: 'https://caflexapp.com',
+    url: 'https://carflexapp.com',
     cleartext: true
   },
   ios: {
