@@ -1,14 +1,23 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    // Si l'URL contient un paramètre verify, rediriger vers la page de vérification
+    const verifyToken = searchParams.get("verify");
+    if (verifyToken) {
+      navigate(`/verify-email?verify=${verifyToken}`, { replace: true });
+      return;
+    }
+    
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
+  }, [location.pathname, searchParams, navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-card">

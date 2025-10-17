@@ -46,8 +46,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Use deployed Lovable domain for verification links
-    const baseUrl = "https://carflex.lovable.app";
+    // Use active preview domain for verification links
+    const baseUrl = "https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com";
     
     console.log("Using base URL:", baseUrl);
 
