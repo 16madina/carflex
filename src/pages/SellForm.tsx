@@ -333,7 +333,9 @@ const SellForm = () => {
                   <Input
                     id="price"
                     type="number"
-                    placeholder="25000"
+                    placeholder="Entrez votre prix"
+                    min="1"
+                    step="1"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     required
@@ -341,7 +343,7 @@ const SellForm = () => {
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Les prix sont enregistrés en CFA et convertis automatiquement
+                    Aucune limite de prix - Les prix sont enregistrés en CFA et convertis automatiquement
                   </p>
                 </div>
 

@@ -180,7 +180,7 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       <Hero userFirstName={userFirstName} />
-      {!userFirstName && <ProPlanPromo />}
+      {userFirstName === null && <ProPlanPromo />}
 
       {/* Premium Listings Section */}
       {premiumCars.length > 0 && (

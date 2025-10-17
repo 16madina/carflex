@@ -311,7 +311,9 @@ const RentForm = () => {
                   <Input
                     id="price_per_day"
                     type="number"
-                    placeholder="50"
+                    placeholder="Entrez votre prix"
+                    min="1"
+                    step="1"
                     value={formData.price_per_day}
                     onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
                     required
@@ -319,7 +321,7 @@ const RentForm = () => {
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Les prix sont enregistrés en CFA et convertis automatiquement
+                    Aucune limite de prix - Les prix sont enregistrés en CFA et convertis automatiquement
                   </p>
                 </div>
 
