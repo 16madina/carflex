@@ -90,11 +90,12 @@ const PremiumCarCard = ({
           <Button
             variant="ghost"
             size="icon"
-            className="bg-background/80 hover:bg-background"
+            className="bg-background/80 hover:bg-background h-11 w-11 md:h-10 md:w-10"
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite?.();
             }}
+            aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
           >
             <Heart
               className={`h-5 w-5 ${
@@ -141,7 +142,7 @@ const PremiumCarCard = ({
           <span className="capitalize">{fuel_type}</span>
         </div>
         <Button
-          className="w-full"
+          className="w-full h-11 md:h-10"
           onClick={() => navigate(`/listing/${id}`)}
         >
           Voir détails

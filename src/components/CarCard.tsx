@@ -95,13 +95,14 @@ const CarCard = ({
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-3 right-3 rounded-full shadow-lg z-10"
+          className="absolute top-3 right-3 rounded-full shadow-lg z-10 h-11 w-11 md:h-10 md:w-10"
           onClick={(e) => {
             e.stopPropagation();
             handleFavoriteClick();
           }}
+          aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
-          <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
+          <Heart className={`h-5 w-5 md:h-4 md:w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
         </Button>
         <div className="absolute bottom-3 left-3 z-10">
           <DealRatingBadge 
@@ -158,6 +159,7 @@ const CarCard = ({
           </div>
           <Button 
             variant="default"
+            className="h-11 md:h-10"
             onClick={(e) => {
               e.stopPropagation();
               handleCardClick();
