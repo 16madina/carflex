@@ -5,12 +5,16 @@ import { toast } from "sonner";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, Key, Calculator } from "lucide-react";
+import { DollarSign, Key, Calculator, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAppSettings } from "@/hooks/useAppSettings";
 
 const SellType = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const { subscribed, loading: subLoading } = useSubscription();
+  const { settings, loading: settingsLoading } = useAppSettings();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -24,6 +28,26 @@ const SellType = () => {
     };
     checkAuth();
   }, [navigate]);
+
+  const handleEvaluationClick = () => {
+    const isRestricted = settings.restrict_vehicle_evaluation_to_pro;
+    
+    if (isRestricted && !subscribed) {
+      toast.error("Cette fonctionnalité est réservée aux utilisateurs Pro", {
+        description: "Passez au plan Pro pour accéder à l'évaluation de véhicule",
+        action: {
+          label: "Voir les plans",
+          onClick: () => navigate("/subscription")
+        }
+      });
+      return;
+    }
+    
+    navigate("/sell/evaluer");
+  };
+
+  const isEvaluationRestricted = settings.restrict_vehicle_evaluation_to_pro && !subscribed;
+  const isLoading = subLoading || settingsLoading;
 
   return (
     <div className="min-h-screen bg-primary pb-20">
@@ -63,18 +87,36 @@ const SellType = () => {
 
           <Card 
             className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] bg-white border-0 shadow-lg overflow-hidden"
-            onClick={() => navigate("/sell/evaluer")}
+            onClick={handleEvaluationClick}
           >
             <CardContent className="flex flex-col items-center justify-center p-8 space-y-4">
-              <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center">
-                <Calculator className="w-10 h-10 text-accent" strokeWidth={2.5} />
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                isEvaluationRestricted ? 'bg-muted' : 'bg-accent/10'
+              }`}>
+                {isEvaluationRestricted ? (
+                  <Lock className="w-10 h-10 text-muted-foreground" strokeWidth={2.5} />
+                ) : (
+                  <Calculator className="w-10 h-10 text-accent" strokeWidth={2.5} />
+                )}
               </div>
-              <h2 className="text-xl font-bold text-center text-foreground leading-tight">
-                Évaluer mon véhicule
-              </h2>
-              <p className="text-sm text-muted-foreground text-center">
-                Obtenez une estimation de prix basée sur le marché
-              </p>
+              <div className="space-y-2">
+                <h2 className={`text-xl font-bold text-center leading-tight ${
+                  isEvaluationRestricted ? 'text-muted-foreground' : 'text-foreground'
+                }`}>
+                  Évaluer mon véhicule
+                  {isEvaluationRestricted && (
+                    <span className="ml-2 text-xs text-primary font-normal">
+                      (Pro uniquement)
+                    </span>
+                  )}
+                </h2>
+                <p className="text-sm text-muted-foreground text-center">
+                  {isEvaluationRestricted 
+                    ? "Passez au plan Pro pour accéder à cette fonctionnalité"
+                    : "Obtenez une estimation de prix basée sur le marché"
+                  }
+                </p>
+              </div>
             </CardContent>
           </Card>
 

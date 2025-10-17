@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -53,6 +53,8 @@ const AdminPanel = () => {
   const [adBanners, setAdBanners] = useState<AdBanner[]>([]);
   const [editingBanner, setEditingBanner] = useState<AdBanner | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [appSettings, setAppSettings] = useState<Record<string, boolean>>({});
+  const [savingSettings, setSavingSettings] = useState(false);
   const [editingPackage, setEditingPackage] = useState<PremiumPackage | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -110,6 +112,7 @@ const AdminPanel = () => {
       fetchPackages();
       fetchListings();
       fetchAdBanners();
+      fetchAppSettings();
     } catch (error) {
       console.error("Error checking admin status:", error);
       navigate("/profile");
@@ -456,6 +459,50 @@ const AdminPanel = () => {
     fetchPackages();
   };
 
+  const fetchAppSettings = async () => {
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("*");
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les paramètres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const settingsMap: Record<string, boolean> = {};
+    data?.forEach((setting) => {
+      settingsMap[setting.setting_key] = setting.setting_value;
+    });
+    setAppSettings(settingsMap);
+  };
+
+  const handleSettingChange = async (key: string, value: boolean) => {
+    setSavingSettings(true);
+    
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ setting_value: value })
+      .eq("setting_key", key);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder le paramètre",
+        variant: "destructive",
+      });
+      setSavingSettings(false);
+      return;
+    }
+
+    toast({ title: "Paramètre mis à jour avec succès" });
+    setAppSettings({ ...appSettings, [key]: value });
+    setSavingSettings(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -487,6 +534,7 @@ const AdminPanel = () => {
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
             <TabsTrigger value="users">Gestion des Utilisateurs</TabsTrigger>
             <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
+            <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
           <TabsContent value="packages" className="space-y-6">
@@ -856,6 +904,40 @@ const AdminPanel = () => {
 
           <TabsContent value="pro-plan">
             <ProPlanSettings />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-primary" />
+                  Paramètres de l'application
+                </CardTitle>
+                <CardDescription>
+                  Configurez les restrictions et fonctionnalités de l'application
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="restrict-evaluation">
+                      Restreindre l'évaluation aux utilisateurs Pro
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Seuls les utilisateurs avec un abonnement Pro pourront accéder à l'évaluation de véhicule
+                    </p>
+                  </div>
+                  <Switch
+                    id="restrict-evaluation"
+                    checked={appSettings.restrict_vehicle_evaluation_to_pro || false}
+                    onCheckedChange={(checked) => 
+                      handleSettingChange('restrict_vehicle_evaluation_to_pro', checked)
+                    }
+                    disabled={savingSettings}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
