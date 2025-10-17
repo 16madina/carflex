@@ -11,7 +11,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
     "@capacitor/push-notifications": "^7.0.3",
     "@capacitor/splash-screen": "^7.0.3",
     "@hookform/resolvers": "^3.10.0",

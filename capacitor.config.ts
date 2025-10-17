@@ -4,10 +4,12 @@ const config: CapacitorConfig = {
   appId: 'app.lovable.c69889b6be82430184ff53e58a725869',
   appName: 'CarFlex',
   webDir: 'dist',
-  server: {
-    url: 'https://carflexapp.com',
-    cleartext: true
-  },
+  // Pour la production, pas de server URL - l'app utilisera les fichiers locaux
+  // Pour le développement avec hot-reload, décommentez les lignes ci-dessous:
+  // server: {
+  //   url: 'https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   ios: {
     scheme: 'carflex'
   },
