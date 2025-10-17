@@ -46,8 +46,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Use active preview domain for verification links
-    const baseUrl = "https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com";
+    // Use production domain for verification links
+    const baseUrl = "https://carflexapp.com";
     
     console.log("Using base URL:", baseUrl);
 
