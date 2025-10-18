@@ -9,7 +9,7 @@ export const useSplashScreen = () => {
       return;
     }
 
-    // Cache le splash screen après que l'app soit prête
+    // Cache le splash screen après que l'app soit complètement prête
     const hideSplash = async () => {
       try {
         // Attendre que le DOM soit complètement chargé
@@ -21,17 +21,17 @@ export const useSplashScreen = () => {
           }
         });
         
-        // Petit délai supplémentaire pour s'assurer que React est prêt
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Délai supplémentaire pour s'assurer que React est monté et prêt
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         await SplashScreen.hide();
-        console.log('Splash screen caché avec succès');
+        console.log('Splash screen natif caché avec succès');
       } catch (error) {
         console.error('Erreur lors du masquage du splash screen:', error);
         // En cas d'erreur, on force le masquage après un délai
         setTimeout(() => {
           SplashScreen.hide().catch(() => {});
-        }, 1000);
+        }, 1500);
       }
     };
 

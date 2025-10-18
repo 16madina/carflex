@@ -32,47 +32,18 @@ import TermsOfService from "./pages/TermsOfService";
 import DataProtection from "./pages/DataProtection";
 import NotFound from "./pages/NotFound";
 import AuthSync from "./components/AuthSync";
-import { SplashScreen } from "./components/SplashScreen";
-import { useState, useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
-  
-  // Initialise le splash screen et les push notifications
+  // Initialise le splash screen natif et les push notifications
   useSplashScreen();
   usePushNotifications();
-
-  useEffect(() => {
-    // Ne montrer le splash que la première fois ou après un refresh
-    try {
-      const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
-      if (hasSeenSplash) {
-        setShowSplash(false);
-      }
-    } catch (error) {
-      // Si sessionStorage n'est pas disponible (sur certaines plateformes mobiles)
-      // on cache le splash après un court délai
-      console.log('sessionStorage non disponible, cache du splash après délai');
-      setTimeout(() => setShowSplash(false), 2000);
-    }
-  }, []);
-
-  const handleSplashComplete = () => {
-    try {
-      sessionStorage.setItem('hasSeenSplash', 'true');
-    } catch (error) {
-      console.log('Impossible de sauvegarder dans sessionStorage');
-    }
-    setShowSplash(false);
-  };
 
   return (
     <QueryClientProvider client={queryClient}>
       <SubscriptionProvider>
         <TooltipProvider>
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
           <Toaster />
           <Sonner />
           <BrowserRouter>

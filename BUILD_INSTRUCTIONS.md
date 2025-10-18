@@ -152,9 +152,47 @@ Assurez-vous que toutes vos clés API et secrets sont bien configurés :
 
 ## 🆘 Dépannage
 
+### ❌ L'application crash au démarrage (Android)
+
+Si l'application se ferme immédiatement après son lancement sur Android, cela est souvent lié à une mauvaise configuration du splash screen.
+
+**Solutions :**
+
+1. **Vérifier la configuration du splash screen dans `capacitor.config.ts`** :
+   ```typescript
+   SplashScreen: {
+     launchShowDuration: 3000,  // ❌ NE PAS mettre 0
+     launchAutoHide: true,
+     launchFadeOutDuration: 300,
+     useDialog: true,  // ✅ Important pour éviter les crashes SurfaceControl
+     splashImmersive: false,  // ✅ false pour compatibilité Android 12+
+     splashFullScreen: true,
+     backgroundColor: "#ffffff"
+   }
+   ```
+
+2. **Créer les ressources splash screen** :
+   Créez des images splash dans `android/app/src/main/res/` :
+   - `drawable-land-xxhdpi/splash.png` (1920x1080px)
+   - `drawable-land-xhdpi/splash.png` (1280x720px)
+   - `drawable-port-xxhdpi/splash.png` (1080x1920px)
+   - `drawable-port-xhdpi/splash.png` (720x1280px)
+   
+   💡 **Conseil** : Utilisez une image simple avec le logo CarFlex centré sur fond blanc.
+
+3. **Après toute modification** :
+   ```bash
+   npm run build
+   npx cap sync android
+   npx cap run android
+   ```
+
+### 🔧 Autres Problèmes Courants
+
 **Erreur de build :**
 - Vérifiez que toutes les dépendances sont installées
 - Essayez `npm run build` pour voir les erreurs
+- Nettoyez le cache : `rm -rf node_modules && npm install`
 
 **Erreur de sync :**
 - Supprimez les dossiers `ios` et `android`
