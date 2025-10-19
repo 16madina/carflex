@@ -80,3 +80,10 @@ All colors MUST be HSL.
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* iOS Safe Area utilities pour les zones de saisie */
+@layer utilities {
+  .pb-safe-or-4 {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
