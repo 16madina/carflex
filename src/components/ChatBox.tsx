@@ -188,7 +188,7 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
       ) : (
         <>
           {/* Header */}
-          <div className="bg-card p-4 border-b border-border flex items-center justify-between flex-shrink-0">
+          <div className="bg-card p-4 pt-safe-or-4 border-b border-border flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"

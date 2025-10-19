@@ -189,10 +189,7 @@ const Messages = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* TopBar caché sur mobile quand une conversation est ouverte */}
-      <div className={selectedConversation ? 'hidden md:block' : 'block'}>
-        <TopBar />
-      </div>
+      <TopBar />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Liste des conversations - Colonne gauche */}
