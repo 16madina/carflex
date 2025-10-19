@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { useSplashScreen } from "./hooks/useSplashScreen";
 import { usePushNotifications } from "./hooks/usePushNotifications";
+import SplashScreen from "./components/SplashScreen";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EmailVerification from "./pages/EmailVerification";
@@ -36,9 +38,15 @@ import AuthSync from "./components/AuthSync";
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+  
   // Initialise le splash screen natif et les push notifications
   useSplashScreen();
   usePushNotifications();
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
