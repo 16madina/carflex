@@ -7,7 +7,7 @@ import UserMenu from "./UserMenu";
 const TopBar = () => {
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b pt-[max(1rem,env(safe-area-inset-top))]">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b pt-[max(1rem,env(safe-area-inset-top))]">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-bold text-2xl">

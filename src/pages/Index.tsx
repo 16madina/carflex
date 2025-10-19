@@ -177,7 +177,7 @@ const Index = () => {
   }, [sortBy, selectedCountry]);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))]">
       <TopBar />
       <Hero userFirstName={userFirstName} />
       {userFirstName === null && <ProPlanPromo />}
