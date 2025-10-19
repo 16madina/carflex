@@ -73,8 +73,8 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t shadow-elevated safe-area-inset-bottom">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t shadow-elevated">
+      <div className="flex items-center justify-around h-16 px-2 pb-safe-bottom">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);

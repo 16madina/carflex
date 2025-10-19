@@ -86,4 +86,8 @@ All colors MUST be HSL.
   .pb-safe-or-4 {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
+  
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
