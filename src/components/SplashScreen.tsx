@@ -38,7 +38,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         <div className="space-y-2">
           <h1 className="text-6xl font-bold tracking-tight animate-scale-in">
             <span className="text-blue-500">Car</span>
-            <span className="text-red-500">flex</span>
+            <span className="text-red-500">Flex</span>
           </h1>
           <p className="text-white/80 text-lg animate-fade-in-delayed">
             Votre marketplace automobile
