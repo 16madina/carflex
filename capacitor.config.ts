@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.c69889b6be82430184ff53e58a725869',
+  appId: 'com.missdee.carflextest',
   appName: 'CarFlex',
   webDir: 'dist',
   // Pour la production, pas de server URL - l'app utilisera les fichiers locaux
