@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Car } from "lucide-react";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -29,26 +30,15 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         <div className="relative w-24 h-24 mx-auto mb-8 animate-bounce-slow">
           <div className="absolute inset-0 bg-white/20 rounded-2xl rotate-12 animate-pulse"></div>
           <div className="absolute inset-0 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
-            <svg
-              className="w-16 h-16 text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
+            <Car className="w-16 h-16 text-primary" strokeWidth={2.5} />
           </div>
         </div>
 
         {/* Texte Carflex */}
         <div className="space-y-2">
-          <h1 className="text-6xl font-bold text-white tracking-tight animate-scale-in">
-            Carflex
+          <h1 className="text-6xl font-bold tracking-tight animate-scale-in">
+            <span className="text-blue-500">Car</span>
+            <span className="text-red-500">flex</span>
           </h1>
           <p className="text-white/80 text-lg animate-fade-in-delayed">
             Votre marketplace automobile
