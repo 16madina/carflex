@@ -318,7 +318,7 @@ const Messages = () => {
         </div>
 
         {/* ChatBox - Colonne droite */}
-        <div className={`flex-1 flex flex-col bg-background ${selectedConversation ? '' : 'hidden md:flex'}`}>
+        <div className={`flex-1 flex flex-col bg-background ${selectedConversation ? 'md:relative fixed inset-0 z-50 md:z-auto' : 'hidden md:flex'}`}>
           {selectedConversation ? (
             (() => {
               const conv = conversations.find(c => c.id === selectedConversation);
