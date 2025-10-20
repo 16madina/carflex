@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
@@ -39,6 +40,8 @@ const PromoteListing = () => {
   const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [showPromoInput, setShowPromoInput] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -255,33 +258,52 @@ const PromoteListing = () => {
                   </Button>
                 </p>
               ) : (
-                <>
-                  <Select value={selectedListing} onValueChange={setSelectedListing}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir une annonce" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {userListings.map((listing) => (
-                        <SelectItem key={listing.id} value={listing.id}>
-                          {listing.brand} {listing.model} ({listing.year}) -{" "}
-                          <Badge variant="outline" className="ml-2">
-                            {listing.type === 'sale' ? 'Vente' : 'Location'}
-                          </Badge>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select value={selectedListing} onValueChange={setSelectedListing}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir une annonce" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userListings.map((listing) => (
+                          <SelectItem key={listing.id} value={listing.id}>
+                            {listing.brand} {listing.model} ({listing.year}) -{" "}
+                            <Badge variant="outline" className="ml-2">
+                              {listing.type === 'sale' ? 'Vente' : 'Location'}
+                            </Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                  <Button
-                    onClick={handlePromote}
-                    disabled={!selectedListing || submitting}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {submitting ? "Traitement..." : "Promouvoir cette annonce"}
-                  </Button>
-                </>
-              )}
+                    <div className="space-y-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowPromoInput(!showPromoInput)}
+                        className="w-full"
+                      >
+                        {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                      </Button>
+                      
+                      {showPromoInput && (
+                        <Input
+                          placeholder="Code promo (optionnel)"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        />
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={handlePromote}
+                      disabled={!selectedListing || submitting}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {submitting ? "Traitement..." : "Promouvoir cette annonce"}
+                    </Button>
+                  </>
+                )}
             </CardContent>
           </Card>
         )}

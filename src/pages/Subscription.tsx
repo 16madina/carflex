@@ -5,7 +5,8 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -42,13 +43,17 @@ const Subscription = () => {
   const { subscribed, productId, subscriptionEnd, loading, refreshSubscription } = useSubscription();
   const [subscribing, setSubscribing] = useState(false);
   const [managing, setManaging] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [showPromoInput, setShowPromoInput] = useState(false);
   // Prix fixe pour éviter les variations
   const proPrice = SUBSCRIPTION_TIERS.pro.price;
 
   const handleSubscribe = async () => {
     setSubscribing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: promoCode ? { coupon_code: promoCode } : undefined
+      });
       
       if (error) throw error;
       
@@ -163,24 +168,46 @@ const Subscription = () => {
             </CardContent>
             <CardFooter>
               {!isPro ? (
-                <Button 
-                  onClick={handleSubscribe} 
-                  disabled={subscribing}
-                  className="w-full"
-                  size="lg"
-                >
-                  {subscribing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Chargement...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Passer à Pro
-                    </>
-                  )}
-                </Button>
+                <div className="w-full space-y-3">
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowPromoInput(!showPromoInput)}
+                      className="w-full"
+                    >
+                      <Tag className="mr-2 h-4 w-4" />
+                      {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                    </Button>
+                    
+                    {showPromoInput && (
+                      <Input
+                        placeholder="Code promo (optionnel)"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                      />
+                    )}
+                  </div>
+
+                  <Button 
+                    onClick={handleSubscribe} 
+                    disabled={subscribing}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {subscribing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Chargement...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Passer à Pro
+                      </>
+                    )}
+                  </Button>
+                </div>
               ) : (
                 <div className="w-full space-y-2">
                   {subscriptionEnd && (

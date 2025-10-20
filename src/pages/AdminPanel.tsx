@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -534,6 +534,7 @@ const AdminPanel = () => {
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
             <TabsTrigger value="users">Gestion des Utilisateurs</TabsTrigger>
             <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
+            <TabsTrigger value="coupons">Codes Promo</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
@@ -906,6 +907,10 @@ const AdminPanel = () => {
             <ProPlanSettings />
           </TabsContent>
 
+          <TabsContent value="coupons">
+            <CouponManagement />
+          </TabsContent>
+
           <TabsContent value="settings">
             <Card>
               <CardHeader>
@@ -1111,6 +1116,335 @@ const ProPlanSettings = () => {
         </form>
       </CardContent>
     </Card>
+  );
+};
+
+const CouponManagement = () => {
+  const [loading, setLoading] = useState(true);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [creatingCoupon, setCreatingCoupon] = useState(false);
+  const [couponForm, setCouponForm] = useState({
+    code: "",
+    discountType: "percent" as "percent" | "amount",
+    percentOff: 0,
+    amountOff: 0,
+    duration: "once" as "once" | "forever" | "repeating",
+    durationInMonths: 1,
+  });
+  const { toast } = useToast();
+  const { formatPrice } = useCountry();
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  const fetchCoupons = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        'https://api.stripe.com/v1/coupons',
+        {
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
+          }
+        }
+      );
+
+      if (!response.ok) throw new Error("Impossible de charger les coupons");
+
+      const data = await response.json();
+      setCoupons(data.data || []);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+      toast({
+        title: "Information",
+        description: "Les coupons Stripe seront disponibles après configuration",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingCoupon(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const body: any = {
+        name: couponForm.code,
+        duration: couponForm.duration,
+      };
+
+      if (couponForm.discountType === "percent") {
+        body.percent_off = couponForm.percentOff;
+      } else {
+        body.amount_off = Math.round(couponForm.amountOff * 100); // Convert to cents
+        body.currency = "xof";
+      }
+
+      if (couponForm.duration === "repeating") {
+        body.duration_in_months = couponForm.durationInMonths;
+      }
+
+      const formData = new URLSearchParams(body);
+
+      const response = await fetch(
+        'https://api.stripe.com/v1/coupons',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || "Erreur lors de la création");
+      }
+
+      toast({
+        title: "Succès",
+        description: "Code promo créé avec succès",
+      });
+
+      setCouponForm({
+        code: "",
+        discountType: "percent",
+        percentOff: 0,
+        amountOff: 0,
+        duration: "once",
+        durationInMonths: 1,
+      });
+
+      fetchCoupons();
+    } catch (error) {
+      console.error("Error creating coupon:", error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible de créer le code promo",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingCoupon(false);
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce code promo ?")) return;
+
+    try {
+      const response = await fetch(
+        `https://api.stripe.com/v1/coupons/${couponId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Erreur lors de la suppression");
+
+      toast({
+        title: "Succès",
+        description: "Code promo supprimé avec succès",
+      });
+
+      fetchCoupons();
+    } catch (error) {
+      console.error("Error deleting coupon:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le code promo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p>Chargement...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Tag className="h-5 w-5 text-primary" />
+            Créer un Code Promo
+          </CardTitle>
+          <CardDescription>
+            Créez des codes de réduction pour vos clients
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreateCoupon} className="space-y-4">
+            <div>
+              <Label htmlFor="code">Nom du code</Label>
+              <Input
+                id="code"
+                value={couponForm.code}
+                onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value })}
+                placeholder="PROMO2025"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="discountType">Type de réduction</Label>
+              <Select
+                value={couponForm.discountType}
+                onValueChange={(value: "percent" | "amount") => 
+                  setCouponForm({ ...couponForm, discountType: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percent">Pourcentage</SelectItem>
+                  <SelectItem value="amount">Montant fixe</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {couponForm.discountType === "percent" ? (
+              <div>
+                <Label htmlFor="percentOff">Pourcentage de réduction (%)</Label>
+                <Input
+                  id="percentOff"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={couponForm.percentOff}
+                  onChange={(e) => setCouponForm({ ...couponForm, percentOff: parseFloat(e.target.value) })}
+                  required
+                />
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="amountOff">Montant de réduction (XOF)</Label>
+                <Input
+                  id="amountOff"
+                  type="number"
+                  min="1"
+                  value={couponForm.amountOff}
+                  onChange={(e) => setCouponForm({ ...couponForm, amountOff: parseFloat(e.target.value) })}
+                  required
+                />
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="duration">Durée</Label>
+              <Select
+                value={couponForm.duration}
+                onValueChange={(value: "once" | "forever" | "repeating") => 
+                  setCouponForm({ ...couponForm, duration: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="once">Une fois</SelectItem>
+                  <SelectItem value="forever">Toujours</SelectItem>
+                  <SelectItem value="repeating">Récurrent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {couponForm.duration === "repeating" && (
+              <div>
+                <Label htmlFor="durationInMonths">Nombre de mois</Label>
+                <Input
+                  id="durationInMonths"
+                  type="number"
+                  min="1"
+                  value={couponForm.durationInMonths}
+                  onChange={(e) => setCouponForm({ ...couponForm, durationInMonths: parseInt(e.target.value) })}
+                  required
+                />
+              </div>
+            )}
+
+            <Button type="submit" disabled={creatingCoupon} className="w-full">
+              {creatingCoupon ? "Création..." : "Créer le code promo"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Percent className="h-5 w-5" />
+          Codes Promo Actifs
+        </h2>
+        {coupons.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              Aucun code promo pour le moment
+            </CardContent>
+          </Card>
+        ) : (
+          coupons.map((coupon) => (
+            <Card key={coupon.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      {coupon.name}
+                      {coupon.valid && (
+                        <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded">
+                          Actif
+                        </span>
+                      )}
+                    </CardTitle>
+                    <CardDescription>
+                      {coupon.percent_off 
+                        ? `${coupon.percent_off}% de réduction`
+                        : `${formatPrice(coupon.amount_off / 100)} de réduction`
+                      }
+                    </CardDescription>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    onClick={() => handleDeleteCoupon(coupon.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm space-y-1">
+                  <p><strong>Durée:</strong> {
+                    coupon.duration === "once" ? "Une utilisation" :
+                    coupon.duration === "forever" ? "Illimité" :
+                    `${coupon.duration_in_months} mois`
+                  }</p>
+                  {coupon.times_redeemed > 0 && (
+                    <p><strong>Utilisations:</strong> {coupon.times_redeemed}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
   );
 };
 

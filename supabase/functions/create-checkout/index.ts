@@ -24,6 +24,10 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("Utilisateur non authentifié");
 
+    // Parse request body for optional coupon code
+    const body = await req.json();
+    const couponCode = body?.coupon_code;
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
     });
@@ -35,8 +39,8 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Créer une session de paiement pour l'abonnement Pro
-    const session = await stripe.checkout.sessions.create({
+    // Prepare session configuration
+    const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -48,7 +52,15 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/subscription-success`,
       cancel_url: `${req.headers.get("origin")}/subscription`,
-    });
+    };
+
+    // Add coupon if provided
+    if (couponCode) {
+      sessionConfig.discounts = [{ coupon: couponCode }];
+    }
+
+    // Créer une session de paiement pour l'abonnement Pro
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
