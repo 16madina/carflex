@@ -936,6 +936,25 @@ const AdminPanel = () => {
                     disabled={savingSettings}
                   />
                 </div>
+
+                <div className="flex items-center justify-between border-t pt-6">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="enable-listings-limit">
+                      Activer la limite de 5 annonces gratuites
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Limite le nombre d'annonces gratuites à 5 par utilisateur. Les utilisateurs Pro n'ont pas de limite.
+                    </p>
+                  </div>
+                  <Switch
+                    id="enable-listings-limit"
+                    checked={appSettings.enable_free_listings_limit || false}
+                    onCheckedChange={(checked) => 
+                      handleSettingChange('enable_free_listings_limit', checked)
+                    }
+                    disabled={savingSettings}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
