@@ -417,18 +417,20 @@ const Profile = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="profile">Mon Profil</TabsTrigger>
-              <TabsTrigger value="listings">Mes Annonces</TabsTrigger>
-              <TabsTrigger value="bookings">
-                Réservations
-                {(myBookings.length > 0 || receivedBookings.filter(b => b.status === 'pending').length > 0) && (
-                  <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1">
-                    {myBookings.length + receivedBookings.filter(b => b.status === 'pending').length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            </TabsList>
+            <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border mb-6">
+              <TabsList className="grid w-full grid-cols-3 mt-4">
+                <TabsTrigger value="profile">Mon Profil</TabsTrigger>
+                <TabsTrigger value="listings">Mes Annonces</TabsTrigger>
+                <TabsTrigger value="bookings">
+                  Réservations
+                  {(myBookings.length > 0 || receivedBookings.filter(b => b.status === 'pending').length > 0) && (
+                    <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1">
+                      {myBookings.length + receivedBookings.filter(b => b.status === 'pending').length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="profile" className="space-y-6">
               <Card className="shadow-card">
