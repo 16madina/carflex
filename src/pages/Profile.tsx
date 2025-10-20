@@ -414,7 +414,7 @@ const Profile = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 pt-24 pb-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="profile" className="w-full">
             <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border mb-6">
