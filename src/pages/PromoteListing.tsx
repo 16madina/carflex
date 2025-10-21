@@ -147,8 +147,12 @@ const PromoteListing = () => {
 
         if (response.data?.url) {
           console.log('Redirection vers:', response.data.url);
-          // Redirection immédiate
-          window.location.href = response.data.url;
+          try {
+            window.location.href = response.data.url;
+          } catch (e) {
+            console.error('Erreur location.href, tentative avec window.open:', e);
+            window.open(response.data.url, '_self');
+          }
         } else {
           console.error('Pas d\'URL dans la réponse:', response.data);
           throw new Error("URL de paiement non reçue");
