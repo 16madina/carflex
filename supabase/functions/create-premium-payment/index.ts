@@ -50,18 +50,21 @@ serve(async (req) => {
     }
 
     // Create a one-time payment session
+    // Convert XOF to EUR (approximately 1 EUR = 655.957 XOF)
+    const priceInEur = Math.round((pkg.price / 655.957) * 100); // Convert to EUR cents
+    
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price_data: {
-            currency: 'xof',
+            currency: 'eur',
             product_data: {
               name: `Pack Premium: ${pkg.name}`,
               description: pkg.description || `Promotion de votre annonce pour ${pkg.duration_days} jours`,
             },
-            unit_amount: Math.round(pkg.price * 100), // Convert to cents
+            unit_amount: priceInEur,
           },
           quantity: 1,
         },
