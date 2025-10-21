@@ -64,6 +64,13 @@ serve(async (req) => {
       throw new Error(`Amount too small for Stripe: ${priceInEur} cents (minimum is 50 cents)`);
     }
     
+    // Get the webhook URL from environment or construct it
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const projectRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+    const webhookUrl = `https://${projectRef}.supabase.co/functions/v1/stripe-webhook`;
+    
+    console.log('Webhook URL:', webhookUrl);
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -81,7 +88,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/payment-success?listing_id=${listing_id}`,
+      success_url: `${req.headers.get("origin")}/payment-success?listing_id=${listing_id}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/promote`,
       metadata: {
         user_id: user.id,
