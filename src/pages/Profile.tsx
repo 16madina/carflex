@@ -281,9 +281,8 @@ const Profile = () => {
         if (error) throw error;
 
         if (data?.url) {
-          window.open(data.url, '_blank');
-          setShowPaymentSelector(false);
-          toast.success("Fenêtre de paiement ouverte");
+          // Redirection directe vers Stripe
+          window.location.href = data.url;
         } else {
           throw new Error("URL de paiement non reçue");
         }

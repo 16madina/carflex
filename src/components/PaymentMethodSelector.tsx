@@ -34,7 +34,7 @@ export const PaymentMethodSelector = ({
     {
       id: 'stripe' as const,
       name: 'Carte bancaire',
-      description: 'Visa, Mastercard, American Express',
+      description: 'Visa, Mastercard (incluant Wave Visa)',
       icon: CreditCard,
       available: true,
       color: 'bg-blue-50 hover:bg-blue-100 border-blue-200'
