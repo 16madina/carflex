@@ -147,11 +147,31 @@ const PromoteListing = () => {
 
         if (response.data?.url) {
           console.log('Redirection vers:', response.data.url);
-          try {
-            window.location.href = response.data.url;
-          } catch (e) {
-            console.error('Erreur location.href, tentative avec window.open:', e);
-            window.open(response.data.url, '_self');
+          
+          toast({
+            title: "Redirection vers Stripe",
+            description: "Si la page ne s'ouvre pas, cliquez sur le lien ci-dessous",
+            duration: 10000,
+          });
+          
+          // Ouvrir dans un nouvel onglet (mieux pour mobile)
+          const newWindow = window.open(response.data.url, '_blank');
+          
+          // Fallback si le popup est bloqué
+          if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            // Créer un lien de secours
+            const link = document.createElement('a');
+            link.href = response.data.url;
+            link.target = '_blank';
+            link.textContent = 'Cliquez ici pour continuer vers le paiement';
+            link.style.cssText = 'display: block; margin: 20px auto; padding: 15px; background: hsl(var(--primary)); color: white; text-align: center; border-radius: 8px; max-width: 400px; text-decoration: none; font-weight: 500;';
+            document.body.appendChild(link);
+            
+            toast({
+              title: "Action requise",
+              description: "Veuillez cliquer sur le lien qui vient d'apparaître pour continuer",
+              variant: "default",
+            });
           }
         } else {
           console.error('Pas d\'URL dans la réponse:', response.data);

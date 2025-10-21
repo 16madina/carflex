@@ -53,6 +53,17 @@ serve(async (req) => {
     // Convert XOF to EUR (approximately 1 EUR = 655.957 XOF)
     const priceInEur = Math.round((pkg.price / 655.957) * 100); // Convert to EUR cents
     
+    console.log('Price calculation:', { 
+      original_xof: pkg.price, 
+      calculated_eur_cents: priceInEur,
+      calculated_eur: priceInEur / 100
+    });
+
+    // Stripe requires a minimum amount of 50 cents
+    if (priceInEur < 50) {
+      throw new Error(`Amount too small for Stripe: ${priceInEur} cents (minimum is 50 cents)`);
+    }
+    
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,

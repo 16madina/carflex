@@ -29,6 +29,7 @@ import PromoteListing from "./pages/PromoteListing";
 import Dashboard from "./pages/Dashboard";
 import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import DataProtection from "./pages/DataProtection";
@@ -78,6 +79,7 @@ const App = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/subscription-success" element={<SubscriptionSuccess />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route path="/data-protection" element={<DataProtection />} />
