@@ -18,19 +18,12 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 0,
       launchAutoHide: true,
-      launchFadeOutDuration: 300,
       backgroundColor: "#ffffff",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
       showSpinner: false,
-      androidSpinnerStyle: "large",
-      iosSpinnerStyle: "small",
-      spinnerColor: "#999999",
-      splashFullScreen: true,
-      splashImmersive: false,
-      useDialog: true
+      splashFullScreen: false,
+      splashImmersive: false
     },
     Camera: {
       permissions: ['camera', 'photos']
