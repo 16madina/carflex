@@ -241,34 +241,59 @@ const Profile = () => {
   };
 
   const handlePromote = async (listingId: string, listingType: 'sale' | 'rental') => {
+    console.log('handlePromote appelé avec:', listingId, listingType);
     setSelectedListing(listingId);
     setDialogOpen(true);
   };
 
   const confirmPromote = async () => {
+    console.log('confirmPromote appelé avec:', selectedListing, selectedPackage);
+    
     if (!selectedListing || !selectedPackage) {
       toast.error("Veuillez sélectionner un pack");
       return;
     }
 
     const pkg = packages.find(p => p.id === selectedPackage);
-    if (!pkg) return;
+    if (!pkg) {
+      console.error('Package non trouvé');
+      return;
+    }
 
+    console.log('Package trouvé:', pkg);
     setSelectedPackageData(pkg);
     setDialogOpen(false);
     setShowPaymentSelector(true);
+    console.log('Modal de paiement devrait s\'ouvrir');
   };
 
   const handlePaymentMethod = async (method: 'stripe' | 'wave' | 'paypal') => {
+    console.log('handlePaymentMethod appelé avec:', method);
+    console.log('selectedListing:', selectedListing);
+    console.log('selectedPackage:', selectedPackage);
+    
     const listing = userListings.find(l => l.id === selectedListing);
-    if (!listing) return;
+    if (!listing) {
+      console.error('Listing non trouvé');
+      toast.error("Annonce non trouvée");
+      return;
+    }
+
+    console.log('Listing trouvé:', listing);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
+      console.log('Session obtenue');
       
       if (method === 'stripe') {
-        toast.info("Préparation du paiement...");
+        toast.info("Préparation du paiement Stripe...");
         
+        console.log('Appel de create-premium-payment avec:', {
+          package_id: selectedPackage,
+          listing_id: selectedListing,
+          listing_type: listing.type
+        });
+
         const response = await supabase.functions.invoke('create-premium-payment', {
           body: {
             package_id: selectedPackage,
@@ -288,13 +313,12 @@ const Profile = () => {
         }
 
         if (response.data?.url) {
-          console.log('Redirection vers:', response.data.url);
-          try {
+          console.log('URL de paiement reçue:', response.data.url);
+          toast.success("Redirection vers Stripe...");
+          
+          setTimeout(() => {
             window.location.href = response.data.url;
-          } catch (e) {
-            console.error('Erreur location.href, tentative avec window.open:', e);
-            window.open(response.data.url, '_self');
-          }
+          }, 500);
         } else {
           console.error('Pas d\'URL dans la réponse:', response.data);
           throw new Error("URL de paiement non reçue");
