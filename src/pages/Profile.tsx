@@ -267,6 +267,8 @@ const Profile = () => {
       const { data: sessionData } = await supabase.auth.getSession();
       
       if (method === 'stripe') {
+        toast.info("Préparation du paiement...");
+        
         const { data, error } = await supabase.functions.invoke('create-premium-payment', {
           body: {
             package_id: selectedPackage,
@@ -281,8 +283,10 @@ const Profile = () => {
         if (error) throw error;
 
         if (data?.url) {
-          // Redirection directe vers Stripe
-          window.location.href = data.url;
+          // Redirection directe vers Stripe avec un petit délai
+          setTimeout(() => {
+            window.location.href = data.url;
+          }, 100);
         } else {
           throw new Error("URL de paiement non reçue");
         }
@@ -299,6 +303,7 @@ const Profile = () => {
     } catch (error) {
       console.error('Erreur:', error);
       toast.error("Impossible d'initier le paiement");
+      setShowPaymentSelector(false);
     }
   };
 

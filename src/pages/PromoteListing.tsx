@@ -122,6 +122,11 @@ const PromoteListing = () => {
       const { data: sessionData } = await supabase.auth.getSession();
       
       if (method === 'stripe') {
+        toast({
+          title: "Préparation du paiement",
+          description: "Redirection vers la page de paiement...",
+        });
+
         const { data, error } = await supabase.functions.invoke('create-premium-payment', {
           body: {
             package_id: selectedPackage,
@@ -136,8 +141,10 @@ const PromoteListing = () => {
         if (error) throw error;
 
         if (data?.url) {
-          // Redirection directe vers Stripe
-          window.location.href = data.url;
+          // Redirection directe vers Stripe avec un petit délai
+          setTimeout(() => {
+            window.location.href = data.url;
+          }, 100);
         } else {
           throw new Error("URL de paiement non reçue");
         }
