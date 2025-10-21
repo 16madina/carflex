@@ -23,7 +23,13 @@ const config: CapacitorConfig = {
       backgroundColor: "#ffffff",
       showSpinner: false,
       splashFullScreen: false,
-      splashImmersive: false
+      splashImmersive: false,
+      // Configuration iOS spécifique
+      iosSpinnerStyle: "small",
+      // Configuration Android spécifique  
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
+      androidSpinnerStyle: "large"
     },
     Camera: {
       permissions: ['camera', 'photos']
