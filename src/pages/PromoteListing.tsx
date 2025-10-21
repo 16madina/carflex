@@ -11,6 +11,7 @@ import { CheckCircle2, ArrowLeft } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { useCountry } from "@/contexts/CountryContext";
+import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 
 interface PremiumPackage {
   id: string;
@@ -42,6 +43,8 @@ const PromoteListing = () => {
   const [submitting, setSubmitting] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [showPromoInput, setShowPromoInput] = useState(false);
+  const [showPaymentSelector, setShowPaymentSelector] = useState(false);
+  const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -104,35 +107,54 @@ const PromoteListing = () => {
       return;
     }
 
-    setSubmitting(true);
+    const pkg = packages.find(p => p.id === selectedPackage);
+    if (!pkg) return;
 
+    setSelectedPackageData(pkg);
+    setShowPaymentSelector(true);
+  };
+
+  const handlePaymentMethod = async (method: 'stripe' | 'wave' | 'paypal') => {
     const listing = userListings.find(l => l.id === selectedListing);
-    if (!listing) {
-      setSubmitting(false);
-      return;
-    }
+    if (!listing) return;
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       
-      const { data, error } = await supabase.functions.invoke('initiate-payment', {
-        body: {
-          package_id: selectedPackage,
-          listing_id: selectedListing,
-          listing_type: listing.type
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session?.access_token}`
+      if (method === 'stripe') {
+        const { data, error } = await supabase.functions.invoke('create-premium-payment', {
+          body: {
+            package_id: selectedPackage,
+            listing_id: selectedListing,
+            listing_type: listing.type
+          },
+          headers: {
+            Authorization: `Bearer ${sessionData.session?.access_token}`
+          }
+        });
+
+        if (error) throw error;
+
+        if (data?.url) {
+          window.open(data.url, '_blank');
+          setShowPaymentSelector(false);
+          toast({
+            title: "Redirection vers le paiement",
+            description: "Fenêtre de paiement ouverte",
+          });
+        } else {
+          throw new Error("URL de paiement non reçue");
         }
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        // Rediriger vers la page de paiement Fedapay
-        window.location.href = data.url;
-      } else {
-        throw new Error("URL de paiement non reçue");
+      } else if (method === 'wave') {
+        toast({
+          title: "Bientôt disponible",
+          description: "Le paiement Wave sera disponible prochainement",
+        });
+      } else if (method === 'paypal') {
+        toast({
+          title: "Bientôt disponible",
+          description: "Le paiement PayPal sera disponible prochainement",
+        });
       }
 
     } catch (error) {
@@ -142,7 +164,6 @@ const PromoteListing = () => {
         description: "Impossible d'initier le paiement",
         variant: "destructive",
       });
-      setSubmitting(false);
     }
   };
 
@@ -300,7 +321,7 @@ const PromoteListing = () => {
                       className="w-full"
                       size="lg"
                     >
-                      {submitting ? "Traitement..." : "Promouvoir cette annonce"}
+                      Continuer vers le paiement
                     </Button>
                   </>
                 )}
@@ -308,6 +329,14 @@ const PromoteListing = () => {
           </Card>
         )}
       </div>
+
+      <PaymentMethodSelector
+        open={showPaymentSelector}
+        onOpenChange={setShowPaymentSelector}
+        onSelectMethod={handlePaymentMethod}
+        amount={selectedPackageData?.price || 0}
+        formatPrice={formatPrice}
+      />
 
       <BottomNav />
     </div>
