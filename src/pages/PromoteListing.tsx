@@ -127,7 +127,7 @@ const PromoteListing = () => {
           description: "Redirection vers la page de paiement...",
         });
 
-        const { data, error } = await supabase.functions.invoke('create-premium-payment', {
+        const response = await supabase.functions.invoke('create-premium-payment', {
           body: {
             package_id: selectedPackage,
             listing_id: selectedListing,
@@ -138,14 +138,19 @@ const PromoteListing = () => {
           }
         });
 
-        if (error) throw error;
+        console.log('Response complète:', response);
 
-        if (data?.url) {
-          // Redirection directe vers Stripe avec un petit délai
-          setTimeout(() => {
-            window.location.href = data.url;
-          }, 100);
+        if (response.error) {
+          console.error('Erreur:', response.error);
+          throw response.error;
+        }
+
+        if (response.data?.url) {
+          console.log('Redirection vers:', response.data.url);
+          // Redirection immédiate
+          window.location.href = response.data.url;
         } else {
+          console.error('Pas d\'URL dans la réponse:', response.data);
           throw new Error("URL de paiement non reçue");
         }
       } else if (method === 'wave') {
@@ -161,7 +166,7 @@ const PromoteListing = () => {
       }
 
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Erreur complète:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'initier le paiement",
