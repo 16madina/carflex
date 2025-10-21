@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useCountry } from "@/contexts/CountryContext";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 
 interface PremiumPackage {
   id: string;
@@ -60,6 +61,8 @@ const Profile = () => {
   const [receivedBookings, setReceivedBookings] = useState<any[]>([]);
   const [verifyEmailDialogOpen, setVerifyEmailDialogOpen] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
+  const [showPaymentSelector, setShowPaymentSelector] = useState(false);
+  const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -248,55 +251,55 @@ const Profile = () => {
       return;
     }
 
-    setSubmitting(true);
+    const pkg = packages.find(p => p.id === selectedPackage);
+    if (!pkg) return;
 
+    setSelectedPackageData(pkg);
+    setDialogOpen(false);
+    setShowPaymentSelector(true);
+  };
+
+  const handlePaymentMethod = async (method: 'stripe' | 'wave' | 'paypal') => {
     const listing = userListings.find(l => l.id === selectedListing);
-    if (!listing) {
-      setSubmitting(false);
-      return;
-    }
+    if (!listing) return;
 
     try {
-      console.log('Initiation du paiement...');
       const { data: sessionData } = await supabase.auth.getSession();
       
-      console.log('Appel de l\'edge function avec:', {
-        package_id: selectedPackage,
-        listing_id: selectedListing,
-        listing_type: listing.type
-      });
+      if (method === 'stripe') {
+        const { data, error } = await supabase.functions.invoke('create-premium-payment', {
+          body: {
+            package_id: selectedPackage,
+            listing_id: selectedListing,
+            listing_type: listing.type
+          },
+          headers: {
+            Authorization: `Bearer ${sessionData.session?.access_token}`
+          }
+        });
 
-      const { data, error } = await supabase.functions.invoke('initiate-payment', {
-        body: {
-          package_id: selectedPackage,
-          listing_id: selectedListing,
-          listing_type: listing.type
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session?.access_token}`
+        if (error) throw error;
+
+        if (data?.url) {
+          window.open(data.url, '_blank');
+          setShowPaymentSelector(false);
+          toast.success("Fenêtre de paiement ouverte");
+        } else {
+          throw new Error("URL de paiement non reçue");
         }
-      });
-
-      console.log('Réponse edge function:', { data, error });
-
-      if (error) {
-        console.error('Erreur edge function:', error);
-        throw error;
-      }
-
-      if (data?.url) {
-        console.log('Redirection vers:', data.url);
-        // Rediriger vers la page de paiement Fedapay
-        window.location.href = data.url;
-      } else {
-        console.error('Pas d\'URL dans la réponse:', data);
-        throw new Error("URL de paiement non reçue");
+      } else if (method === 'wave') {
+        toast.info("Bientôt disponible", {
+          description: "Le paiement Wave sera disponible prochainement",
+        });
+      } else if (method === 'paypal') {
+        toast.info("Bientôt disponible", {
+          description: "Le paiement PayPal sera disponible prochainement",
+        });
       }
 
     } catch (error) {
-      console.error('Erreur complète:', error);
+      console.error('Erreur:', error);
       toast.error("Impossible d'initier le paiement");
-      setSubmitting(false);
     }
   };
 
@@ -962,13 +965,21 @@ const Profile = () => {
             <Button
               className="flex-1"
               onClick={confirmPromote}
-              disabled={!selectedPackage || submitting}
+              disabled={!selectedPackage}
             >
-              {submitting ? "Traitement..." : "Confirmer"}
+              Continuer vers le paiement
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      <PaymentMethodSelector
+        open={showPaymentSelector}
+        onOpenChange={setShowPaymentSelector}
+        onSelectMethod={handlePaymentMethod}
+        amount={selectedPackageData?.price || 0}
+        formatPrice={formatPrice}
+      />
 
       <BottomNav />
     </div>
