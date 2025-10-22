@@ -6,7 +6,8 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Camera, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Camera, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -432,6 +433,27 @@ const Profile = () => {
     }
   };
 
+  const handleDeleteListing = async (listingId: string, listingType: 'sale' | 'rental') => {
+    try {
+      const tableName = listingType === 'sale' ? 'sale_listings' : 'rental_listings';
+      
+      const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .eq('id', listingId);
+
+      if (error) throw error;
+
+      toast.success("Annonce supprimée avec succès");
+      if (user) {
+        fetchUserListings(user.id);
+      }
+    } catch (error) {
+      console.error('Error deleting listing:', error);
+      toast.error("Erreur lors de la suppression de l'annonce");
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success("Déconnexion réussie");
@@ -675,14 +697,45 @@ const Profile = () => {
                                     : `${formatPrice(listing.price_per_day || 0)}/jour`}
                                 </Badge>
                               </div>
-                              <Button 
-                                onClick={() => handlePromote(listing.id, listing.type)}
-                                size="sm"
-                                className="bg-gradient-to-r from-primary to-primary/80"
-                              >
-                                <Crown className="mr-2 h-4 w-4" />
-                                Promouvoir
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button 
+                                  onClick={() => handlePromote(listing.id, listing.type)}
+                                  size="sm"
+                                  className="bg-gradient-to-r from-primary to-primary/80"
+                                >
+                                  <Crown className="mr-2 h-4 w-4" />
+                                  Promouvoir
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Supprimer
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Cette action est irréversible. L'annonce "{listing.brand} {listing.model}" sera définitivement supprimée.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteListing(listing.id, listing.type)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Supprimer
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </div>
                           </div>
                         </Card>

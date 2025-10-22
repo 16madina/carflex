@@ -11,14 +11,22 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar, Crown, BadgeCheck } from "lucide-react";
+import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar, Crown, BadgeCheck, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const UserMenu = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [pendingBookings, setPendingBookings] = useState(0);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportSubject, setReportSubject] = useState("");
+  const [reportMessage, setReportMessage] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
 
   useEffect(() => {
     // Check current session
@@ -90,6 +98,37 @@ const UserMenu = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  const handleReportIssue = async () => {
+    if (!reportSubject.trim() || !reportMessage.trim()) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
+    setSubmittingReport(true);
+    try {
+      const { error } = await supabase.functions.invoke("report-issue", {
+        body: {
+          userEmail: profile?.email || user?.email,
+          userName: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || "Utilisateur",
+          subject: reportSubject,
+          message: reportMessage,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Problème signalé avec succès");
+      setReportDialogOpen(false);
+      setReportSubject("");
+      setReportMessage("");
+    } catch (error) {
+      console.error("Error reporting issue:", error);
+      toast.error("Erreur lors de l'envoi du signalement");
+    } finally {
+      setSubmittingReport(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -165,6 +204,52 @@ const UserMenu = () => {
           <Crown className="mr-2 h-4 w-4 text-primary" />
           Plan Pro
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+          <DialogTrigger asChild>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <AlertCircle className="mr-2 h-4 w-4" />
+              Signaler un problème
+            </DropdownMenuItem>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Signaler un problème</DialogTitle>
+              <DialogDescription>
+                Décrivez le problème que vous rencontrez et nous vous répondrons rapidement.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="subject">Sujet</Label>
+                <Input
+                  id="subject"
+                  placeholder="Ex: Problème de paiement"
+                  value={reportSubject}
+                  onChange={(e) => setReportSubject(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="message">Description</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Décrivez votre problème en détail..."
+                  value={reportMessage}
+                  onChange={(e) => setReportMessage(e.target.value)}
+                  rows={5}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setReportDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button onClick={handleReportIssue} disabled={submittingReport}>
+                {submittingReport ? "Envoi..." : "Envoyer"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
           <LogOut className="mr-2 h-4 w-4" />
