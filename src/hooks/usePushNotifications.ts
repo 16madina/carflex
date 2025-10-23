@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 export const usePushNotifications = () => {
-  const { toast } = useToast();
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    // Vérifie si on est sur une plateforme native
-    if (!Capacitor.isNativePlatform()) {
+    // Vérifie si on est sur une plateforme native et si pas déjà initialisé
+    if (!Capacitor.isNativePlatform() || isInitialized.current) {
       return;
     }
 
@@ -52,18 +52,18 @@ export const usePushNotifications = () => {
         }
 
         // Listener: notification reçue
-        PushNotifications.addListener('registration', (token) => {
+        await PushNotifications.addListener('registration', (token) => {
           console.log('Push registration success, token: ' + token.value);
           // TODO: Envoyer le token à votre backend
         });
 
         // Listener: erreur d'enregistrement
-        PushNotifications.addListener('registrationError', (error) => {
+        await PushNotifications.addListener('registrationError', (error) => {
           console.log('Error on registration: ' + JSON.stringify(error));
         });
 
         // Listener: notification reçue quand l'app est ouverte
-        PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        await PushNotifications.addListener('pushNotificationReceived', (notification) => {
           console.log('Push notification received: ', notification);
           try {
             toast({
@@ -76,12 +76,14 @@ export const usePushNotifications = () => {
         });
 
         // Listener: notification cliquée
-        PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+        await PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
           console.log('Push notification action performed', notification.actionId, notification.notification);
         });
+
+        isInitialized.current = true;
       } catch (error) {
         // Erreur silencieuse pour ne pas crasher l'app
-        console.log('Notifications push non configurées ou non disponibles');
+        console.log('Notifications push non configurées ou non disponibles:', error);
       }
     };
 
@@ -89,13 +91,15 @@ export const usePushNotifications = () => {
 
     // Cleanup avec gestion d'erreur
     return () => {
-      try {
-        if (PushNotifications) {
-          PushNotifications.removeAllListeners();
+      if (isInitialized.current) {
+        try {
+          PushNotifications.removeAllListeners().catch(() => {
+            console.log('Erreur lors du cleanup des notifications');
+          });
+        } catch (error) {
+          console.log('Erreur lors du cleanup des notifications');
         }
-      } catch (error) {
-        console.log('Erreur lors du cleanup des notifications');
       }
     };
-  }, [toast]);
+  }, []);
 };
