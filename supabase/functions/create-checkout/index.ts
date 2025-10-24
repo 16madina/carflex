@@ -25,8 +25,14 @@ serve(async (req) => {
     if (!user?.email) throw new Error("Utilisateur non authentifié");
 
     // Parse request body for optional coupon code
-    const body = await req.json();
-    const couponCode = body?.coupon_code;
+    let couponCode;
+    try {
+      const body = await req.json();
+      couponCode = body?.coupon_code;
+    } catch {
+      // No body provided, that's ok
+      couponCode = null;
+    }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
