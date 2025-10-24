@@ -304,6 +304,19 @@ const AdminPanel = () => {
       link_url: banner.link_url,
       is_active: banner.is_active,
     });
+    
+    // Scroll vers le formulaire d'édition
+    setTimeout(() => {
+      const formElement = document.querySelector('[data-banner-form]');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+    
+    toast({
+      title: "Mode édition",
+      description: `Vous pouvez maintenant modifier la bannière "${banner.title}"`,
+    });
   };
 
   const handleDeleteBanner = async (id: string) => {
@@ -784,14 +797,17 @@ const AdminPanel = () => {
 
           <TabsContent value="banners">
             <div className="grid md:grid-cols-2 gap-6">
-              <Card>
+              <Card data-banner-form>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ImageIcon className="h-5 w-5 text-blue-500" />
                     {editingBanner ? "Modifier" : "Créer"} une Bannière Publicitaire
                   </CardTitle>
                   <CardDescription>
-                    Gérez les bannières publicitaires affichées entre les annonces
+                    {editingBanner 
+                      ? `Modification de la bannière "${editingBanner.title}"`
+                      : "Gérez les bannières publicitaires affichées entre les annonces"
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
