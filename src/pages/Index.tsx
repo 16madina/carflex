@@ -57,8 +57,8 @@ const Index = () => {
 
   useEffect(() => {
     const fetchCars = async () => {
-      // Fetch premium listings with a direct join
-      const { data: premiumData, error: premiumError } = await supabase
+      // Fetch premium sale listings
+      const { data: premiumSaleData, error: premiumSaleError } = await supabase
         .from("premium_listings")
         .select(`
           listing_id,
@@ -89,30 +89,85 @@ const Index = () => {
         .order("created_at", { ascending: false })
         .limit(4);
 
-      if (premiumError) {
-        console.error("Error fetching premium listings:", premiumError);
+      // Fetch premium rental listings
+      const { data: premiumRentalData, error: premiumRentalError } = await supabase
+        .from("premium_listings")
+        .select(`
+          listing_id,
+          rental_listings!inner (
+            id,
+            brand,
+            model,
+            year,
+            price_per_day,
+            mileage,
+            city,
+            country,
+            transmission,
+            fuel_type,
+            images,
+            owner_id,
+            profiles!rental_listings_owner_id_fkey (
+              first_name,
+              last_name,
+              user_type
+            )
+          )
+        `)
+        .eq("is_active", true)
+        .eq("listing_type", "rental")
+        .eq("rental_listings.country", selectedCountry.name)
+        .gte("end_date", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(4);
+
+      if (premiumSaleError) {
+        console.error("Error fetching premium sale listings:", premiumSaleError);
+      }
+      if (premiumRentalError) {
+        console.error("Error fetching premium rental listings:", premiumRentalError);
       }
 
-      if (premiumData && premiumData.length > 0) {
-        console.log("Premium data:", premiumData);
-        const premiumListings = premiumData
-          .map((p: any) => {
-            const saleListing = p.sale_listings;
-            // Extract profile data from nested structure
-            if (saleListing && saleListing.profiles) {
-              return {
-                ...saleListing,
-                profiles: saleListing.profiles
-              };
-            }
-            return saleListing;
-          })
-          .filter((car: any) => car !== null);
-        console.log("Processed premium listings:", premiumListings);
-        setPremiumCars(premiumListings);
+      // Process premium sale listings
+      const premiumSaleListings = (premiumSaleData || [])
+        .map((p: any) => {
+          const saleListing = p.sale_listings;
+          if (saleListing && saleListing.profiles) {
+            return {
+              ...saleListing,
+              profiles: saleListing.profiles,
+              listing_type: 'sale'
+            };
+          }
+          return null;
+        })
+        .filter((car: any) => car !== null);
+
+      // Process premium rental listings
+      const premiumRentalListings = (premiumRentalData || [])
+        .map((p: any) => {
+          const rentalListing = p.rental_listings;
+          if (rentalListing && rentalListing.profiles) {
+            return {
+              ...rentalListing,
+              price: rentalListing.price_per_day, // Normalize price field
+              profiles: rentalListing.profiles,
+              listing_type: 'rental'
+            };
+          }
+          return null;
+        })
+        .filter((car: any) => car !== null);
+
+      // Combine both types of premium listings
+      const allPremiumListings = [...premiumSaleListings, ...premiumRentalListings];
+      console.log("All premium listings:", allPremiumListings);
+
+      if (allPremiumListings.length > 0) {
+        setPremiumCars(allPremiumListings);
         
         // Store premium IDs to filter them out from latest cars
-        const premiumIds = premiumListings.map((car: any) => car.id);
+        const premiumIds = allPremiumListings.map((car: any) => car.id);
 
         // Fetch latest cars (show all recent cars, not just featured)
         const { data: latestData } = await supabase
@@ -206,7 +261,7 @@ const Index = () => {
                     brand={car.brand}
                     model={car.model}
                     year={car.year}
-                    price={car.price}
+                    price={car.listing_type === 'rental' ? car.price_per_day || car.price : car.price}
                     mileage={car.mileage}
                     city={car.city}
                     country={car.country}
