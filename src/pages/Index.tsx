@@ -57,7 +57,7 @@ const Index = () => {
 
   useEffect(() => {
     const fetchCars = async () => {
-      // Fetch premium sale listings
+      // Fetch premium sale listings with JOIN
       const { data: premiumSaleData, error: premiumSaleError } = await supabase
         .from("premium_listings")
         .select(`
@@ -89,34 +89,12 @@ const Index = () => {
         .order("created_at", { ascending: false })
         .limit(4);
 
-      // Fetch premium rental listings
-      const { data: premiumRentalData, error: premiumRentalError } = await supabase
+      // Fetch premium rental IDs separately (no direct FK exists)
+      const { data: premiumRentalIds, error: premiumRentalIdsError } = await supabase
         .from("premium_listings")
-        .select(`
-          listing_id,
-          rental_listings!inner (
-            id,
-            brand,
-            model,
-            year,
-            price_per_day,
-            mileage,
-            city,
-            country,
-            transmission,
-            fuel_type,
-            images,
-            owner_id,
-            profiles!rental_listings_owner_id_fkey (
-              first_name,
-              last_name,
-              user_type
-            )
-          )
-        `)
+        .select("listing_id")
         .eq("is_active", true)
         .eq("listing_type", "rental")
-        .eq("rental_listings.country", selectedCountry.name)
         .gte("end_date", new Date().toISOString())
         .order("created_at", { ascending: false })
         .limit(4);
@@ -124,8 +102,8 @@ const Index = () => {
       if (premiumSaleError) {
         console.error("Error fetching premium sale listings:", premiumSaleError);
       }
-      if (premiumRentalError) {
-        console.error("Error fetching premium rental listings:", premiumRentalError);
+      if (premiumRentalIdsError) {
+        console.error("Error fetching premium rental IDs:", premiumRentalIdsError);
       }
 
       // Process premium sale listings
@@ -143,21 +121,44 @@ const Index = () => {
         })
         .filter((car: any) => car !== null);
 
-      // Process premium rental listings
-      const premiumRentalListings = (premiumRentalData || [])
-        .map((p: any) => {
-          const rentalListing = p.rental_listings;
-          if (rentalListing && rentalListing.profiles) {
-            return {
-              ...rentalListing,
-              price: rentalListing.price_per_day, // Normalize price field
-              profiles: rentalListing.profiles,
-              listing_type: 'rental'
-            };
-          }
-          return null;
-        })
-        .filter((car: any) => car !== null);
+      // Fetch rental listings details separately
+      let premiumRentalListings: any[] = [];
+      if (premiumRentalIds && premiumRentalIds.length > 0) {
+        const rentalIds = premiumRentalIds.map(p => p.listing_id);
+        const { data: rentalData, error: rentalError } = await supabase
+          .from("rental_listings")
+          .select(`
+            id,
+            brand,
+            model,
+            year,
+            price_per_day,
+            mileage,
+            city,
+            country,
+            transmission,
+            fuel_type,
+            images,
+            owner_id,
+            profiles!rental_listings_owner_id_fkey (
+              first_name,
+              last_name,
+              user_type
+            )
+          `)
+          .in("id", rentalIds)
+          .eq("country", selectedCountry.name);
+
+        if (rentalError) {
+          console.error("Error fetching rental listings details:", rentalError);
+        } else {
+          premiumRentalListings = (rentalData || []).map((listing: any) => ({
+            ...listing,
+            price: listing.price_per_day,
+            listing_type: 'rental'
+          }));
+        }
+      }
 
       // Combine both types of premium listings
       const allPremiumListings = [...premiumSaleListings, ...premiumRentalListings];
