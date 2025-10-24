@@ -25,7 +25,7 @@ const SUBSCRIPTION_TIERS = {
   pro: {
     name: "Pro",
     price: 5000,
-    productId: "prod_TF9Qwq8CkwzIUw",
+    productId: "prod_TINoHaOaelnLqh",
     features: [
       "Annonces illimitées",
       "Boost de visibilité (apparaît en premier)",
