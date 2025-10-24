@@ -749,6 +749,22 @@ const AdminPanel = () => {
               <CardContent>
                 <form onSubmit={handlePromoteToTrending} className="space-y-4">
                   <div>
+                    <Label htmlFor="listing-type">Type d'annonce</Label>
+                    <Select
+                      value={promotionData.listing_type}
+                      onValueChange={(value) => setPromotionData({ ...promotionData, listing_type: value as 'sale' | 'rental', listing_id: "" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir le type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sale">🚗 Vente</SelectItem>
+                        <SelectItem value="rental">🔑 Location</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <Label htmlFor="listing">Sélectionner une annonce</Label>
                     <Select
                       value={promotionData.listing_id}
@@ -758,11 +774,13 @@ const AdminPanel = () => {
                         <SelectValue placeholder="Choisir une annonce" />
                       </SelectTrigger>
                       <SelectContent>
-                        {listings.map((listing) => (
-                          <SelectItem key={listing.id} value={listing.id}>
-                            {listing.listing_type === 'sale' ? '🚗 Vente' : '🔑 Location'} - {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
-                          </SelectItem>
-                        ))}
+                        {listings
+                          .filter((listing) => listing.listing_type === promotionData.listing_type)
+                          .map((listing) => (
+                            <SelectItem key={listing.id} value={listing.id}>
+                              {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
