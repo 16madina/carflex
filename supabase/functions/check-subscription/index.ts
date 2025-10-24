@@ -89,6 +89,13 @@ serve(async (req) => {
       productId = subscription.items.data[0].price.product as string;
       logStep("Abonnement actif trouvé", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
+      // Récupérer les infos du plan depuis la base de données
+      const { data: planData } = await supabaseClient
+        .from('subscription_plans')
+        .select('stripe_product_id, name')
+        .eq('stripe_product_id', productId)
+        .maybeSingle();
+      
       // Mettre à jour l'abonnement dans la base de données
       await supabaseClient
         .from('user_subscriptions')
@@ -96,7 +103,7 @@ serve(async (req) => {
           user_id: user.id,
           stripe_customer_id: customerId,
           stripe_subscription_id: stripeSubscriptionId,
-          product_id: productId,
+          product_id: planData?.stripe_product_id || productId,
           status: 'active',
           current_period_end: subscriptionEnd
         });

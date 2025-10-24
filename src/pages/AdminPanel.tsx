@@ -1070,50 +1070,20 @@ const ProPlanSettings = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Crown className="h-5 w-5 text-primary" />
-          Gestion du Plan Pro
+          Gestion des Plans d'Abonnement
         </CardTitle>
         <CardDescription>
-          Modifiez le prix mensuel du plan d'abonnement Pro
+          Gérez tous vos plans d'abonnement Stripe (prix, fonctionnalités, etc.)
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleUpdatePrice} className="space-y-4">
-          <div>
-            <Label>Prix actuel</Label>
-            <div className="text-2xl font-bold text-primary">
-              {formatPrice(proPlanData.currentPrice)}/mois
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="newPrice">Nouveau prix ({selectedCountry.currencySymbol})</Label>
-            <Input
-              id="newPrice"
-              type="number"
-              step="0.01"
-              value={proPlanData.newPrice}
-              onChange={(e) => setProPlanData({ ...proPlanData, newPrice: parseFloat(e.target.value) })}
-              required
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Équivalent: {formatPrice(proPlanData.newPrice / selectedCountry.exchangeRate)} XOF
-            </p>
-          </div>
-
-          <Button type="submit" disabled={updating} className="w-full">
-            {updating ? (
-              <>
-                <Edit className="mr-2 h-4 w-4 animate-spin" />
-                Mise à jour...
-              </>
-            ) : (
-              <>
-                <Edit className="mr-2 h-4 w-4" />
-                Mettre à jour le prix
-              </>
-            )}
-          </Button>
-        </form>
+        <Button 
+          onClick={() => window.location.href = '/admin/subscription-plans'}
+          className="w-full"
+        >
+          <Crown className="mr-2 h-4 w-4" />
+          Accéder à la gestion des plans
+        </Button>
       </CardContent>
     </Card>
   );

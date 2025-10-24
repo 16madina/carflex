@@ -29,6 +29,7 @@ import PromoteListing from "./pages/PromoteListing";
 import Dashboard from "./pages/Dashboard";
 import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import SubscriptionPlansAdmin from "./pages/SubscriptionPlansAdmin";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -75,6 +76,7 @@ const App = () => {
               <Route path="/profile/:userId" element={<PublicProfile />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/subscription-plans" element={<SubscriptionPlansAdmin />} />
               <Route path="/promote" element={<PromoteListing />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/subscription" element={<Subscription />} />

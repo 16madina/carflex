@@ -24,14 +24,29 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("Utilisateur non authentifié");
 
-    // Parse request body for optional coupon code
-    let couponCode;
+    // Parse request body for optional coupon code and plan_id
+    let couponCode, planId;
     try {
       const body = await req.json();
       couponCode = body?.coupon_code;
+      planId = body?.plan_id;
     } catch {
       // No body provided, that's ok
       couponCode = null;
+      planId = null;
+    }
+
+    // Fetch the active Pro plan from database (or specific plan if provided)
+    const { data: planData, error: planError } = await supabaseClient
+      .from('subscription_plans')
+      .select('stripe_price_id, stripe_product_id, name')
+      .eq('is_active', true)
+      .eq('name', 'Pro')
+      .maybeSingle();
+
+    if (planError || !planData) {
+      console.error('Error fetching plan:', planError);
+      throw new Error("Plan d'abonnement non trouvé");
     }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
@@ -51,7 +66,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1SLtlu0AuGiXnde2SSChEvyE",
+          price: planData.stripe_price_id,
           quantity: 1,
         },
       ],

@@ -12,30 +12,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 
-const SUBSCRIPTION_TIERS = {
-  free: {
-    name: "Gratuit",
-    price: 0,
-    features: [
-      "Jusqu'à 5 annonces",
-      "Fonctionnalités de base",
-      "Support standard"
-    ]
-  },
-  pro: {
-    name: "Pro",
-    price: 10000,
-    productId: "prod_TIUlPB2L1UM6R9",
-    features: [
-      "Annonces illimitées",
-      "Boost de visibilité (apparaît en premier)",
-      "Badge 'Pro' sur vos annonces",
-      "Statistiques avancées",
-      "Priorité dans les résultats de recherche",
-      "Support prioritaire"
-    ]
-  }
-};
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  stripe_product_id: string;
+  stripe_price_id: string;
+  price: number;
+  currency: string;
+  description: string | null;
+  features: string[];
+  display_order: number;
+}
+
+const FREE_FEATURES = [
+  "Jusqu'à 5 annonces",
+  "Fonctionnalités de base",
+  "Support standard"
+];
 
 const Subscription = () => {
   const navigate = useNavigate();
@@ -45,8 +38,45 @@ const Subscription = () => {
   const [managing, setManaging] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [showPromoInput, setShowPromoInput] = useState(false);
-  // Prix fixe pour éviter les variations
-  const proPrice = SUBSCRIPTION_TIERS.pro.price;
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
+  // Charger les plans depuis la base de données
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+
+        if (error) throw error;
+        
+        // Convertir features de Json vers string[]
+        const formattedPlans = (data || []).map(plan => ({
+          ...plan,
+          features: Array.isArray(plan.features) ? plan.features as string[] : []
+        }));
+        
+        setPlans(formattedPlans);
+      } catch (error) {
+        console.error('Erreur lors du chargement des plans:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les plans d'abonnement",
+          variant: "destructive"
+        });
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  const proPlan = plans.find(plan => plan.name === 'Pro');
+  const isPro = subscribed && proPlan && productId === proPlan.stripe_product_id;
 
   const handleSubscribe = async () => {
     setSubscribing(true);
@@ -94,9 +124,7 @@ const Subscription = () => {
     }
   };
 
-  const isPro = subscribed && productId === SUBSCRIPTION_TIERS.pro.productId;
-
-  if (loading) {
+  if (loading || loadingPlans) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -131,7 +159,7 @@ const Subscription = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {SUBSCRIPTION_TIERS.free.features.map((feature, index) => (
+                {FREE_FEATURES.map((feature, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>{feature}</span>
@@ -141,24 +169,25 @@ const Subscription = () => {
             </CardContent>
           </Card>
 
-          {/* Plan Pro */}
-          <Card className={isPro ? "border-primary bg-gradient-to-br from-primary/5 to-transparent" : ""}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle>Pro</CardTitle>
-                  <Crown className="h-5 w-5 text-primary" />
+          {/* Plan Pro - Chargé depuis la base de données */}
+          {proPlan && (
+            <Card className={isPro ? "border-primary bg-gradient-to-br from-primary/5 to-transparent" : ""}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CardTitle>{proPlan.name}</CardTitle>
+                    <Crown className="h-5 w-5 text-primary" />
+                  </div>
+                  {isPro && <Badge className="bg-primary">Plan actuel</Badge>}
                 </div>
-                {isPro && <Badge className="bg-primary">Plan actuel</Badge>}
-              </div>
-              <CardDescription>
-                <span className="text-3xl font-bold">{formatPrice(proPrice)}</span>
-                <span className="text-muted-foreground">/mois</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {SUBSCRIPTION_TIERS.pro.features.map((feature, index) => (
+                <CardDescription>
+                  <span className="text-3xl font-bold">{formatPrice(proPlan.price)}</span>
+                  <span className="text-muted-foreground">/mois</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {proPlan.features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>{feature}</span>
@@ -234,6 +263,7 @@ const Subscription = () => {
               )}
             </CardFooter>
           </Card>
+          )}
         </div>
 
         {/* Avantages du plan Pro */}
