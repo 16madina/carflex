@@ -32,7 +32,9 @@ interface Listing {
   model: string;
   year: number;
   price: number;
-  seller_id: string;
+  seller_id?: string;
+  owner_id?: string;
+  listing_type: 'sale' | 'rental';
 }
 
 interface AdBanner {
@@ -140,13 +142,21 @@ const AdminPanel = () => {
   };
 
   const fetchListings = async () => {
-    const { data, error } = await supabase
+    // Récupérer les annonces de vente
+    const { data: saleData, error: saleError } = await supabase
       .from("sale_listings")
       .select("id, brand, model, year, price, seller_id")
       .order("created_at", { ascending: false })
       .limit(20);
 
-    if (error) {
+    // Récupérer les annonces de location
+    const { data: rentalData, error: rentalError } = await supabase
+      .from("rental_listings")
+      .select("id, brand, model, year, price_per_day, owner_id")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (saleError || rentalError) {
       toast({
         title: "Erreur",
         description: "Impossible de charger les annonces",
@@ -155,7 +165,22 @@ const AdminPanel = () => {
       return;
     }
 
-    setListings(data || []);
+    // Combiner les deux types d'annonces
+    const saleListings = (saleData || []).map(listing => ({
+      ...listing,
+      price: listing.price,
+      listing_type: 'sale' as const,
+      seller_id: listing.seller_id
+    }));
+
+    const rentalListings = (rentalData || []).map(listing => ({
+      ...listing,
+      price: listing.price_per_day,
+      listing_type: 'rental' as const,
+      owner_id: listing.owner_id
+    }));
+
+    setListings([...saleListings, ...rentalListings]);
   };
 
   const fetchAdBanners = async () => {
@@ -386,8 +411,30 @@ const AdminPanel = () => {
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    // Trouver l'annonce sélectionnée pour obtenir son propriétaire et son type
+    const selectedListing = listings.find(l => l.id === promotionData.listing_id);
+    if (!selectedListing) {
+      toast({
+        title: "Erreur",
+        description: "Annonce non trouvée",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Déterminer le user_id (propriétaire de l'annonce)
+    const listingOwnerId = selectedListing.listing_type === 'sale' 
+      ? selectedListing.seller_id 
+      : selectedListing.owner_id;
+
+    if (!listingOwnerId) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de trouver le propriétaire de l'annonce",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Get package details
     const pkg = packages.find(p => p.id === promotionData.package_id);
@@ -400,9 +447,9 @@ const AdminPanel = () => {
       .from("premium_listings")
       .insert([{
         listing_id: promotionData.listing_id,
-        listing_type: promotionData.listing_type,
+        listing_type: selectedListing.listing_type,
         package_id: promotionData.package_id,
-        user_id: user.id,
+        user_id: listingOwnerId,
         end_date: endDate.toISOString(),
         is_active: true,
       }]);
@@ -700,7 +747,7 @@ const AdminPanel = () => {
                       <SelectContent>
                         {listings.map((listing) => (
                           <SelectItem key={listing.id} value={listing.id}>
-                            {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
+                            {listing.listing_type === 'sale' ? '🚗 Vente' : '🔑 Location'} - {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
                           </SelectItem>
                         ))}
                       </SelectContent>
