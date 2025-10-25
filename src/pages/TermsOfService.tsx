@@ -127,7 +127,7 @@ const TermsOfService = () => {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">5.3 Modalités de paiement</h3>
             <p className="text-muted-foreground mb-4">
-              Les paiements sont traités de manière sécurisée via FedaPay. Tous les paiements sont définitifs 
+              Les paiements sont traités de manière sécurisée via Stripe. Tous les paiements sont définitifs 
               et non remboursables, sauf en cas d'erreur technique de notre part.
             </p>
           </section>

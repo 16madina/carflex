@@ -144,7 +144,7 @@ const DataProtection = () => {
                   <div className="mt-1">✓</div>
                   <div>
                     <span className="font-medium">Données de transaction :</span> Historique des achats 
-                    de services premium (via FedaPay)
+                    de services premium (via Stripe)
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -286,7 +286,7 @@ const DataProtection = () => {
                 <div>
                   <h4 className="font-medium mb-1">💳 Prestataires de paiement</h4>
                   <p className="text-sm">
-                    FedaPay traite vos paiements de manière sécurisée. Nous ne stockons jamais vos 
+                    Stripe traite vos paiements de manière sécurisée. Nous ne stockons jamais vos 
                     données bancaires sur nos serveurs.
                   </p>
                 </div>
