@@ -41,6 +41,8 @@ interface UserListing {
     last_name: string;
     user_type: string;
   };
+  isPremium?: boolean;
+  premiumEndDate?: string;
 }
 
 const Profile = () => {
@@ -146,7 +148,26 @@ const Profile = () => {
     const sales = (saleData || []).map(item => ({ ...item, type: 'sale' as const }));
     const rentals = (rentalData || []).map(item => ({ ...item, type: 'rental' as const }));
 
-    setUserListings([...sales, ...rentals]);
+    const allListings = [...sales, ...rentals];
+
+    // Récupérer les promotions actives
+    const { data: premiumData } = await supabase
+      .from("premium_listings")
+      .select("listing_id, end_date, is_active")
+      .eq("is_active", true)
+      .gte("end_date", new Date().toISOString());
+
+    // Marquer les annonces qui sont premium
+    const listingsWithPremium = allListings.map(listing => {
+      const premium = premiumData?.find(p => p.listing_id === listing.id);
+      return {
+        ...listing,
+        isPremium: !!premium,
+        premiumEndDate: premium?.end_date
+      };
+    });
+
+    setUserListings(listingsWithPremium);
   };
 
   const fetchPackages = async () => {
@@ -670,11 +691,19 @@ const Profile = () => {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-start justify-between mb-2">
-                                <div>
-                                  <h3 className="font-semibold text-base">
-                                    {listing.brand} {listing.model}
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h3 className="font-semibold text-sm">
+                                      {listing.brand} {listing.model}
+                                    </h3>
+                                    {listing.isPremium && (
+                                      <Badge variant="default" className="text-xs bg-gradient-to-r from-amber-500 to-yellow-600 border-0">
+                                        <Crown className="h-3 w-3 mr-1" />
+                                        Sponsorisé
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
                                     {listing.year} • {listing.type === 'sale' ? 'Vente' : 'Location'}
                                   </p>
                                   {listing.profiles && (
@@ -691,7 +720,7 @@ const Profile = () => {
                                     </div>
                                   )}
                                 </div>
-                                <Badge variant="outline" className="text-sm">
+                                <Badge variant="outline" className="text-xs whitespace-nowrap">
                                   {listing.type === 'sale' 
                                     ? formatPrice(listing.price || 0)
                                     : `${formatPrice(listing.price_per_day || 0)}/jour`}
@@ -702,9 +731,12 @@ const Profile = () => {
                                   onClick={() => handlePromote(listing.id, listing.type)}
                                   size="sm"
                                   className="bg-gradient-to-r from-primary to-primary/80"
+                                  disabled={listing.isPremium}
                                 >
-                                  <Crown className="mr-2 h-4 w-4" />
-                                  Promouvoir
+                                  <Crown className="mr-1 h-3 w-3" />
+                                  <span className="text-xs">
+                                    {listing.isPremium ? 'Déjà sponsorisé' : 'Promouvoir'}
+                                  </span>
                                 </Button>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
@@ -713,8 +745,8 @@ const Profile = () => {
                                       size="sm"
                                       className="text-destructive hover:text-destructive"
                                     >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Supprimer
+                                      <Trash2 className="mr-1 h-3 w-3" />
+                                      <span className="text-xs">Supprimer</span>
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
