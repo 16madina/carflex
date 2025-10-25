@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Smartphone, Loader2 } from "lucide-react";
+import { CreditCard, Smartphone, Loader2, Apple } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface PaymentMethodSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectMethod: (method: 'stripe' | 'wave' | 'paypal') => Promise<void>;
+  onSelectMethod: (method: 'stripe' | 'apple-pay' | 'wave' | 'paypal') => Promise<void>;
   amount: number;
   formatPrice: (amount: number) => string;
 }
@@ -21,7 +21,7 @@ export const PaymentMethodSelector = ({
 }: PaymentMethodSelectorProps) => {
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleMethodClick = async (method: 'stripe' | 'wave' | 'paypal') => {
+  const handleMethodClick = async (method: 'stripe' | 'apple-pay' | 'wave' | 'paypal') => {
     setLoading(method);
     try {
       await onSelectMethod(method);
@@ -38,6 +38,14 @@ export const PaymentMethodSelector = ({
       icon: CreditCard,
       available: true,
       color: 'bg-blue-50 hover:bg-blue-100 border-blue-200'
+    },
+    {
+      id: 'apple-pay' as const,
+      name: 'Apple Pay',
+      description: 'Paiement rapide avec Apple Pay',
+      icon: Apple,
+      available: true,
+      color: 'bg-gray-50 hover:bg-gray-100 border-gray-200'
     },
     {
       id: 'wave' as const,

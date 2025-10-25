@@ -114,14 +114,14 @@ const PromoteListing = () => {
     setShowPaymentSelector(true);
   };
 
-  const handlePaymentMethod = async (method: 'stripe' | 'wave' | 'paypal') => {
+  const handlePaymentMethod = async (method: 'stripe' | 'apple-pay' | 'wave' | 'paypal') => {
     const listing = userListings.find(l => l.id === selectedListing);
     if (!listing) return;
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       
-      if (method === 'stripe') {
+      if (method === 'stripe' || method === 'apple-pay') {
         toast({
           title: "Préparation du paiement",
           description: "Redirection vers la page de paiement...",
@@ -149,7 +149,7 @@ const PromoteListing = () => {
           console.log('Redirection vers:', response.data.url);
           
           toast({
-            title: "Redirection vers Stripe",
+            title: method === 'apple-pay' ? "Redirection vers Apple Pay" : "Redirection vers Stripe",
             description: "Si la page ne s'ouvre pas, cliquez sur le lien ci-dessous",
             duration: 10000,
           });
