@@ -58,9 +58,10 @@ const PublicProfile = () => {
   }, [userId]);
 
   const fetchProfile = async () => {
+    // Sélectionner uniquement les colonnes publiques (sans email et phone)
     const { data, error } = await supabase
       .from("profiles")
-      .select("*")
+      .select("id, user_type, first_name, last_name, country, city, company_name, avatar_url, created_at")
       .eq("id", userId)
       .single();
 

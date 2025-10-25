@@ -12,13 +12,58 @@ serve(async (req) => {
   }
 
   try {
+    // Vérification de la signature Fedapay
+    const signature = req.headers.get('X-Fedapay-Signature');
+    const webhookSecret = Deno.env.get('FEDAPAY_WEBHOOK_SECRET');
+    
+    if (!signature || !webhookSecret) {
+      console.error('Signature ou secret webhook manquant');
+      return new Response(JSON.stringify({ error: 'Signature manquante' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const rawBody = await req.text();
+    
+    // Vérifier la signature HMAC
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(webhookSecret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    
+    const signatureBytes = Uint8Array.from(
+      signature.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []
+    );
+    
+    const dataBytes = encoder.encode(rawBody);
+    
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      key,
+      signatureBytes,
+      dataBytes
+    );
+    
+    if (!isValid) {
+      console.error('Signature invalide');
+      return new Response(JSON.stringify({ error: 'Signature invalide' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const payload = await req.json();
-    console.log('Webhook reçu:', payload);
+    const payload = JSON.parse(rawBody);
+    console.log('Webhook vérifié et reçu:', payload);
 
     // Vérifier que le paiement est approuvé
     if (payload.entity?.status !== 'approved') {
