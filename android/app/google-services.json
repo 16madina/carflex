@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "933467833267",
+    "project_id": "carflex-4f88b",
+    "storage_bucket": "carflex-4f88b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933467833267:android:c51434bdd42a00a021c1c6",
+        "android_client_info": {
+          "package_name": "com.missdee.carflextest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4mCyIh10uAyRBSgC7FkPoFDseL-IP2i0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
