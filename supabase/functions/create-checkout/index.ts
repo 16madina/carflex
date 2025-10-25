@@ -35,3 +35,88 @@ serve(async (req) => {
       // No body provided, that's ok
       couponCode = null;
       planId = null;
+    }
+
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2023-10-16",
+    });
+
+    // Get or create customer
+    const customers = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    let customer;
+    if (customers.data.length > 0) {
+      customer = customers.data[0];
+    } else {
+      customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          supabase_user_id: user.id,
+        },
+      });
+    }
+
+    // Get subscription plan price
+    let priceId;
+    if (planId) {
+      const { data: plan } = await supabaseClient
+        .from("subscription_plans")
+        .select("stripe_price_id")
+        .eq("id", planId)
+        .single();
+      
+      if (!plan) throw new Error("Plan non trouvé");
+      priceId = plan.stripe_price_id;
+    } else {
+      // Default to basic plan
+      const { data: plan } = await supabaseClient
+        .from("subscription_plans")
+        .select("stripe_price_id")
+        .eq("name", "Basic")
+        .single();
+      
+      if (!plan) throw new Error("Plan par défaut non trouvé");
+      priceId = plan.stripe_price_id;
+    }
+
+    const sessionConfig: any = {
+      customer: customer.id,
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: "subscription",
+      success_url: `${req.headers.get("origin")}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get("origin")}/subscription`,
+      metadata: {
+        user_id: user.id,
+      },
+    };
+
+    // Add coupon if provided
+    if (couponCode) {
+      sessionConfig.discounts = [{ coupon: couponCode }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+
+    return new Response(JSON.stringify({ url: session.url }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Une erreur est survenue" }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      }
+    );
+  }
+});
