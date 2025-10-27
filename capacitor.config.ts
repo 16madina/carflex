@@ -19,17 +19,11 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
-      launchAutoHide: true,
+      launchAutoHide: false,
       backgroundColor: "#ffffff",
       showSpinner: false,
       splashFullScreen: false,
-      splashImmersive: false,
-      // Configuration iOS spécifique
-      iosSpinnerStyle: "small",
-      // Configuration Android spécifique  
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
-      androidSpinnerStyle: "large"
+      splashImmersive: false
     },
     Camera: {
       permissions: ['camera', 'photos']
