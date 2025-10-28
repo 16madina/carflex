@@ -204,16 +204,15 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={otherParticipantAvatar} alt={otherParticipantName} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-semibold text-foreground">{otherParticipantName}</h3>
-                  <p className="text-xs text-muted-foreground">En ligne</p>
-                </div>
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={otherParticipantAvatar} alt={otherParticipantName} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  <User className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold text-foreground">{otherParticipantName}</h3>
+              </div>
               </div>
               <Button
                 variant="ghost"
