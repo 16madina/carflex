@@ -215,7 +215,7 @@ const PromoteListing = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 pt-24 pb-8 max-w-6xl">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}

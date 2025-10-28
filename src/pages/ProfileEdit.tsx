@@ -170,7 +170,7 @@ const ProfileEdit = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 pt-24 pb-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/profile")}

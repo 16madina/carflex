@@ -220,7 +220,7 @@ const Bookings = () => {
     <div className="min-h-screen bg-background">
       <TopBar />
       
-      <main className="container mx-auto px-4 py-8 pb-24">
+      <main className="container mx-auto px-4 pt-24 pb-24">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
