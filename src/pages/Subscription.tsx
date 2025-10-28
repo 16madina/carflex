@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag } from "lucide-react";
+import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -137,6 +137,15 @@ const Subscription = () => {
       <TopBar />
       
       <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+        
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2">Choisissez votre plan</h1>
           <p className="text-muted-foreground">

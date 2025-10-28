@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Car, User, Check, X, Clock, MessageSquare } from "lucide-react";
+import { Calendar, Car, User, Check, X, Clock, MessageSquare, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useCountry } from "@/contexts/CountryContext";
@@ -221,6 +221,15 @@ const Bookings = () => {
       <TopBar />
       
       <main className="container mx-auto px-4 py-8 pb-24">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+        
         <h1 className="text-3xl font-bold mb-6">Mes réservations</h1>
 
         <Tabs defaultValue={receivedBookings.filter(b => b.status === 'pending').length > 0 ? "received" : "my-bookings"} className="w-full">
