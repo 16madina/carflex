@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, X, User, ArrowLeft } from "lucide-react";
+import { Send, X, User, ArrowLeft, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,6 +14,9 @@ interface ChatBoxProps {
   onClose: () => void;
   otherParticipantName?: string;
   otherParticipantAvatar?: string;
+  listingId?: string;
+  listingType?: 'sale' | 'rental';
+  listingInfo?: string;
 }
 
 interface Message {
@@ -23,7 +27,7 @@ interface Message {
   is_read: boolean;
 }
 
-const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar }: ChatBoxProps) => {
+const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar, listingId, listingType, listingInfo }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -31,6 +35,7 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initializingRef = useRef(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!initializingRef.current) {
@@ -188,35 +193,53 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
       ) : (
         <>
           {/* Header */}
-          <div className="bg-card pt-[max(3.5rem,calc(env(safe-area-inset-top)+2rem))] pb-4 px-4 border-b border-border flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="bg-card pt-[max(3.5rem,calc(env(safe-area-inset-top)+2rem))] pb-4 px-4 border-b border-border flex flex-col gap-2 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="md:hidden"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={otherParticipantAvatar} alt={otherParticipantName} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    <User className="h-5 w-5" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold text-foreground">{otherParticipantName}</h3>
+                  <p className="text-xs text-muted-foreground">En ligne</p>
+                </div>
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="md:hidden"
+                className="hidden md:flex"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <X className="h-5 w-5" />
               </Button>
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={otherParticipantAvatar} alt={otherParticipantName} />
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  <User className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-semibold text-foreground">{otherParticipantName}</h3>
-                <p className="text-xs text-muted-foreground">En ligne</p>
-              </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="hidden md:flex"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            
+            {/* Listing info link */}
+            {listingId && listingType && listingInfo && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const path = listingType === 'sale' ? `/listing/${listingId}` : `/rental/${listingId}`;
+                  navigate(path);
+                }}
+                className="w-full justify-between gap-2 text-sm"
+              >
+                <span className="truncate font-medium text-accent">{listingInfo}</span>
+                <ExternalLink className="h-4 w-4 flex-shrink-0" />
+              </Button>
+            )}
           </div>
 
           {/* Messages */}
