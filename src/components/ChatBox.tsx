@@ -33,9 +33,11 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initializingRef = useRef(false);
   const navigate = useNavigate();
+  const presenceChannelRef = useRef<any>(null);
 
   useEffect(() => {
     if (!initializingRef.current) {
@@ -47,7 +49,11 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
   useEffect(() => {
     if (!currentUserId) return;
     const cleanup = setupRealtimeSubscription();
-    return cleanup;
+    const presenceCleanup = setupPresenceTracking();
+    return () => {
+      cleanup();
+      presenceCleanup();
+    };
   }, [conversationId, currentUserId]);
 
   useEffect(() => {
@@ -150,6 +156,62 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
     };
   };
 
+  const setupPresenceTracking = () => {
+    // Get other participant ID from conversation
+    const getOtherParticipantId = async () => {
+      const { data } = await supabase
+        .from('conversations')
+        .select('participant1_id, participant2_id')
+        .eq('id', conversationId)
+        .single();
+      
+      if (data) {
+        return data.participant1_id === currentUserId 
+          ? data.participant2_id 
+          : data.participant1_id;
+      }
+      return null;
+    };
+
+    getOtherParticipantId().then(otherUserId => {
+      if (!otherUserId) return;
+
+      const presenceChannel = supabase.channel(`presence-${conversationId}`)
+        .on('presence', { event: 'sync' }, () => {
+          const state = presenceChannel.presenceState();
+          const isUserOnline = Object.values(state).some((presences: any) => 
+            presences.some((presence: any) => presence.user_id === otherUserId)
+          );
+          setIsOnline(isUserOnline);
+        })
+        .on('presence', { event: 'join' }, ({ newPresences }) => {
+          const joined = newPresences.some((p: any) => p.user_id === otherUserId);
+          if (joined) setIsOnline(true);
+        })
+        .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+          const left = leftPresences.some((p: any) => p.user_id === otherUserId);
+          if (left) setIsOnline(false);
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED' && currentUserId) {
+            await presenceChannel.track({
+              user_id: currentUserId,
+              online_at: new Date().toISOString(),
+            });
+          }
+        });
+
+      presenceChannelRef.current = presenceChannel;
+    });
+
+    return () => {
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
+      }
+    };
+  };
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -204,14 +266,22 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={otherParticipantAvatar} alt={otherParticipantName} />
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  <User className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={otherParticipantAvatar} alt={otherParticipantName} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    <User className="h-5 w-5" />
+                  </AvatarFallback>
+                </Avatar>
+                {isOnline && (
+                  <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-card" />
+                )}
+              </div>
               <div>
                 <h3 className="font-semibold text-foreground">{otherParticipantName}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {isOnline ? 'En ligne' : 'Hors ligne'}
+                </p>
               </div>
               </div>
               <Button
