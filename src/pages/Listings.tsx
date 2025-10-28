@@ -165,13 +165,18 @@ const Listings = () => {
       <TopBar />
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs value={listingType} onValueChange={(value) => setListingType(value as "sale" | "rental")} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-            <TabsTrigger value="sale">Acheter</TabsTrigger>
-            <TabsTrigger value="rental">Louer</TabsTrigger>
+        {/* Tabs prominents en haut */}
+        <Tabs value={listingType} onValueChange={(value) => setListingType(value as "sale" | "rental")} className="w-full mb-6">
+          <TabsList className="grid w-full grid-cols-2 h-12 bg-muted p-1 rounded-lg">
+            <TabsTrigger value="sale" className="text-base font-semibold">
+              🚗 Acheter
+            </TabsTrigger>
+            <TabsTrigger value="rental" className="text-base font-semibold">
+              🔑 Louer
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value={listingType} className="mt-0">
+          <TabsContent value={listingType} className="mt-6">
             <div className="mb-6">
               <h1 className="text-3xl font-bold mb-2">
                 {listingType === "sale" ? "Acheter un véhicule" : "Louer un véhicule"}
