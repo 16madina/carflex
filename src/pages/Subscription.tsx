@@ -79,10 +79,24 @@ const Subscription = () => {
   const isPro = subscribed && proPlan && productId === proPlan.stripe_product_id;
 
   const handleSubscribe = async () => {
+    if (!proPlan) {
+      toast({
+        title: "Erreur",
+        description: "Le plan Pro n'est pas disponible",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setSubscribing(true);
     try {
+      const body: any = { plan_id: proPlan.id };
+      if (promoCode) {
+        body.coupon_code = promoCode;
+      }
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: promoCode ? { coupon_code: promoCode } : undefined
+        body
       });
       
       if (error) throw error;
@@ -94,7 +108,7 @@ const Subscription = () => {
       console.error('Erreur lors de la création du checkout:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la session de paiement. Veuillez réessayer.",
+        description: error.message || "Impossible de créer la session de paiement. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
