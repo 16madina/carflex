@@ -104,7 +104,8 @@ const Subscription = () => {
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        console.log('[Subscription] Redirecting to:', data.url);
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Erreur lors de la création du checkout:', error);
@@ -126,7 +127,8 @@ const Subscription = () => {
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        console.log('[Subscription] Opening customer portal:', data.url);
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Erreur lors de l\'ouverture du portail client:', error);
