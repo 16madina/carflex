@@ -30,6 +30,7 @@ const SubscriptionPlansAdmin = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [updatingPrice, setUpdatingPrice] = useState(false);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
 
@@ -101,6 +102,55 @@ const SubscriptionPlansAdmin = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUpdateStripePrice = async () => {
+    if (!editingPlan) return;
+
+    setUpdatingPrice(true);
+    try {
+      console.log('[SubscriptionPlansAdmin] Updating Stripe price for plan:', editingPlan.name);
+      
+      const { data, error } = await supabase.functions.invoke('update-stripe-price', {
+        body: {
+          productId: editingPlan.stripe_product_id,
+          oldPriceId: editingPlan.stripe_price_id,
+          newAmount: editingPlan.price
+        }
+      });
+
+      if (error) throw error;
+
+      console.log('[SubscriptionPlansAdmin] New Stripe price created:', data);
+
+      // Mettre à jour le plan avec le nouveau price_id
+      const { error: updateError } = await supabase
+        .from('subscription_plans')
+        .update({
+          stripe_price_id: data.priceId,
+          price: data.amount
+        })
+        .eq('id', editingPlan.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Succès",
+        description: `Nouveau prix créé dans Stripe: ${data.amount} ${editingPlan.currency.toUpperCase()}`,
+      });
+
+      await fetchPlans();
+      setEditingPlan(null);
+    } catch (error: any) {
+      console.error('Erreur lors de la mise à jour du prix Stripe:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de mettre à jour le prix dans Stripe",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingPrice(false);
     }
   };
 
@@ -209,24 +259,38 @@ const SubscriptionPlansAdmin = () => {
                       <Label>Plan actif</Label>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Button onClick={handleSave} disabled={saving}>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button onClick={handleUpdateStripePrice} disabled={updatingPrice || saving} variant="default">
+                        {updatingPrice ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Mise à jour Stripe...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Mettre à jour le prix dans Stripe
+                          </>
+                        )}
+                      </Button>
+                      <Button onClick={handleSave} disabled={saving || updatingPrice} variant="secondary">
                         {saving ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Sauvegarde...
                           </>
                         ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Sauvegarder
-                          </>
+                          "Sauvegarder manuellement"
                         )}
                       </Button>
-                      <Button variant="outline" onClick={() => setEditingPlan(null)}>
+                      <Button variant="outline" onClick={() => setEditingPlan(null)} disabled={saving || updatingPrice}>
                         Annuler
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      💡 Utilisez "Mettre à jour le prix dans Stripe" pour créer automatiquement un nouveau prix dans Stripe. 
+                      Le bouton "Sauvegarder manuellement" est pour modifier les autres champs sans toucher à Stripe.
+                    </p>
                   </div>
                 ) : (
                   // Mode affichage
