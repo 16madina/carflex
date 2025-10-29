@@ -95,9 +95,11 @@ const Subscription = () => {
         body.coupon_code = promoCode;
       }
 
+      console.log('[Subscription] Calling create-checkout with:', body);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body
       });
+      console.log('[Subscription] create-checkout response:', { data, error });
       
       if (error) throw error;
       
