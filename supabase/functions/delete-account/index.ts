@@ -59,7 +59,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Erreur dans delete-account:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Erreur serveur" }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
