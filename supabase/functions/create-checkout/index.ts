@@ -143,8 +143,31 @@ serve(async (req) => {
 
     // Add coupon if provided
     if (couponCode) {
-      logStep("Applying coupon code", { couponCode });
-      sessionConfig.discounts = [{ coupon: couponCode }];
+      logStep("Verifying coupon code", { couponCode });
+      try {
+        // Liste tous les coupons et cherche par nom (insensible à la casse)
+        const coupons = await stripe.coupons.list({ limit: 100 });
+        const matchingCoupon = coupons.data.find(
+          (c: Stripe.Coupon) => c.name?.toLowerCase() === couponCode.toLowerCase()
+        );
+        
+        if (matchingCoupon) {
+          logStep("Coupon found and applied", { 
+            couponId: matchingCoupon.id, 
+            name: matchingCoupon.name,
+            discount: matchingCoupon.percent_off || matchingCoupon.amount_off 
+          });
+          sessionConfig.discounts = [{ coupon: matchingCoupon.id }];
+        } else {
+          logStep("Coupon not found, proceeding without discount", { couponCode });
+          // Continue sans code promo plutôt que de bloquer
+        }
+      } catch (couponError) {
+        logStep("Error verifying coupon, proceeding without discount", { 
+          error: couponError instanceof Error ? couponError.message : String(couponError) 
+        });
+        // Continue sans code promo en cas d'erreur
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
