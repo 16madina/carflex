@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CAR_BRANDS, BODY_TYPES, AVAILABLE_DOCUMENTS, CAR_MODELS } from "@/constants/vehicles";
+import { validateImageFiles } from "@/lib/fileValidation";
 
 const SellForm = () => {
   const navigate = useNavigate();
@@ -66,8 +67,11 @@ const SellForm = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
-    if (images.length + files.length > 10) {
-      toast.error("Maximum 10 images autorisées");
+    // Validate files
+    const validation = validateImageFiles(files, images.length);
+    if (!validation.valid) {
+      toast.error(validation.error || "Fichiers invalides");
+      e.target.value = ''; // Reset input
       return;
     }
 
@@ -122,6 +126,7 @@ const SellForm = () => {
       const timestamp = Date.now();
       const fileName = `${user.id}/${timestamp}_${i}.${file.name.split(".").pop()}`;
 
+      // TODO: Migrer vers bucket "vehicle-images" - voir MIGRATION_GUIDE.md
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file);

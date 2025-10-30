@@ -81,8 +81,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     refreshSubscription();
     
-    // Rafraîchir toutes les 60 secondes
-    const interval = setInterval(refreshSubscription, 60000);
+    // Rafraîchir toutes les 10 minutes (optimisation de coûts)
+    const interval = setInterval(refreshSubscription, 10 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, [user]);

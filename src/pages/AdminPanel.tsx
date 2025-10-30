@@ -1202,19 +1202,16 @@ const CouponManagement = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const response = await fetch(
-        'https://api.stripe.com/v1/coupons',
-        {
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
-          }
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('manage-stripe-coupons', {
+        body: { action: 'list' },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
 
-      if (!response.ok) throw new Error("Impossible de charger les coupons");
+      if (error) throw error;
 
-      const data = await response.json();
-      setCoupons(data.data || []);
+      setCoupons(data.coupons || []);
     } catch (error) {
       console.error("Error fetching coupons:", error);
       toast({
@@ -1233,40 +1230,22 @@ const CouponManagement = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const body: any = {
-        name: couponForm.code,
+      const couponData = {
+        code: couponForm.code,
         duration: couponForm.duration,
+        percentOff: couponForm.discountType === "percent" ? couponForm.percentOff : undefined,
+        amountOff: couponForm.discountType === "amount" ? couponForm.amountOff : undefined,
+        durationInMonths: couponForm.duration === "repeating" ? couponForm.durationInMonths : undefined,
       };
 
-      if (couponForm.discountType === "percent") {
-        body.percent_off = couponForm.percentOff;
-      } else {
-        body.amount_off = Math.round(couponForm.amountOff * 100); // Convert to cents
-        body.currency = "xof";
-      }
+      const { data, error } = await supabase.functions.invoke('manage-stripe-coupons', {
+        body: { action: 'create', couponData },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
 
-      if (couponForm.duration === "repeating") {
-        body.duration_in_months = couponForm.durationInMonths;
-      }
-
-      const formData = new URLSearchParams(body);
-
-      const response = await fetch(
-        'https://api.stripe.com/v1/coupons',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || "Erreur lors de la création");
-      }
+      if (error) throw error;
 
       toast({
         title: "Succès",
@@ -1299,17 +1278,16 @@ const CouponManagement = () => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce code promo ?")) return;
 
     try {
-      const response = await fetch(
-        `https://api.stripe.com/v1/coupons/${couponId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
-          },
-        }
-      );
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('manage-stripe-coupons', {
+        body: { action: 'delete', couponId },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
 
-      if (!response.ok) throw new Error("Erreur lors de la suppression");
+      if (error) throw error;
 
       toast({
         title: "Succès",
