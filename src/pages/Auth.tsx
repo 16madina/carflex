@@ -13,6 +13,8 @@ import { Link } from "react-router-dom";
 import { WEST_AFRICAN_COUNTRIES } from "@/contexts/CountryContext";
 import CitySelector from "@/components/CitySelector";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { validateImageFile } from "@/lib/fileValidation";
+import { validatePassword } from "@/lib/passwordValidation";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -41,6 +43,14 @@ const Auth = () => {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error || "Fichier invalide");
+        e.target.value = ''; // Reset input
+        return;
+      }
+      
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -94,6 +104,13 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation de la force du mot de passe
+    const passwordValidation = validatePassword(signupData.password);
+    if (!passwordValidation.valid) {
+      toast.error(passwordValidation.errors[0]); // Show first error
+      return;
+    }
     
     // Validation des mots de passe
     if (signupData.password !== signupData.confirmPassword) {
@@ -291,7 +308,7 @@ const Auth = () => {
                 <form onSubmit={handleSignup} className="space-y-4">
                   {/* Profile Picture Upload */}
                   <div className="space-y-2">
-                    <Label htmlFor="avatar">Photo de profil <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="avatar">Photo de profil (optionnel)</Label>
                     <div className="flex items-center gap-4">
                       <Avatar className="h-20 w-20">
                         {avatarPreview ? (
@@ -308,7 +325,6 @@ const Auth = () => {
                           type="file"
                           accept="image/*"
                           onChange={handleAvatarChange}
-                          required
                           className="cursor-pointer"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
