@@ -69,7 +69,7 @@ const VehicleEvaluation = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pt-24 pb-8">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent, ArrowLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -581,7 +581,16 @@ const AdminPanel = () => {
     <div className="min-h-screen bg-background">
       <TopBar />
       
-      <main className="container mx-auto px-4 py-8 pb-24">
+      <main className="container mx-auto px-4 pt-24 pb-24">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+        
         <div className="flex items-center gap-3 mb-6">
           <Crown className="h-8 w-8 text-amber-500" />
           <h1 className="text-3xl font-bold">Panneau d'Administration</h1>

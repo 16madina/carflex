@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag } from "lucide-react";
+import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -79,22 +79,39 @@ const Subscription = () => {
   const isPro = subscribed && proPlan && productId === proPlan.stripe_product_id;
 
   const handleSubscribe = async () => {
+    if (!proPlan) {
+      toast({
+        title: "Erreur",
+        description: "Le plan Pro n'est pas disponible",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setSubscribing(true);
     try {
+      const body: any = { plan_id: proPlan.id };
+      if (promoCode) {
+        body.coupon_code = promoCode;
+      }
+
+      console.log('[Subscription] Calling create-checkout with:', body);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: promoCode ? { coupon_code: promoCode } : undefined
+        body
       });
+      console.log('[Subscription] create-checkout response:', { data, error });
       
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        console.log('[Subscription] Redirecting to:', data.url);
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Erreur lors de la création du checkout:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la session de paiement. Veuillez réessayer.",
+        description: error.message || "Impossible de créer la session de paiement. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
@@ -110,7 +127,8 @@ const Subscription = () => {
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        console.log('[Subscription] Opening customer portal:', data.url);
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Erreur lors de l\'ouverture du portail client:', error);
@@ -136,7 +154,16 @@ const Subscription = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 pt-24 pb-8 max-w-4xl">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+        
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2">Choisissez votre plan</h1>
           <p className="text-muted-foreground">

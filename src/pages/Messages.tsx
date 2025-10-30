@@ -335,6 +335,9 @@ const Messages = () => {
                   onClose={() => setSelectedConversation(null)}
                   otherParticipantName={participantName}
                   otherParticipantAvatar={otherParticipant?.avatar_url}
+                  listingId={conv?.listing_id}
+                  listingType={conv?.listing_type as 'sale' | 'rental'}
+                  listingInfo={conv?.listing ? `${conv.listing.brand} ${conv.listing.model}` : undefined}
                 />
               );
             })()

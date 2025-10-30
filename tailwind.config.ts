@@ -12,6 +12,15 @@ export default {
         "2xl": "1400px",
       },
     },
+    screens: {
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'fold-closed': '884px', // Galaxy Fold fermé
+      'xl': '1280px',
+      'fold-open': '1768px', // Galaxy Fold ouvert
+      '2xl': '1536px',
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
