@@ -36,7 +36,7 @@ const ImageCarousel = ({ images, alt, showNavigation = true }: ImageCarouselProp
                 <img
                   src={image}
                   alt={`${alt} - Image ${index + 1}`}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover rounded-t-2xl"
                 />
                 {images.length > 1 && (
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass-native px-3 py-2 rounded-2xl">

@@ -74,7 +74,7 @@ const PremiumCarCard = ({
 
   return (
     <Card className="overflow-hidden hover:shadow-native-xl transition-all duration-300 hover:-translate-y-1 rounded-3xl active-press-sm">
-      <div className="relative rounded-t-3xl overflow-hidden">
+      <div className="relative overflow-hidden">
         <ImageCarousel 
           images={images.length > 0 ? images : ["/placeholder.svg"]} 
           alt={`${brand} ${model}`}

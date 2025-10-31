@@ -78,7 +78,7 @@ const CarCard = ({
       className="group overflow-hidden hover:shadow-native-xl transition-all duration-300 cursor-pointer rounded-3xl active-press-sm"
       onClick={handleCardClick}
     >
-      <div className="relative h-48 overflow-hidden rounded-t-3xl">
+      <div className="relative h-48 overflow-hidden">
 ...
         <Button
           variant="secondary"
