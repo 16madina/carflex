@@ -233,184 +233,186 @@ const Index = () => {
   }, [sortBy, selectedCountry]);
 
   return (
-    <div className="min-h-screen bg-background pb-20 pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))]">
+    <div className="min-h-screen flex flex-col">
       <TopBar />
-      <Hero userFirstName={userFirstName} />
-      {userFirstName === null && <ProPlanPromo />}
+      <main className="flex-1 pt-16">
+        <Hero userFirstName={userFirstName} />
+        {userFirstName === null && <ProPlanPromo />}
 
-      {/* Premium Listings Section */}
-      {premiumCars.length > 0 && (
-        <section className="py-6 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Annonces Premium</h2>
-              <Button variant="link" asChild className="text-primary">
-                <Link to="/listings">
-                  Voir tout
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+        {/* Premium Listings Section */}
+        {premiumCars.length > 0 && (
+          <section className="py-10 bg-background">
+            <div className="container mx-auto px-6">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold">Annonces Premium</h2>
+                <Button variant="link" asChild className="text-primary active-press">
+                  <Link to="/listings">
+                    Voir tout
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-6 px-6 pb-4" style={{ width: 'max-content' }}>
+                {premiumCars.map((car) => (
+                  <div key={car.id} className="w-[300px] md:w-[340px] flex-shrink-0">
+                    <PremiumCarCard
+                      id={car.id}
+                      brand={car.brand}
+                      model={car.model}
+                      year={car.year}
+                      price={car.listing_type === 'rental' ? car.price_per_day || car.price : car.price}
+                      mileage={car.mileage}
+                      city={car.city}
+                      country={car.country}
+                      transmission={car.transmission}
+                      fuel_type={car.fuel_type}
+                      images={Array.isArray(car.images) ? car.images : []}
+                      priceQuality="good"
+                      sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
+                      sellerType={car.profiles?.user_type}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Featured Cars Section with Tabs */}
+        <section className="py-12 container mx-auto px-6">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Véhicules en vedette</h2>
+              <p className="text-muted-foreground">
+                Découvrez notre sélection des meilleures offres
+              </p>
             </div>
           </div>
 
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-4 px-4 pb-4" style={{ width: 'max-content' }}>
-              {premiumCars.map((car) => (
-                <div key={car.id} className="w-[280px] md:w-[320px] flex-shrink-0">
-                  <PremiumCarCard
-                    id={car.id}
-                    brand={car.brand}
-                    model={car.model}
-                    year={car.year}
-                    price={car.listing_type === 'rental' ? car.price_per_day || car.price : car.price}
-                    mileage={car.mileage}
-                    city={car.city}
-                    country={car.country}
-                    transmission={car.transmission}
-                    fuel_type={car.fuel_type}
-                    images={Array.isArray(car.images) ? car.images : []}
-                    priceQuality="good"
-                    sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
-                    sellerType={car.profiles?.user_type}
-                  />
-                </div>
-              ))}
+          <Tabs defaultValue="sale" className="w-full">
+            <TabsList className="h-auto p-1.5 bg-muted/50 mb-8 rounded-2xl shadow-material">
+              <TabsTrigger 
+                value="sale" 
+                className="text-lg px-8 py-4 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-material"
+              >
+                Vente
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rental"
+                className="text-lg px-8 py-4 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-material"
+              >
+                Location
+              </TabsTrigger>
+            </TabsList>
+            
+            <div className="flex items-center justify-between mb-8">
+              <div></div>
+              <div className="flex gap-3">
+                <AdvancedFilters
+                  listingType="sale"
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  onSortChange={setSortBy}
+                  sortBy={sortBy}
+                />
+                <Button variant="outline" asChild className="active-press">
+                  <Link to="/listings">
+                    Voir tout
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
+
+            <TabsContent value="sale">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredCars.filter((car) => {
+                  const matchesPrice = 
+                    (!filters.priceMin || car.price >= parseInt(filters.priceMin)) &&
+                    (!filters.priceMax || car.price <= parseInt(filters.priceMax));
+                  const matchesMileage = 
+                    (!filters.mileageMin || car.mileage >= parseInt(filters.mileageMin)) &&
+                    (!filters.mileageMax || car.mileage <= parseInt(filters.mileageMax));
+                  const matchesYear = 
+                    (!filters.yearMin || car.year >= parseInt(filters.yearMin)) &&
+                    (!filters.yearMax || car.year <= parseInt(filters.yearMax));
+                  const matchesFuel = filters.fuelType === "all" || car.fuel_type === filters.fuelType;
+                  const matchesTransmission = filters.transmission === "all" || car.transmission === filters.transmission;
+                  const matchesBudget = !filters.budgetMax || car.price <= parseInt(filters.budgetMax);
+                  
+                  return matchesPrice && matchesMileage && matchesYear && matchesFuel && matchesTransmission && matchesBudget;
+                }).map((car, index) => (
+                  <>
+                    <CarCard
+                      key={car.id}
+                      id={car.id}
+                      brand={car.brand}
+                      model={car.model}
+                      year={car.year}
+                      price={car.price}
+                      mileage={car.mileage}
+                      city={car.city}
+                      transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                      images={Array.isArray(car.images) ? car.images : []}
+                      sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
+                      sellerType={car.profiles?.user_type}
+                    />
+                    {(index + 1) % 5 === 0 && index < featuredCars.length - 1 && (
+                      <AdBanner key={`ad-sale-${index}`} />
+                    )}
+                  </>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="rental">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {rentalCars.filter((car) => {
+                  const matchesPrice = 
+                    (!filters.priceMin || car.price_per_day >= parseInt(filters.priceMin)) &&
+                    (!filters.priceMax || car.price_per_day <= parseInt(filters.priceMax));
+                  const matchesMileage = 
+                    (!filters.mileageMin || car.mileage >= parseInt(filters.mileageMin)) &&
+                    (!filters.mileageMax || car.mileage <= parseInt(filters.mileageMax));
+                  const matchesYear = 
+                    (!filters.yearMin || car.year >= parseInt(filters.yearMin)) &&
+                    (!filters.yearMax || car.year <= parseInt(filters.yearMax));
+                  const matchesFuel = filters.fuelType === "all" || car.fuel_type === filters.fuelType;
+                  const matchesTransmission = filters.transmission === "all" || car.transmission === filters.transmission;
+                  
+                  return matchesPrice && matchesMileage && matchesYear && matchesFuel && matchesTransmission;
+                }).map((car, index) => (
+                  <>
+                    <CarCard
+                      key={car.id}
+                      id={car.id}
+                      brand={car.brand}
+                      model={car.model}
+                      year={car.year}
+                      price={car.price_per_day}
+                      mileage={car.mileage}
+                      city={car.city}
+                      transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                      images={Array.isArray(car.images) ? car.images : []}
+                      isRental={true}
+                      sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
+                      sellerType={car.profiles?.user_type}
+                    />
+                    {(index + 1) % 5 === 0 && index < rentalCars.length - 1 && (
+                      <AdBanner key={`ad-rental-${index}`} />
+                    )}
+                  </>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </section>
-      )}
 
-      {/* Featured Cars Section with Tabs */}
-      <section className="py-8 container mx-auto px-4">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Véhicules en vedette</h2>
-            <p className="text-muted-foreground">
-              Découvrez notre sélection des meilleures offres
-            </p>
-          </div>
-        </div>
-
-        <Tabs defaultValue="sale" className="w-full">
-          <TabsList className="h-auto p-1 bg-muted/50 mb-8">
-            <TabsTrigger 
-              value="sale" 
-              className="text-lg px-8 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              Vente
-            </TabsTrigger>
-            <TabsTrigger 
-              value="rental"
-              className="text-lg px-8 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              Location
-            </TabsTrigger>
-          </TabsList>
-          
-          <div className="flex items-center justify-between mb-6">
-            <div></div>
-            <div className="flex gap-2">
-              <AdvancedFilters
-                listingType="sale"
-                filters={filters}
-                onFiltersChange={setFilters}
-                onSortChange={setSortBy}
-                sortBy={sortBy}
-              />
-              <Button variant="outline" asChild>
-                <Link to="/listings">
-                  Voir tout
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <TabsContent value="sale">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredCars.filter((car) => {
-                const matchesPrice = 
-                  (!filters.priceMin || car.price >= parseInt(filters.priceMin)) &&
-                  (!filters.priceMax || car.price <= parseInt(filters.priceMax));
-                const matchesMileage = 
-                  (!filters.mileageMin || car.mileage >= parseInt(filters.mileageMin)) &&
-                  (!filters.mileageMax || car.mileage <= parseInt(filters.mileageMax));
-                const matchesYear = 
-                  (!filters.yearMin || car.year >= parseInt(filters.yearMin)) &&
-                  (!filters.yearMax || car.year <= parseInt(filters.yearMax));
-                const matchesFuel = filters.fuelType === "all" || car.fuel_type === filters.fuelType;
-                const matchesTransmission = filters.transmission === "all" || car.transmission === filters.transmission;
-                const matchesBudget = !filters.budgetMax || car.price <= parseInt(filters.budgetMax);
-                
-                return matchesPrice && matchesMileage && matchesYear && matchesFuel && matchesTransmission && matchesBudget;
-              }).map((car, index) => (
-                <>
-                  <CarCard
-                    key={car.id}
-                    id={car.id}
-                    brand={car.brand}
-                    model={car.model}
-                    year={car.year}
-                    price={car.price}
-                    mileage={car.mileage}
-                    city={car.city}
-                    transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
-                    images={Array.isArray(car.images) ? car.images : []}
-                    sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
-                    sellerType={car.profiles?.user_type}
-                  />
-                  {(index + 1) % 5 === 0 && index < featuredCars.length - 1 && (
-                    <AdBanner key={`ad-sale-${index}`} />
-                  )}
-                </>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="rental">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rentalCars.filter((car) => {
-                const matchesPrice = 
-                  (!filters.priceMin || car.price_per_day >= parseInt(filters.priceMin)) &&
-                  (!filters.priceMax || car.price_per_day <= parseInt(filters.priceMax));
-                const matchesMileage = 
-                  (!filters.mileageMin || car.mileage >= parseInt(filters.mileageMin)) &&
-                  (!filters.mileageMax || car.mileage <= parseInt(filters.mileageMax));
-                const matchesYear = 
-                  (!filters.yearMin || car.year >= parseInt(filters.yearMin)) &&
-                  (!filters.yearMax || car.year <= parseInt(filters.yearMax));
-                const matchesFuel = filters.fuelType === "all" || car.fuel_type === filters.fuelType;
-                const matchesTransmission = filters.transmission === "all" || car.transmission === filters.transmission;
-                
-                return matchesPrice && matchesMileage && matchesYear && matchesFuel && matchesTransmission;
-              }).map((car, index) => (
-                <>
-                  <CarCard
-                    key={car.id}
-                    id={car.id}
-                    brand={car.brand}
-                    model={car.model}
-                    year={car.year}
-                    price={car.price_per_day}
-                    mileage={car.mileage}
-                    city={car.city}
-                    transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
-                    images={Array.isArray(car.images) ? car.images : []}
-                    isRental={true}
-                    sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
-                    sellerType={car.profiles?.user_type}
-                  />
-                  {(index + 1) % 5 === 0 && index < rentalCars.length - 1 && (
-                    <AdBanner key={`ad-rental-${index}`} />
-                  )}
-                </>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </section>
-
-      <Footer />
+        <Footer />
+      </main>
       <BottomNav />
     </div>
   );
