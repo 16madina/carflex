@@ -241,11 +241,11 @@ const Index = () => {
 
         {/* Premium Listings Section */}
         {premiumCars.length > 0 && (
-          <section className="py-10 bg-background">
+          <section className="py-8 bg-background">
             <div className="container mx-auto px-6">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold">Annonces Premium</h2>
-                <Button variant="link" asChild className="text-primary active-press">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Annonces Premium</h2>
+                <Button variant="link" asChild className="text-primary active-press text-sm">
                   <Link to="/listings">
                     Voir tout
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -255,9 +255,9 @@ const Index = () => {
             </div>
 
             <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex gap-6 px-6 pb-4" style={{ width: 'max-content' }}>
+              <div className="flex gap-5 px-6 pb-4" style={{ width: 'max-content' }}>
                 {premiumCars.map((car) => (
-                  <div key={car.id} className="w-[300px] md:w-[340px] flex-shrink-0">
+                  <div key={car.id} className="w-[280px] md:w-[320px] flex-shrink-0">
                     <PremiumCarCard
                       id={car.id}
                       brand={car.brand}
@@ -282,11 +282,11 @@ const Index = () => {
         )}
 
         {/* Featured Cars Section with Tabs */}
-        <section className="py-12 container mx-auto px-6">
-          <div className="flex items-center justify-between mb-10">
+        <section className="py-10 container mx-auto px-6">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold mb-2">Véhicules en vedette</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl font-bold mb-1">Véhicules en vedette</h2>
+              <p className="text-sm text-muted-foreground">
                 Découvrez notre sélection des meilleures offres
               </p>
             </div>
@@ -296,19 +296,19 @@ const Index = () => {
             <TabsList className="h-auto p-1.5 bg-muted/50 mb-8 rounded-2xl shadow-material">
               <TabsTrigger 
                 value="sale" 
-                className="text-lg px-8 py-4 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-material"
+                className="text-base px-6 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-material"
               >
                 Vente
               </TabsTrigger>
               <TabsTrigger 
                 value="rental"
-                className="text-lg px-8 py-4 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-material"
+                className="text-base px-6 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-material"
               >
                 Location
               </TabsTrigger>
             </TabsList>
             
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
               <div></div>
               <div className="flex gap-3">
                 <AdvancedFilters
@@ -318,7 +318,7 @@ const Index = () => {
                   onSortChange={setSortBy}
                   sortBy={sortBy}
                 />
-                <Button variant="outline" asChild className="active-press">
+                <Button variant="outline" asChild className="active-press text-sm">
                   <Link to="/listings">
                     Voir tout
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -328,7 +328,7 @@ const Index = () => {
             </div>
 
             <TabsContent value="sale">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {featuredCars.filter((car) => {
                   const matchesPrice = 
                     (!filters.priceMin || car.price >= parseInt(filters.priceMin)) &&

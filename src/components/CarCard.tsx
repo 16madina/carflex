@@ -79,7 +79,7 @@ const CarCard = ({
       className="group overflow-hidden hover:shadow-material-xl transition-all duration-300 cursor-pointer animate-spring"
       onClick={handleCardClick}
     >
-      <div className="relative h-56 overflow-hidden bg-muted">
+      <div className="relative h-48 overflow-hidden bg-muted">
         {displayImages.length > 0 ? (
           <div onClick={(e) => e.stopPropagation()}>
             <ImageCarousel 
@@ -89,21 +89,21 @@ const CarCard = ({
             />
           </div>
         ) : (
-          <Skeleton className="w-full h-56" />
+          <Skeleton className="w-full h-48" />
         )}
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-4 right-4 rounded-full shadow-material-lg z-10 h-14 w-14 glass-morphism hover:scale-110"
+          className="absolute top-3 right-3 rounded-full shadow-material-lg z-10 h-12 w-12 glass-morphism hover:scale-110"
           onClick={(e) => {
             e.stopPropagation();
             handleFavoriteClick();
           }}
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
-          <Heart className={`h-6 w-6 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
+          <Heart className={`h-5 w-5 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
         </Button>
-        <div className="absolute bottom-4 left-4 z-10">
+        <div className="absolute bottom-3 left-3 z-10">
           <DealRatingBadge 
             listingId={id} 
             listingType={isRental ? "rental" : "sale"}
@@ -112,41 +112,41 @@ const CarCard = ({
         </div>
       </div>
 
-      <CardContent className="p-6">
-        <div className="mb-4">
-          <h3 className="font-bold text-xl mb-2">
+      <CardContent className="p-5">
+        <div className="mb-3">
+          <h3 className="font-bold text-lg mb-1">
             {brand} {model}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="rounded-xl px-3 py-1">{transmission}</Badge>
+            <Badge variant="secondary" className="rounded-lg px-2.5 py-0.5 text-xs">{transmission}</Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-5">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-4 w-4" />
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3.5 w-3.5" />
             <span>{year}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Gauge className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            <Gauge className="h-3.5 w-3.5" />
             <span>{mileage.toLocaleString()} km</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <MapPin className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5" />
             <span>{city}</span>
           </div>
         </div>
 
         <div className="flex items-center justify-between gap-4">
           <div>
-            <div className={`text-2xl font-bold ${getPriceColorClass(rating)}`}>
+            <div className={`text-xl font-bold ${getPriceColorClass(rating)}`}>
               {formatPrice(price)}
               {isRental && (
-                <span className="text-sm text-muted-foreground ml-1">/jour</span>
+                <span className="text-xs text-muted-foreground ml-1">/jour</span>
               )}
             </div>
             {sellerName && sellerType && (
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-[10px] text-muted-foreground mt-0.5">
                 {sellerName} • {
                   sellerType === 'dealer' ? 'Concessionnaire' :
                   sellerType === 'seller' ? 'Vendeur' :

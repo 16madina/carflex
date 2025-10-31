@@ -75,7 +75,7 @@ const PremiumCarCard = ({
 
   return (
     <Card className="overflow-hidden hover:shadow-material-xl transition-all duration-300 hover:-translate-y-1 animate-spring">
-      <div className="relative h-56 bg-muted">
+      <div className="relative h-48 bg-muted">
         {images.length > 0 ? (
           <ImageCarousel 
             images={images} 
@@ -83,19 +83,19 @@ const PremiumCarCard = ({
             showNavigation={false}
           />
         ) : (
-          <Skeleton className="w-full h-56" />
+          <Skeleton className="w-full h-48" />
         )}
-        <div className="absolute top-4 left-4 z-10">
-          <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold flex items-center gap-1.5 px-4 py-2 rounded-xl shadow-material glass-morphism">
-            <Zap className="h-4 w-4" />
+        <div className="absolute top-3 left-3 z-10">
+          <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-material glass-morphism text-xs">
+            <Zap className="h-3.5 w-3.5" />
             Premium
           </Badge>
         </div>
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-3 right-3 z-10">
           <Button
             variant="ghost"
             size="icon"
-            className="glass-morphism hover:bg-background/90 h-14 w-14 rounded-full shadow-material-lg hover:scale-110"
+            className="glass-morphism hover:bg-background/90 h-12 w-12 rounded-full shadow-material-lg hover:scale-110"
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite?.();
@@ -103,13 +103,13 @@ const PremiumCarCard = ({
             aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
           >
             <Heart
-              className={`h-6 w-6 ${
+              className={`h-5 w-5 ${
                 isFavorite ? "fill-destructive text-destructive" : "text-muted-foreground"
               }`}
             />
           </Button>
         </div>
-        <div className="absolute bottom-4 left-4 z-10">
+        <div className="absolute bottom-3 left-3 z-10">
           <DealRatingBadge 
             listingId={id} 
             listingType="sale"
@@ -118,15 +118,15 @@ const PremiumCarCard = ({
         </div>
       </div>
 
-      <CardContent className="p-6">
-        <h3 className="font-semibold text-xl mb-3">
+      <CardContent className="p-5">
+        <h3 className="font-semibold text-lg mb-2">
           {year} {brand} {model}
         </h3>
-        <p className={`text-2xl font-bold ${getPriceColorClass(rating)} mb-2`}>
+        <p className={`text-xl font-bold ${getPriceColorClass(rating)} mb-2`}>
           {formatPrice(price)}
         </p>
         {sellerName && sellerType && (
-          <div className="text-xs text-muted-foreground mb-4">
+          <div className="text-[10px] text-muted-foreground mb-3">
             {sellerName} • {
               sellerType === 'dealer' ? 'Concessionnaire' :
               sellerType === 'seller' ? 'Vendeur' :
@@ -135,11 +135,11 @@ const PremiumCarCard = ({
             }
           </div>
         )}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <MapPin className="h-4 w-4" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+          <MapPin className="h-3.5 w-3.5" />
           <span>{city}</span>
         </div>
-        <div className="flex gap-3 text-sm text-muted-foreground mb-5">
+        <div className="flex gap-2 text-xs text-muted-foreground mb-4">
           <span>{mileage.toLocaleString()} km</span>
           <span>•</span>
           <span className="capitalize">{transmission}</span>
@@ -147,6 +147,7 @@ const PremiumCarCard = ({
           <span className="capitalize">{fuel_type}</span>
         </div>
         <Button
+          size="sm"
           className="w-full"
           onClick={() => navigate(`/listing/${id}`)}
         >

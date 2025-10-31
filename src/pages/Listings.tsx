@@ -161,33 +161,33 @@ const Listings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))]">
       <TopBar />
 
       <main className="container mx-auto px-4 py-6">
         {/* Tabs prominents en haut */}
         <Tabs value={listingType} onValueChange={(value) => setListingType(value as "sale" | "rental")} className="w-full mb-6">
-          <TabsList className="grid w-full grid-cols-2 h-12 bg-muted p-1 rounded-lg">
-            <TabsTrigger value="sale" className="text-base font-semibold">
+          <TabsList className="grid w-full grid-cols-2 h-11 bg-muted p-1 rounded-xl shadow-material">
+            <TabsTrigger value="sale" className="text-sm font-semibold rounded-lg data-[state=active]:shadow-material">
               🚗 Acheter
             </TabsTrigger>
-            <TabsTrigger value="rental" className="text-base font-semibold">
+            <TabsTrigger value="rental" className="text-sm font-semibold rounded-lg data-[state=active]:shadow-material">
               🔑 Louer
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value={listingType} className="mt-6">
             <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2">
+              <h1 className="text-2xl font-bold mb-2">
                 {listingType === "sale" ? "Acheter un véhicule" : "Louer un véhicule"}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {listingType === "sale" 
                   ? "Découvrez notre sélection de véhicules à vendre"
                   : "Découvrez notre sélection de véhicules à louer"}
               </p>
               {!loading && (
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-1">
                   {filteredListings.length} résultat{filteredListings.length > 1 ? 's' : ''} trouvé{filteredListings.length > 1 ? 's' : ''}
                 </p>
               )}
