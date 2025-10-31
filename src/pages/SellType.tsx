@@ -53,7 +53,7 @@ const SellType = () => {
     <div className="min-h-screen bg-primary pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pt-24 pb-8">
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <Card 
