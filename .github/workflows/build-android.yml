@@ -1,0 +1,43 @@
+﻿name: Build Android App
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    - run: npm install
+    - run: npm run build
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - uses: android-actions/setup-android@v3
+    - run: npx cap sync android
+    - run: chmod +x android/gradlew
+    - run: cd android && ./gradlew assembleDebug
+    - env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/carflex-release.jks
+    - env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        cd android
+        ./gradlew bundleRelease -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/carflex-release.jks -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$KEY_ALIAS -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+    - uses: actions/upload-artifact@v4
+      with:
+        name: carflex-debug-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+    - uses: actions/upload-artifact@v4
+      with:
+        name: carflex-release-aab
+        path: android/app/build/outputs/bundle/release/app-release.aab
