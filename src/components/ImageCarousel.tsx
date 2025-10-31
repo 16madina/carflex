@@ -22,12 +22,12 @@ const ImageCarousel = ({ images, alt, showNavigation = true }: ImageCarouselProp
 
   return (
     <>
-      <Carousel className="w-full" opts={{ loop: true }}>
-        <CarouselContent>
+      <Carousel className="w-full h-48" opts={{ loop: true }}>
+        <CarouselContent className="h-48">
           {images.map((image, index) => (
-            <CarouselItem key={index}>
+            <CarouselItem key={index} className="h-48">
               <div 
-                className="relative cursor-pointer"
+                className="relative cursor-pointer h-48"
                 onClick={() => {
                   setSelectedIndex(index);
                   setLightboxOpen(true);
