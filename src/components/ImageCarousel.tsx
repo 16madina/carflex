@@ -39,8 +39,17 @@ const ImageCarousel = ({ images, alt, showNavigation = true }: ImageCarouselProp
                   className="w-full h-48 object-cover"
                 />
                 {images.length > 1 && (
-                  <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs">
-                    {index + 1} / {images.length}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass-native px-3 py-2 rounded-2xl">
+                    {images.map((_, dotIndex) => (
+                      <div
+                        key={dotIndex}
+                        className={`transition-all duration-300 rounded-full ${
+                          dotIndex === index
+                            ? 'h-2 w-8 bg-primary'
+                            : 'h-2 w-2 bg-muted-foreground/40'
+                        }`}
+                      />
+                    ))}
                   </div>
                 )}
               </div>

@@ -73,21 +73,21 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t shadow-elevated">
-      <div className="flex items-center justify-around h-16 px-2 pb-safe-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-native border-t shadow-native-lg">
+      <div className="flex items-center justify-around h-20 px-2 pb-safe-bottom">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
 
           if (item.isCenter) {
             return (
-              <Link key={item.path} to={item.path} className="relative -top-4">
+              <Link key={item.path} to={item.path} className="relative -top-6">
                 <Button
                   size="icon"
-                  className="h-14 w-14 rounded-full bg-gradient-hero shadow-elevated hover:scale-105 transition-transform"
+                  className="h-16 w-16 rounded-full bg-gradient-hero shadow-native-lg hover:scale-105 transition-transform active-press"
                   aria-label={item.label}
                 >
-                  <Icon className="h-6 w-6" />
+                  <Icon className="h-7 w-7" />
                 </Button>
               </Link>
             );
@@ -98,11 +98,11 @@ const BottomNav = () => {
               key={item.path}
               to={item.path}
               className={`
-                flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg
-                transition-all duration-300 relative min-h-[44px] min-w-[44px]
+                flex flex-col items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl
+                transition-all duration-300 relative min-h-[52px] min-w-[52px] active-press
                 ${
                   active
-                    ? "text-primary scale-105 bg-primary/10"
+                    ? "text-primary scale-105 bg-primary/10 shadow-md"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }
               `}
@@ -110,17 +110,17 @@ const BottomNav = () => {
               aria-current={active ? "page" : undefined}
             >
               <div className="relative">
-                <Icon className="h-5 w-5" />
+                <Icon className="h-6 w-6" />
                 {item.showBadge && unreadCount > 0 && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-2 -right-2 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px]"
+                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] font-bold shadow-md"
                   >
                     {unreadCount}
                   </Badge>
                 )}
               </div>
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-sm font-semibold">{item.label}</span>
             </Link>
           );
         })}

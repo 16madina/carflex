@@ -99,4 +99,27 @@ All colors MUST be HSL.
   .pb-safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* Effet press natif */
+  .active-press {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+  
+  .active-press-sm {
+    @apply active:scale-[0.98] transition-transform duration-150;
+  }
+  
+  /* Glassmorphism natif */
+  .glass-native {
+    @apply backdrop-blur-xl bg-background/90 border border-border/20;
+  }
+}
+
+/* Typographie native */
+@layer base {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  }
 }

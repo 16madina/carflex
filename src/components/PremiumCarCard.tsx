@@ -73,16 +73,16 @@ const PremiumCarCard = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
-      <div className="relative">
+    <Card className="overflow-hidden hover:shadow-native-xl transition-all duration-300 hover:-translate-y-1 rounded-3xl active-press-sm">
+      <div className="relative rounded-t-3xl overflow-hidden">
         <ImageCarousel 
           images={images.length > 0 ? images : ["/placeholder.svg"]} 
           alt={`${brand} ${model}`}
           showNavigation={false}
         />
         <div className="absolute top-3 left-3 z-10">
-          <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center gap-1">
-            <Zap className="h-3 w-3" />
+          <Badge className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold flex items-center gap-1.5 rounded-xl px-4 py-2 shadow-lg shadow-amber-500/30 backdrop-blur-md border border-white/20">
+            <Zap className="h-4 w-4" />
             Premium
           </Badge>
         </div>
@@ -90,7 +90,7 @@ const PremiumCarCard = ({
           <Button
             variant="ghost"
             size="icon"
-            className="bg-background/80 hover:bg-background h-11 w-11 md:h-10 md:w-10"
+            className="glass-native h-12 w-12 rounded-full shadow-native-lg active-press"
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite?.();
@@ -113,15 +113,15 @@ const PremiumCarCard = ({
         </div>
       </div>
 
-      <CardContent className="p-4">
-        <h3 className="font-semibold text-lg mb-2">
+      <CardContent className="p-6">
+        <h3 className="font-bold text-xl mb-2 leading-tight">
           {year} {brand} {model}
         </h3>
-        <p className={`text-2xl font-bold ${getPriceColorClass(rating)} mb-1`}>
+        <p className={`text-2xl font-bold ${getPriceColorClass(rating)} mb-2`}>
           {formatPrice(price)}
         </p>
         {sellerName && sellerType && (
-          <div className="text-xs text-muted-foreground mb-3">
+          <div className="text-sm text-muted-foreground mb-4">
             {sellerName} • {
               sellerType === 'dealer' ? 'Concessionnaire' :
               sellerType === 'seller' ? 'Vendeur' :
@@ -130,11 +130,11 @@ const PremiumCarCard = ({
             }
           </div>
         )}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-          <MapPin className="h-4 w-4" />
-          <span>{city}</span>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <MapPin className="h-5 w-5" />
+          <span className="font-medium">{city}</span>
         </div>
-        <div className="flex gap-3 text-sm text-muted-foreground mb-4">
+        <div className="flex gap-3 text-sm text-muted-foreground mb-5 font-medium">
           <span>{mileage.toLocaleString()} km</span>
           <span>•</span>
           <span className="capitalize">{transmission}</span>
@@ -142,7 +142,7 @@ const PremiumCarCard = ({
           <span className="capitalize">{fuel_type}</span>
         </div>
         <Button
-          className="w-full h-11 md:h-10"
+          className="w-full rounded-xl py-3.5 font-semibold shadow-md active:shadow-sm active-press"
           onClick={() => navigate(`/listing/${id}`)}
         >
           Voir détails

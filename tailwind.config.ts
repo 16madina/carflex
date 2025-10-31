@@ -16,12 +16,16 @@ export default {
       'sm': '640px',
       'md': '768px',
       'lg': '1024px',
-      'fold-closed': '884px', // Galaxy Fold fermé
+      'fold-closed': '884px',
       'xl': '1280px',
-      'fold-open': '1768px', // Galaxy Fold ouvert
+      'fold-open': '1768px',
       '2xl': '1536px',
     },
     extend: {
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -64,6 +68,9 @@ export default {
       boxShadow: {
         'card': 'var(--shadow-card)',
         'elevated': 'var(--shadow-elevated)',
+        'native': '0 2px 8px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04)',
+        'native-lg': '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06)',
+        'native-xl': '0 12px 32px rgba(0, 0, 0, 0.14), 0 4px 8px rgba(0, 0, 0, 0.08)',
       },
       transitionProperty: {
         'smooth': 'var(--transition-smooth)',
@@ -72,6 +79,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        '2xl': '16px',
+        '3xl': '20px',
+        '4xl': '24px',
       },
       keyframes: {
         "accordion-down": {
@@ -94,6 +104,12 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "bounce-slow": "bounce 2s infinite",
+      },
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
       },
     },
   },

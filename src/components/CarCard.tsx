@@ -75,34 +75,22 @@ const CarCard = ({
 
   return (
     <Card 
-      className="group overflow-hidden hover:shadow-elevated transition-all duration-300 cursor-pointer"
+      className="group overflow-hidden hover:shadow-native-xl transition-all duration-300 cursor-pointer rounded-3xl active-press-sm"
       onClick={handleCardClick}
     >
-      <div className="relative h-48 overflow-hidden">
-        {displayImages.length > 0 ? (
-          <div onClick={(e) => e.stopPropagation()}>
-            <ImageCarousel 
-              images={displayImages} 
-              alt={`${brand} ${model}`}
-              showNavigation={false}
-            />
-          </div>
-        ) : (
-          <div className="w-full h-48 bg-gradient-card flex items-center justify-center">
-            <span className="text-muted-foreground">Image non disponible</span>
-          </div>
-        )}
+      <div className="relative h-48 overflow-hidden rounded-t-3xl">
+...
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-3 right-3 rounded-full shadow-lg z-10 h-11 w-11 md:h-10 md:w-10"
+          className="absolute top-3 right-3 rounded-full shadow-native-lg z-10 h-12 w-12 active-press"
           onClick={(e) => {
             e.stopPropagation();
             handleFavoriteClick();
           }}
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
-          <Heart className={`h-5 w-5 md:h-4 md:w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
+          <Heart className={`h-5 w-5 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
         </Button>
         <div className="absolute bottom-3 left-3 z-10">
           <DealRatingBadge 
@@ -113,34 +101,34 @@ const CarCard = ({
         </div>
       </div>
 
-      <CardContent className="p-5">
-        <div className="mb-3">
-          <h3 className="font-bold text-lg mb-1">
+      <CardContent className="p-6">
+        <div className="mb-4">
+          <h3 className="font-bold text-xl mb-2 leading-tight">
             {brand} {model}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary">{transmission}</Badge>
+            <Badge variant="secondary" className="rounded-xl px-3 py-1.5 text-sm font-semibold">{transmission}</Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            <span>{year}</span>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-5">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-5 w-5" />
+            <span className="font-medium">{year}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Gauge className="h-4 w-4" />
-            <span>{mileage.toLocaleString()} km</span>
+          <div className="flex items-center gap-1.5">
+            <Gauge className="h-5 w-5" />
+            <span className="font-medium">{mileage.toLocaleString()} km</span>
           </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            <span>{city}</span>
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-5 w-5" />
+            <span className="font-medium">{city}</span>
           </div>
         </div>
 
         <div className="flex items-center justify-between">
           <div>
-            <div className={`text-xl font-bold ${getPriceColorClass(rating)}`}>
+            <div className={`text-2xl font-bold ${getPriceColorClass(rating)}`}>
               {formatPrice(price)}
               {isRental && (
                 <span className="text-sm text-muted-foreground ml-1">/jour</span>
@@ -159,7 +147,7 @@ const CarCard = ({
           </div>
           <Button 
             variant="default"
-            className="h-11 md:h-10"
+            className="rounded-xl py-3.5 px-6 font-semibold shadow-md active:shadow-sm active-press"
             onClick={(e) => {
               e.stopPropagation();
               handleCardClick();

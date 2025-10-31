@@ -233,30 +233,30 @@ const Index = () => {
   }, [sortBy, selectedCountry]);
 
   return (
-    <div className="min-h-screen bg-background pb-20 pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))]">
+    <div className="min-h-screen bg-background pb-24 pt-[calc(4.5rem+max(1rem,env(safe-area-inset-top)))]">
       <TopBar />
       <Hero userFirstName={userFirstName} />
       {userFirstName === null && <ProPlanPromo />}
 
       {/* Premium Listings Section */}
       {premiumCars.length > 0 && (
-        <section className="py-6 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Annonces Premium</h2>
-              <Button variant="link" asChild className="text-primary">
+        <section className="py-10 bg-background">
+          <div className="container mx-auto px-6">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold">Annonces Premium</h2>
+              <Button variant="link" asChild className="text-primary font-semibold">
                 <Link to="/listings">
                   Voir tout
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
           </div>
 
           <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-4 px-4 pb-4" style={{ width: 'max-content' }}>
+            <div className="flex gap-6 px-6 pb-6" style={{ width: 'max-content' }}>
               {premiumCars.map((car) => (
-                <div key={car.id} className="w-[280px] md:w-[320px] flex-shrink-0">
+                <div key={car.id} className="w-[300px] md:w-[340px] flex-shrink-0">
                   <PremiumCarCard
                     id={car.id}
                     brand={car.brand}
@@ -281,27 +281,27 @@ const Index = () => {
       )}
 
       {/* Featured Cars Section with Tabs */}
-      <section className="py-8 container mx-auto px-4">
-        <div className="flex items-center justify-between mb-10">
+      <section className="py-12 container mx-auto px-6 space-y-12">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Véhicules en vedette</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-4xl font-bold mb-3">Véhicules en vedette</h2>
+            <p className="text-muted-foreground text-lg leading-relaxed">
               Découvrez notre sélection des meilleures offres
             </p>
           </div>
         </div>
 
         <Tabs defaultValue="sale" className="w-full">
-          <TabsList className="h-auto p-1 bg-muted/50 mb-8">
+          <TabsList className="h-auto p-2 bg-muted rounded-2xl mb-10">
             <TabsTrigger 
               value="sale" 
-              className="text-lg px-8 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="text-lg font-semibold px-10 py-4 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:scale-105 transition-all duration-300 ease-spring"
             >
               Vente
             </TabsTrigger>
             <TabsTrigger 
               value="rental"
-              className="text-lg px-8 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="text-lg font-semibold px-10 py-4 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:scale-105 transition-all duration-300 ease-spring"
             >
               Location
             </TabsTrigger>
@@ -327,7 +327,7 @@ const Index = () => {
           </div>
 
           <TabsContent value="sale">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredCars.filter((car) => {
                 const matchesPrice = 
                   (!filters.priceMin || car.price >= parseInt(filters.priceMin)) &&
@@ -368,7 +368,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="rental">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {rentalCars.filter((car) => {
                 const matchesPrice = 
                   (!filters.priceMin || car.price_per_day >= parseInt(filters.priceMin)) &&
