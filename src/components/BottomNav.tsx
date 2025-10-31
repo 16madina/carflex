@@ -74,7 +74,7 @@ const BottomNav = () => {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t shadow-material-xl">
-      <div className="flex items-center justify-around px-2 pb-safe-bottom" style={{ height: 'max(72px, calc(72px + env(safe-area-inset-bottom)))' }}>
+      <div className="flex items-center justify-around px-2 pb-safe-bottom" style={{ height: 'max(60px, calc(60px + env(safe-area-inset-bottom)))' }}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -98,8 +98,8 @@ const BottomNav = () => {
               key={item.path}
               to={item.path}
               className={`
-                flex flex-col items-center justify-center gap-1.5 px-4 py-3 rounded-2xl
-                transition-all duration-300 relative min-h-[56px] min-w-[56px] active-press
+                flex flex-col items-center justify-center gap-1.5 px-4 py-2 rounded-2xl
+                transition-all duration-300 relative min-h-[48px] min-w-[48px] active-press
                 ${
                   active
                     ? "text-primary scale-105"
