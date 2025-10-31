@@ -55,7 +55,131 @@ serve(async (req) => {
 
     console.log("Type d'événement:", event.type);
 
-    // Traiter uniquement les paiements réussis
+    // Gérer les événements d'abonnement
+    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as Stripe.Subscription;
+      
+      console.log("Abonnement:", subscription.id);
+      console.log("Customer:", subscription.customer);
+      console.log("Status:", subscription.status);
+      console.log("Product:", subscription.items.data[0]?.price.product);
+
+      // Récupérer l'utilisateur par customer ID
+      const { data: profiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .eq("email", subscription.customer as string)
+        .limit(1);
+
+      if (!profiles || profiles.length === 0) {
+        console.log("Utilisateur non trouvé, recherche par customer ID");
+        // Si pas trouvé par email, on cherche dans user_subscriptions
+        const { data: userSubs } = await supabaseAdmin
+          .from("user_subscriptions")
+          .select("user_id")
+          .eq("stripe_customer_id", subscription.customer as string)
+          .limit(1);
+
+        if (userSubs && userSubs.length > 0) {
+          // Mettre à jour l'abonnement existant
+          const { error: updateError } = await supabaseAdmin
+            .from("user_subscriptions")
+            .update({
+              stripe_subscription_id: subscription.id,
+              product_id: subscription.items.data[0]?.price.product as string,
+              status: subscription.status,
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_customer_id", subscription.customer as string);
+
+          if (updateError) {
+            console.error("Erreur mise à jour abonnement:", updateError);
+          } else {
+            console.log("Abonnement mis à jour avec succès");
+          }
+        }
+      } else {
+        // Créer ou mettre à jour l'abonnement
+        const userId = profiles[0].id;
+        
+        const { error: upsertError } = await supabaseAdmin
+          .from("user_subscriptions")
+          .upsert({
+            user_id: userId,
+            stripe_customer_id: subscription.customer as string,
+            stripe_subscription_id: subscription.id,
+            product_id: subscription.items.data[0]?.price.product as string,
+            status: subscription.status,
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: "user_id"
+          });
+
+        if (upsertError) {
+          console.error("Erreur upsert abonnement:", upsertError);
+        } else {
+          console.log("Abonnement créé/mis à jour avec succès");
+          
+          // Créer une notification
+          if (subscription.status === "active") {
+            await supabaseAdmin.from("notifications").insert({
+              user_id: userId,
+              type: "subscription",
+              title: "Abonnement Pro activé !",
+              message: "Votre abonnement Pro est maintenant actif. Profitez de tous les avantages premium !",
+              read: false,
+            });
+          }
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          received: true,
+          message: "Abonnement traité avec succès" 
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
+    // Gérer la suppression d'abonnement
+    if (event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object as Stripe.Subscription;
+      
+      console.log("Abonnement supprimé:", subscription.id);
+
+      const { error: updateError } = await supabaseAdmin
+        .from("user_subscriptions")
+        .update({
+          status: "canceled",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("stripe_subscription_id", subscription.id);
+
+      if (updateError) {
+        console.error("Erreur mise à jour statut:", updateError);
+      } else {
+        console.log("Statut d'abonnement mis à jour");
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          received: true,
+          message: "Annulation traitée" 
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
+    // Traiter les paiements réussis pour les promotions
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       
@@ -64,8 +188,28 @@ serve(async (req) => {
 
       const metadata = session.metadata;
 
+      // Si c'est un abonnement, il sera géré par customer.subscription.created
+      if (session.mode === "subscription") {
+        console.log("Session d'abonnement, sera géré par customer.subscription.created");
+        return new Response(
+          JSON.stringify({ received: true }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+
+      // Sinon, c'est une promotion d'annonce
       if (!metadata || !metadata.user_id || !metadata.package_id || !metadata.listing_id) {
-        throw new Error("Métadonnées manquantes dans la session Stripe");
+        console.log("Pas de métadonnées de promotion, ignorer");
+        return new Response(
+          JSON.stringify({ received: true }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
       }
 
       // Récupérer le package pour obtenir la durée
@@ -130,6 +274,7 @@ serve(async (req) => {
     }
 
     // Autres types d'événements
+    console.log("Événement non géré:", event.type);
     return new Response(
       JSON.stringify({ received: true }),
       {
