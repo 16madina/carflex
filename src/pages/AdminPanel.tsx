@@ -1065,7 +1065,7 @@ const ProPlanSettings = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [proPlanData, setProPlanData] = useState({
-    productId: "prod_TF9Qwq8CkwzIUw",
+    productId: "prod_TKldqbLd1nRzXX",
     priceId: "",
     currentPrice: 0,
     newPrice: 0,
