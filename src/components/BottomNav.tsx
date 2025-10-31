@@ -73,7 +73,7 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t shadow-material-xl">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t shadow-material-xl" style={{ touchAction: 'none' }}>
       <div className="flex items-center justify-around px-2 pb-safe-bottom" style={{ height: 'max(60px, calc(60px + env(safe-area-inset-bottom)))' }}>
         {navItems.map((item) => {
           const Icon = item.icon;

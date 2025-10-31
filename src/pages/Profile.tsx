@@ -79,29 +79,35 @@ const Profile = () => {
 
       setUser(user);
 
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      // Paralléliser toutes les requêtes pour améliorer les performances
+      const [profileData, roles] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single()
+          .then(res => res.data),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .then(res => res.data)
+      ]);
 
       setProfile(profileData);
-
-      // Check if user is admin
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin");
-
+      
       if (roles && roles.length > 0) {
         setIsAdmin(true);
       }
 
-      await fetchUserListings(user.id);
-      await fetchPackages();
-      await fetchBookings(user.id);
+      // Paralléliser le chargement des données
+      await Promise.all([
+        fetchUserListings(user.id),
+        fetchPackages(),
+        fetchBookings(user.id)
+      ]);
+      
       setLoading(false);
     };
 
