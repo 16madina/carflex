@@ -54,19 +54,19 @@ const Hero = ({ userFirstName }: HeroProps) => {
             Des milliers de véhicules à vendre et à louer dans toute l'Afrique
           </p>
 
-          <div className="bg-background rounded-2xl p-5 shadow-native-lg">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <div className="bg-background rounded-xl p-4 shadow-elevated">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1">
                 <Input
                   placeholder="Marque, modèle, année..."
-                  className="h-14 text-base pl-12 rounded-2xl focus:ring-4 focus:ring-primary/20"
+                  className="h-11 text-base"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
                 />
               </div>
-              <Button size="lg" className="h-14 px-8 rounded-2xl font-semibold shadow-md active:shadow-sm active-press" onClick={handleSearch}>
+              <Button size="lg" className="h-11 px-6" onClick={handleSearch}>
+                <Search className="mr-2 h-5 w-5" />
                 Rechercher
               </Button>
             </div>

@@ -16,10 +16,10 @@ const ProPlanPromo = ({ inline = false }: ProPlanPromoProps) => {
     return (
       <button
         onClick={handleNavigate}
-        className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl px-4 py-2.5 cursor-pointer group transition-all animate-pulse-slow shadow-lg shadow-amber-500/30 active-press"
+        className="inline-flex items-center gap-2 bg-accent/20 hover:bg-accent/30 rounded-full px-3 py-1.5 cursor-pointer group transition-all animate-fade-in"
       >
-        <Crown className="w-5 h-5" />
-        <span className="text-sm font-bold">
+        <Crown className="w-4 h-4 text-accent" />
+        <span className="text-sm font-semibold text-accent">
           Plan Pro
         </span>
       </button>
@@ -29,12 +29,12 @@ const ProPlanPromo = ({ inline = false }: ProPlanPromoProps) => {
   return (
     <button
       onClick={handleNavigate}
-      className="fixed top-24 left-4 z-40 flex flex-col items-center gap-2 cursor-pointer group active-press"
+      className="fixed top-20 left-4 z-40 flex flex-col items-center gap-1 cursor-pointer group"
     >
-      <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-3 shadow-native-lg shadow-amber-500/30 animate-pulse-slow">
-        <Crown className="w-6 h-6 text-white" />
+      <div className="bg-accent rounded-full p-2 shadow-elevated">
+        <Crown className="w-5 h-5 text-accent-foreground" />
       </div>
-      <span className="text-xs font-bold text-accent group-hover:scale-110 transition-transform">
+      <span className="text-xs font-semibold text-accent group-hover:scale-110 transition-transform">
         Plan Pro
       </span>
     </button>
