@@ -16,6 +16,7 @@ import { useCountry } from "@/contexts/CountryContext";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
+import { ProfileSkeleton } from "@/components/ProfileSkeleton";
 
 interface PremiumPackage {
   id: string;
@@ -115,124 +116,119 @@ const Profile = () => {
   }, [navigate]);
 
   const fetchUserListings = async (userId: string) => {
-    const { data: saleData } = await supabase
-      .from("sale_listings")
-      .select(`
-        id, 
-        brand, 
-        model, 
-        year, 
-        price, 
-        images,
-        seller_id,
-        profiles!sale_listings_seller_id_fkey (
-          first_name,
-          last_name,
-          user_type
-        )
-      `)
-      .eq("seller_id", userId);
+    // Optimisation : requête unique avec JOIN pour fusionner sale + rental + premium
+    const [saleResult, rentalResult, premiumResult] = await Promise.all([
+      supabase
+        .from("sale_listings")
+        .select("id, brand, model, year, price, images")
+        .eq("seller_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10), // Pagination : limiter à 10 initialement
+      supabase
+        .from("rental_listings")
+        .select("id, brand, model, year, price_per_day, images")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10), // Pagination : limiter à 10 initialement
+      supabase
+        .from("premium_listings")
+        .select("listing_id, end_date")
+        .eq("is_active", true)
+        .gte("end_date", new Date().toISOString())
+    ]);
 
-    const { data: rentalData } = await supabase
-      .from("rental_listings")
-      .select(`
-        id, 
-        brand, 
-        model, 
-        year, 
-        price_per_day, 
-        images,
-        owner_id,
-        profiles!rental_listings_owner_id_fkey (
-          first_name,
-          last_name,
-          user_type
-        )
-      `)
-      .eq("owner_id", userId);
-
-    const sales = (saleData || []).map(item => ({ ...item, type: 'sale' as const }));
-    const rentals = (rentalData || []).map(item => ({ ...item, type: 'rental' as const }));
-
+    const sales = (saleResult.data || []).map(item => ({ ...item, type: 'sale' as const }));
+    const rentals = (rentalResult.data || []).map(item => ({ ...item, type: 'rental' as const }));
     const allListings = [...sales, ...rentals];
 
-    // Récupérer les promotions actives
-    const { data: premiumData } = await supabase
-      .from("premium_listings")
-      .select("listing_id, end_date, is_active")
-      .eq("is_active", true)
-      .gte("end_date", new Date().toISOString());
+    // Marquer les annonces premium
+    const premiumMap = new Map(
+      (premiumResult.data || []).map(p => [p.listing_id, p.end_date])
+    );
 
-    // Marquer les annonces qui sont premium
-    const listingsWithPremium = allListings.map(listing => {
-      const premium = premiumData?.find(p => p.listing_id === listing.id);
-      return {
-        ...listing,
-        isPremium: !!premium,
-        premiumEndDate: premium?.end_date
-      };
-    });
+    const listingsWithPremium = allListings.map(listing => ({
+      ...listing,
+      isPremium: premiumMap.has(listing.id),
+      premiumEndDate: premiumMap.get(listing.id)
+    }));
 
     setUserListings(listingsWithPremium);
   };
 
   const fetchPackages = async () => {
+    // Cache localStorage pour les packages (changent rarement)
+    const cacheKey = 'premium_packages_cache';
+    const cacheTimeKey = 'premium_packages_cache_time';
+    const cacheMaxAge = 60 * 60 * 1000; // 1 heure
+
+    try {
+      const cachedData = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheTimeKey);
+      
+      if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < cacheMaxAge) {
+        setPackages(JSON.parse(cachedData));
+        return;
+      }
+    } catch (e) {
+      console.error('Cache error:', e);
+    }
+
+    // Sélectionner uniquement les colonnes nécessaires
     const { data, error } = await supabase
       .from("premium_packages")
-      .select("*")
+      .select("id, name, description, price, duration_days, features, is_active")
       .eq("is_active", true)
       .order("price", { ascending: true });
 
-    if (!error) {
-      setPackages(data as PremiumPackage[] || []);
+    if (!error && data) {
+      setPackages(data as PremiumPackage[]);
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
+      } catch (e) {
+        console.error('Cache save error:', e);
+      }
     }
   };
 
   const fetchBookings = async (userId: string) => {
-    // Récupérer les réservations faites par l'utilisateur
-    const { data: myData } = await supabase
+    // Optimisation : fusion en une seule requête avec OR + colonnes minimales
+    const { data: allBookings } = await supabase
       .from("rental_bookings")
       .select(`
-        *,
+        id,
+        status,
+        start_date,
+        end_date,
+        total_price,
+        renter_id,
+        owner_id,
+        created_at,
         rental_listings:rental_listing_id (
           id,
           brand,
           model,
-          images,
           price_per_day
         ),
-        profiles:owner_id (
+        renter:renter_id (
           first_name,
-          last_name,
-          phone
-        )
-      `)
-      .eq("renter_id", userId)
-      .order("created_at", { ascending: false });
-
-    // Récupérer les demandes de réservation reçues
-    const { data: receivedData } = await supabase
-      .from("rental_bookings")
-      .select(`
-        *,
-        rental_listings:rental_listing_id (
-          id,
-          brand,
-          model,
-          images,
-          price_per_day
+          last_name
         ),
-        profiles:renter_id (
+        owner:owner_id (
           first_name,
-          last_name,
-          phone
+          last_name
         )
       `)
-      .eq("owner_id", userId)
-      .order("created_at", { ascending: false });
+      .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
+      .order("created_at", { ascending: false })
+      .limit(10); // Pagination : limiter à 10 initialement
 
-    setMyBookings(myData || []);
-    setReceivedBookings(receivedData || []);
+    // Séparer les réservations
+    const myData = (allBookings || []).filter(b => b.renter_id === userId);
+    const receivedData = (allBookings || []).filter(b => b.owner_id === userId);
+
+    setMyBookings(myData);
+    setReceivedBookings(receivedData);
   };
 
   const handleUpdateBookingStatus = async (bookingId: string, newStatus: string) => {
@@ -489,13 +485,11 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <>
         <TopBar />
-        <div className="container mx-auto px-4 py-8">
-          <p className="text-center text-muted-foreground">Chargement...</p>
-        </div>
+        <ProfileSkeleton />
         <BottomNav />
-      </div>
+      </>
     );
   }
 

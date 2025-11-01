@@ -233,7 +233,7 @@ const Index = () => {
   }, [sortBy, selectedCountry]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden" style={{ isolation: 'isolate' }}>
       <TopBar />
       <main className="flex-1 pt-16">
         <Hero userFirstName={userFirstName} />
