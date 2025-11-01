@@ -67,6 +67,8 @@ const Profile = () => {
   const [sendingVerification, setSendingVerification] = useState(false);
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
   const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -192,7 +194,7 @@ const Profile = () => {
   };
 
   const fetchBookings = async (userId: string) => {
-    // Optimisation : fusion en une seule requête avec OR + colonnes minimales
+    // Optimisation : fusion en une seule requête avec OR + colonnes nécessaires
     const { data: allBookings } = await supabase
       .from("rental_bookings")
       .select(`
@@ -201,34 +203,51 @@ const Profile = () => {
         start_date,
         end_date,
         total_price,
+        total_days,
+        daily_rate,
+        notes,
+        payment_status,
         renter_id,
         owner_id,
         created_at,
+        rental_listing_id,
         rental_listings:rental_listing_id (
           id,
           brand,
           model,
-          price_per_day
+          images,
+          price_per_day,
+          city,
+          country
         ),
         renter:renter_id (
           first_name,
-          last_name
+          last_name,
+          phone
         ),
         owner:owner_id (
           first_name,
-          last_name
+          last_name,
+          phone
         )
       `)
       .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
       .order("created_at", { ascending: false })
       .limit(10); // Pagination : limiter à 10 initialement
 
-    // Séparer les réservations
-    const myData = (allBookings || []).filter(b => b.renter_id === userId);
-    const receivedData = (allBookings || []).filter(b => b.owner_id === userId);
+    // Séparer les réservations en ajoutant le champ profiles pour compatibilité
+    const myData = (allBookings || []).map(b => ({
+      ...b,
+      profiles: b.owner
+    }));
+    
+    const receivedData = (allBookings || []).map(b => ({
+      ...b,
+      profiles: b.renter
+    }));
 
-    setMyBookings(myData);
-    setReceivedBookings(receivedData);
+    setMyBookings(myData.filter(b => b.renter_id === userId));
+    setReceivedBookings(receivedData.filter(b => b.owner_id === userId));
   };
 
   const handleUpdateBookingStatus = async (bookingId: string, newStatus: string) => {
@@ -814,7 +833,14 @@ const Profile = () => {
                       const profile = booking.profiles;
                       
                       return (
-                        <Card key={booking.id}>
+                        <Card 
+                          key={booking.id}
+                          className="cursor-pointer hover:shadow-lg transition-shadow"
+                          onClick={() => {
+                            setSelectedBooking(booking);
+                            setBookingDetailOpen(true);
+                          }}
+                        >
                           <CardContent className="p-4">
                             <div className="flex gap-4">
                               <img
@@ -892,7 +918,16 @@ const Profile = () => {
                       const profile = booking.profiles;
                       
                       return (
-                        <Card key={booking.id}>
+                        <Card 
+                          key={booking.id}
+                          className="cursor-pointer hover:shadow-lg transition-shadow"
+                          onClick={(e) => {
+                            // Empêcher l'ouverture si on clique sur un bouton
+                            if ((e.target as HTMLElement).closest('button')) return;
+                            setSelectedBooking(booking);
+                            setBookingDetailOpen(true);
+                          }}
+                        >
                           <CardContent className="p-4">
                             <div className="flex gap-4">
                               <img
@@ -1102,6 +1137,193 @@ const Profile = () => {
         amount={selectedPackageData?.price || 0}
         formatPrice={formatPrice}
       />
+
+      {/* Booking Details Dialog */}
+      <Dialog open={bookingDetailOpen} onOpenChange={setBookingDetailOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          {selectedBooking && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Détails de la réservation</DialogTitle>
+                <DialogDescription>
+                  {selectedBooking.rental_listings?.brand} {selectedBooking.rental_listings?.model}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6 py-4">
+                {/* Image du véhicule */}
+                {selectedBooking.rental_listings?.images?.[0] && (
+                  <div className="w-full h-48 rounded-lg overflow-hidden">
+                    <img
+                      src={selectedBooking.rental_listings.images[0]}
+                      alt={`${selectedBooking.rental_listings.brand} ${selectedBooking.rental_listings.model}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Informations du véhicule */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Véhicule</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Marque et modèle</span>
+                      <span className="font-medium">
+                        {selectedBooking.rental_listings?.brand} {selectedBooking.rental_listings?.model}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tarif journalier</span>
+                      <span className="font-medium">
+                        {formatPrice(parseFloat(selectedBooking.daily_rate))}/jour
+                      </span>
+                    </div>
+                    {selectedBooking.rental_listings?.city && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Localisation</span>
+                        <span className="font-medium">
+                          {selectedBooking.rental_listings.city}, {selectedBooking.rental_listings.country}
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Informations de la réservation */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Période de location</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Date de début</span>
+                      <span className="font-medium">
+                        {format(new Date(selectedBooking.start_date), "dd MMMM yyyy", { locale: fr })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Date de fin</span>
+                      <span className="font-medium">
+                        {format(new Date(selectedBooking.end_date), "dd MMMM yyyy", { locale: fr })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Durée totale</span>
+                      <span className="font-medium">
+                        {selectedBooking.total_days} jour{selectedBooking.total_days > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t">
+                      <span className="text-muted-foreground font-semibold">Prix total</span>
+                      <span className="font-bold text-primary text-lg">
+                        {formatPrice(parseFloat(selectedBooking.total_price))}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Contact */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {selectedBooking.renter_id === user?.id ? 'Propriétaire' : 'Locataire'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Nom</span>
+                      <span className="font-medium">
+                        {selectedBooking.profiles?.first_name} {selectedBooking.profiles?.last_name}
+                      </span>
+                    </div>
+                    {selectedBooking.profiles?.phone && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Téléphone</span>
+                        <a 
+                          href={`tel:${selectedBooking.profiles.phone}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {selectedBooking.profiles.phone}
+                        </a>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Statut et notes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Statut et notes</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Statut</span>
+                      {getStatusBadge(selectedBooking.status)}
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Paiement</span>
+                      <Badge variant={selectedBooking.payment_status === 'paid' ? 'default' : 'secondary'}>
+                        {selectedBooking.payment_status === 'paid' ? 'Payé' : 'En attente'}
+                      </Badge>
+                    </div>
+                    {selectedBooking.notes && (
+                      <div className="space-y-1 pt-2 border-t">
+                        <span className="text-muted-foreground text-sm">Notes</span>
+                        <p className="text-sm">{selectedBooking.notes}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      const otherUserId = selectedBooking.renter_id === user?.id 
+                        ? selectedBooking.owner_id 
+                        : selectedBooking.renter_id;
+                      handleSendMessage(otherUserId, selectedBooking.rental_listings?.id);
+                      setBookingDetailOpen(false);
+                    }}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Envoyer un message
+                  </Button>
+                  
+                  {selectedBooking.status === 'pending' && selectedBooking.owner_id === user?.id && (
+                    <>
+                      <Button
+                        className="flex-1"
+                        onClick={() => {
+                          handleUpdateBookingStatus(selectedBooking.id, 'confirmed');
+                          setBookingDetailOpen(false);
+                        }}
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Accepter
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          handleUpdateBookingStatus(selectedBooking.id, 'rejected');
+                          setBookingDetailOpen(false);
+                        }}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Refuser
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
