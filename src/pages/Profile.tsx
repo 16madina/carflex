@@ -698,8 +698,8 @@ const Profile = () => {
                     <div className="space-y-4">
                       {userListings.map((listing) => (
                         <Card key={listing.id} className="overflow-hidden">
-                          <div className="flex gap-4 p-4">
-                            <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                          <div className="flex gap-3 p-3">
+                            <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                               {listing.images?.[0] && (
                                 <img 
                                   src={listing.images[0]} 
@@ -708,84 +708,81 @@ const Profile = () => {
                                 />
                               )}
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <h3 className="font-semibold text-sm">
+                            <div className="flex-1 min-w-0">
+                              <div className="space-y-2">
+                                <div>
+                                  <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                                    <h3 className="font-semibold text-xs leading-tight">
                                       {listing.brand} {listing.model}
                                     </h3>
                                     {listing.isPremium && (
-                                      <Badge variant="default" className="text-xs bg-gradient-to-r from-amber-500 to-yellow-600 border-0">
-                                        <Crown className="h-3 w-3 mr-1" />
-                                        Sponsorisé
+                                      <Badge variant="default" className="text-[10px] h-4 px-1.5 bg-gradient-to-r from-amber-500 to-yellow-600 border-0">
+                                        <Crown className="h-2.5 w-2.5 mr-0.5" />
+                                        Pro
                                       </Badge>
                                     )}
                                   </div>
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="text-[10px] text-muted-foreground">
                                     {listing.year} • {listing.type === 'sale' ? 'Vente' : 'Location'}
                                   </p>
                                   {listing.profiles && (
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <Badge variant="secondary" className="text-xs">
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
                                         {listing.profiles.user_type === 'buyer' && 'Acheteur'}
                                         {listing.profiles.user_type === 'seller' && 'Vendeur'}
                                         {listing.profiles.user_type === 'agent' && 'Agent'}
                                         {listing.profiles.user_type === 'dealer' && 'Concessionnaire'}
                                       </Badge>
-                                      <span className="text-xs text-muted-foreground">
-                                        {listing.profiles.first_name} {listing.profiles.last_name}
-                                      </span>
                                     </div>
                                   )}
                                 </div>
-                                <Badge variant="outline" className="text-xs whitespace-nowrap">
-                                  {listing.type === 'sale' 
-                                    ? formatPrice(listing.price || 0)
-                                    : `${formatPrice(listing.price_per_day || 0)}/jour`}
-                                </Badge>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  onClick={() => handlePromote(listing.id, listing.type)}
-                                  size="sm"
-                                  className="bg-gradient-to-r from-primary to-primary/80"
-                                  disabled={listing.isPremium}
-                                >
-                                  <Crown className="mr-1 h-3 w-3" />
-                                  <span className="text-xs">
-                                    {listing.isPremium ? 'Déjà sponsorisé' : 'Promouvoir'}
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs font-semibold text-primary truncate">
+                                    {listing.type === 'sale' 
+                                      ? formatPrice(listing.price || 0)
+                                      : `${formatPrice(listing.price_per_day || 0)}/j`}
                                   </span>
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button 
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-destructive hover:text-destructive"
-                                    >
-                                      <Trash2 className="mr-1 h-3 w-3" />
-                                      <span className="text-xs">Supprimer</span>
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Cette action est irréversible. L'annonce "{listing.brand} {listing.model}" sera définitivement supprimée.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDeleteListing(listing.id, listing.type)}
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                </div>
+                                <div className="flex gap-1.5 flex-wrap">
+                                  <Button 
+                                    onClick={() => handlePromote(listing.id, listing.type)}
+                                    size="sm"
+                                    className="bg-gradient-to-r from-primary to-primary/80 h-7 px-2 text-[10px]"
+                                    disabled={listing.isPremium}
+                                  >
+                                    <Crown className="mr-1 h-2.5 w-2.5" />
+                                    {listing.isPremium ? 'Sponsorisé' : 'Promouvoir'}
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button 
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-destructive hover:text-destructive h-7 px-2 text-[10px]"
                                       >
+                                        <Trash2 className="mr-1 h-2.5 w-2.5" />
                                         Supprimer
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Cette action est irréversible. L'annonce "{listing.brand} {listing.model}" sera définitivement supprimée.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => handleDeleteListing(listing.id, listing.type)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Supprimer
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
                               </div>
                             </div>
                           </div>
