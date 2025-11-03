@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useCountry } from "@/contexts/CountryContext";
+import { useCountry, WEST_AFRICAN_COUNTRIES } from "@/contexts/CountryContext";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
+import CitySelector from "@/components/CitySelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,17 +119,27 @@ const SellForm = () => {
 
           const data = await response.json();
           const city = data.address.city || data.address.town || data.address.village || data.address.municipality || "";
-          const country = data.address.country || "";
+          const detectedCountry = data.address.country || "";
+          const countryCode = data.address.country_code?.toUpperCase() || "";
+
+          // Trouver le pays correspondant dans notre liste
+          const matchingCountry = WEST_AFRICAN_COUNTRIES.find(
+            c => c.code === countryCode || c.name === detectedCountry
+          );
 
           setFormData({
             ...formData,
             latitude: lat,
             longitude: lon,
             city: city,
-            country: country,
+            country: matchingCountry?.name || formData.country,
           });
 
-          toast.success(`Localisation détectée : ${city}, ${country}. Vous pouvez modifier si nécessaire.`);
+          if (matchingCountry) {
+            toast.success(`Localisation détectée : ${city}, ${matchingCountry.name}. Vous pouvez modifier si le véhicule est ailleurs.`);
+          } else {
+            toast.success(`Position GPS obtenue. Veuillez sélectionner le pays où se trouve le véhicule.`);
+          }
         } catch (error) {
           // Si le reverse geocoding échoue, on garde quand même les coordonnées
           setFormData({
@@ -136,7 +147,7 @@ const SellForm = () => {
             latitude: lat,
             longitude: lon,
           });
-          toast.success("Coordonnées GPS obtenues. Veuillez saisir votre ville manuellement.");
+          toast.success("Coordonnées GPS obtenues. Veuillez sélectionner le pays et la ville du véhicule.");
         } finally {
           setGeoLoading(false);
         }
@@ -586,20 +597,40 @@ const SellForm = () => {
 
               {/* Location */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Localisation</h3>
+                <h3 className="font-semibold text-lg">Localisation du véhicule</h3>
+                <p className="text-sm text-muted-foreground">
+                  Où se trouve physiquement le véhicule ? (Peut être différent de votre position actuelle)
+                </p>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="city">Ville *</Label>
-                  <Input
-                    id="city"
-                    placeholder="Paris"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  <Label htmlFor="country">Pays *</Label>
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) => setFormData({ ...formData, country: value, city: "" })}
                     required
-                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Veuillez renseigner la ville')}
-                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
-                  />
+                  >
+                    <SelectTrigger id="country">
+                      <SelectValue placeholder="Sélectionnez le pays du véhicule" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {WEST_AFRICAN_COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.name}>
+                          <span className="flex items-center gap-2">
+                            <span>{country.flag}</span>
+                            <span>{country.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                <CitySelector
+                  country={WEST_AFRICAN_COUNTRIES.find(c => c.name === formData.country)?.code || ""}
+                  value={formData.city}
+                  onChange={(value) => setFormData({ ...formData, city: value })}
+                  required
+                />
 
                 <Button
                   type="button"
@@ -620,6 +651,9 @@ const SellForm = () => {
                     </>
                   )}
                 </Button>
+                <p className="text-xs text-muted-foreground">
+                  Le GPS détecte automatiquement le pays et la ville, mais vous pouvez les modifier manuellement
+                </p>
               </div>
 
               {/* Images */}
