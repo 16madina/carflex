@@ -118,6 +118,42 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     currencySymbol: 'DH',
     exchangeRate: 0.055,
     dialCode: '+212'
+  },
+  {
+    code: 'FR',
+    name: 'France',
+    flag: '🇫🇷',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+33'
+  },
+  {
+    code: 'BE',
+    name: 'Belgique',
+    flag: '🇧🇪',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+32'
+  },
+  {
+    code: 'CH',
+    name: 'Suisse',
+    flag: '🇨🇭',
+    currency: 'CHF',
+    currencySymbol: 'CHF',
+    exchangeRate: 0.0016,
+    dialCode: '+41'
+  },
+  {
+    code: 'CA',
+    name: 'Canada',
+    flag: '🇨🇦',
+    currency: 'CAD',
+    currencySymbol: '$',
+    exchangeRate: 0.0021,
+    dialCode: '+1'
   }
 ];
 

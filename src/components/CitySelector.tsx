@@ -21,7 +21,12 @@ const CITIES_BY_COUNTRY: Record<string, string[]> = {
   'GW': ['Bissau', 'Bafatá', 'Gabú', 'Bissorã', 'Bolama', 'Cacheu'],
   'NG': ['Lagos', 'Abuja', 'Kano', 'Ibadan', 'Port Harcourt', 'Benin City', 'Kaduna'],
   'GH': ['Accra', 'Kumasi', 'Tamale', 'Takoradi', 'Ashaiman', 'Sunyani', 'Cape Coast'],
-  'GN': ['Conakry', 'Nzérékoré', 'Kankan', 'Kindia', 'Labé', 'Mamou', 'Boké']
+  'GN': ['Conakry', 'Nzérékoré', 'Kankan', 'Kindia', 'Labé', 'Mamou', 'Boké'],
+  'MA': ['Casablanca', 'Rabat', 'Marrakech', 'Fès', 'Tanger', 'Agadir', 'Meknès', 'Oujda'],
+  'FR': ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille'],
+  'BE': ['Bruxelles', 'Anvers', 'Gand', 'Charleroi', 'Liège', 'Bruges', 'Namur'],
+  'CH': ['Zurich', 'Genève', 'Bâle', 'Lausanne', 'Berne', 'Lucerne'],
+  'CA': ['Montréal', 'Québec', 'Gatineau', 'Sherbrooke', 'Trois-Rivières', 'Saguenay']
 };
 
 const CitySelector = ({ country, value, onChange, required }: CitySelectorProps) => {
