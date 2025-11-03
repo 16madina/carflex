@@ -105,6 +105,12 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation de la photo de profil
+    if (!avatarFile) {
+      toast.error("La photo de profil est obligatoire");
+      return;
+    }
+    
     // Validation de la force du mot de passe
     const passwordValidation = validatePassword(signupData.password);
     if (!passwordValidation.valid) {
@@ -308,7 +314,7 @@ const Auth = () => {
                 <form onSubmit={handleSignup} className="space-y-4">
                   {/* Profile Picture Upload */}
                   <div className="space-y-2">
-                    <Label htmlFor="avatar">Photo de profil (optionnel)</Label>
+                    <Label htmlFor="avatar">Photo de profil <span className="text-destructive">*</span></Label>
                     <div className="flex items-center gap-4">
                       <Avatar className="h-20 w-20">
                         {avatarPreview ? (
@@ -326,6 +332,7 @@ const Auth = () => {
                           accept="image/*"
                           onChange={handleAvatarChange}
                           className="cursor-pointer"
+                          required
                         />
                         <p className="text-xs text-muted-foreground mt-1">
                           JPG, PNG ou WEBP (max. 5MB)
