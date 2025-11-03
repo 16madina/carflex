@@ -102,17 +102,47 @@ const SellForm = () => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData({
-          ...formData,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        toast.success("Localisation obtenue avec succès !");
-        setGeoLoading(false);
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        try {
+          // Reverse geocoding avec Nominatim (OpenStreetMap)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=fr`
+          );
+          
+          if (!response.ok) {
+            throw new Error("Erreur lors de la récupération de l'adresse");
+          }
+
+          const data = await response.json();
+          const city = data.address.city || data.address.town || data.address.village || data.address.municipality || "";
+          const country = data.address.country || "";
+
+          setFormData({
+            ...formData,
+            latitude: lat,
+            longitude: lon,
+            city: city,
+            country: country,
+          });
+
+          toast.success(`Localisation détectée : ${city}, ${country}. Vous pouvez modifier si nécessaire.`);
+        } catch (error) {
+          // Si le reverse geocoding échoue, on garde quand même les coordonnées
+          setFormData({
+            ...formData,
+            latitude: lat,
+            longitude: lon,
+          });
+          toast.success("Coordonnées GPS obtenues. Veuillez saisir votre ville manuellement.");
+        } finally {
+          setGeoLoading(false);
+        }
       },
       (error) => {
-        toast.error("Impossible d'obtenir votre localisation");
+        toast.error("Impossible d'obtenir votre localisation. Vérifiez les autorisations.");
         setGeoLoading(false);
       }
     );
