@@ -271,30 +271,33 @@ export const ModerationPanel = () => {
                         rows={2}
                       />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <Button
                         variant="default"
                         size="sm"
                         onClick={() => updateReportStatus(report.id, 'resolved')}
+                        className="w-full"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Résolu
+                        <CheckCircle className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Résolu</span>
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => updateReportStatus(report.id, 'reviewed')}
+                        className="w-full"
                       >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Marquer comme examiné
+                        <Eye className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Marquer comme examiné</span>
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => updateReportStatus(report.id, 'dismissed')}
+                        className="w-full"
                       >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Rejeter
+                        <XCircle className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Rejeter</span>
                       </Button>
                     </div>
                   </div>
