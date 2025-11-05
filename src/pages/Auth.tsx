@@ -16,6 +16,8 @@ import CitySelector from "@/components/CitySelector";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { validateImageFile } from "@/lib/fileValidation";
 import { validatePassword } from "@/lib/passwordValidation";
+import { TermsDialog } from "@/components/TermsDialog";
+import { PrivacyDialog } from "@/components/PrivacyDialog";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -41,6 +43,8 @@ const Auth = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -524,13 +528,21 @@ const Auth = () => {
                       className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
                       J'accepte les{" "}
-                      <Link to="/terms-of-service" target="_blank" className="text-primary underline hover:no-underline">
+                      <button
+                        type="button"
+                        onClick={() => setShowTermsDialog(true)}
+                        className="text-primary underline hover:no-underline"
+                      >
                         Conditions Générales d'Utilisation
-                      </Link>{" "}
+                      </button>{" "}
                       et la{" "}
-                      <Link to="/privacy-policy" target="_blank" className="text-primary underline hover:no-underline">
+                      <button
+                        type="button"
+                        onClick={() => setShowPrivacyDialog(true)}
+                        className="text-primary underline hover:no-underline"
+                      >
                         Politique de Confidentialité
-                      </Link>
+                      </button>
                       <span className="text-destructive ml-1">*</span>
                     </label>
                   </div>
@@ -544,6 +556,9 @@ const Auth = () => {
           </CardContent>
         </Card>
       </div>
+
+      <TermsDialog open={showTermsDialog} onOpenChange={setShowTermsDialog} />
+      <PrivacyDialog open={showPrivacyDialog} onOpenChange={setShowPrivacyDialog} />
     </div>
   );
 };
