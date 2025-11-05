@@ -524,11 +524,11 @@ const Auth = () => {
                       className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
                       J'accepte les{" "}
-                      <Link to="/terms" target="_blank" className="text-primary underline hover:no-underline">
+                      <Link to="/terms-of-service" target="_blank" className="text-primary underline hover:no-underline">
                         Conditions Générales d'Utilisation
                       </Link>{" "}
                       et la{" "}
-                      <Link to="/privacy" target="_blank" className="text-primary underline hover:no-underline">
+                      <Link to="/privacy-policy" target="_blank" className="text-primary underline hover:no-underline">
                         Politique de Confidentialité
                       </Link>
                       <span className="text-destructive ml-1">*</span>
