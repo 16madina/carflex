@@ -56,6 +56,9 @@ const ReportContentDialog = ({
       }
 
       const { error } = await supabase.functions.invoke('report-content', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           content_type: contentType,
           content_id: contentId,
