@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
+import ReportContentDialog from "@/components/ReportContentDialog";
+import BlockUserButton from "@/components/BlockUserButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -262,10 +264,22 @@ const PublicProfile = () => {
                     </div>
                   </div>
 
-                  <Button onClick={handleContactSeller} size="lg">
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Contacter
-                  </Button>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <Button onClick={handleContactSeller} size="lg" className="flex-1">
+                      <MessageCircle className="h-5 w-5 mr-2" />
+                      Contacter
+                    </Button>
+                    <ReportContentDialog 
+                      contentType="user" 
+                      contentId={userId!}
+                      triggerText="Signaler"
+                      triggerVariant="outline"
+                    />
+                    <BlockUserButton 
+                      userId={userId!} 
+                      userName={`${profile.first_name} ${profile.last_name}`}
+                    />
+                  </div>
                 </div>
 
                 {/* Stats */}

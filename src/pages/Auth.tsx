@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Car, Upload, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -39,6 +40,7 @@ const Auth = () => {
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -108,6 +110,12 @@ const Auth = () => {
     // Validation de la photo de profil
     if (!avatarFile) {
       toast.error("La photo de profil est obligatoire");
+      return;
+    }
+    
+    // Validation des CGU
+    if (!acceptedTerms) {
+      toast.error("Vous devez accepter les Conditions Générales d'Utilisation");
       return;
     }
     
@@ -504,7 +512,30 @@ const Auth = () => {
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <div className="flex items-start space-x-2">
+                    <Checkbox 
+                      id="terms" 
+                      checked={acceptedTerms}
+                      onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                      required
+                    />
+                    <label
+                      htmlFor="terms"
+                      className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      J'accepte les{" "}
+                      <Link to="/terms" target="_blank" className="text-primary underline hover:no-underline">
+                        Conditions Générales d'Utilisation
+                      </Link>{" "}
+                      et la{" "}
+                      <Link to="/privacy" target="_blank" className="text-primary underline hover:no-underline">
+                        Politique de Confidentialité
+                      </Link>
+                      <span className="text-destructive ml-1">*</span>
+                    </label>
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={loading || !acceptedTerms}>
                     {loading ? "Inscription..." : "S'inscrire"}
                   </Button>
                 </form>

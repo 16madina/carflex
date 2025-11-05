@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent, ArrowLeft } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent, ArrowLeft, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCountry } from "@/contexts/CountryContext";
 import { UserManagement } from "@/components/admin/UserManagement";
+import { ModerationPanel } from "@/components/admin/ModerationPanel";
 
 interface PremiumPackage {
   id: string;
@@ -602,6 +603,10 @@ const AdminPanel = () => {
             <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
             <TabsTrigger value="users">Gestion des Utilisateurs</TabsTrigger>
+            <TabsTrigger value="moderation">
+              <Shield className="h-4 w-4 mr-2" />
+              Modération
+            </TabsTrigger>
             <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
             <TabsTrigger value="coupons">Codes Promo</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
@@ -995,6 +1000,10 @@ const AdminPanel = () => {
 
           <TabsContent value="pro-plan">
             <ProPlanSettings />
+          </TabsContent>
+
+          <TabsContent value="moderation">
+            <ModerationPanel />
           </TabsContent>
 
           <TabsContent value="coupons">

@@ -9,6 +9,7 @@ import ReviewsList from "@/components/ReviewsList";
 import AddReview from "@/components/AddReview";
 import DealRatingBadge from "@/components/DealRatingBadge";
 import ReviewsSection from "@/components/ReviewsSection";
+import ReportContentDialog from "@/components/ReportContentDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -180,6 +181,11 @@ const ListingDetail = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <ReportContentDialog 
+              contentType="sale_listing" 
+              contentId={id!}
+              triggerVariant="outline"
+            />
             <Button
               variant="outline"
               size="icon"

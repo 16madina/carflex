@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.manage-stripe-coupons]
 verify_jwt = true
+
+[functions.report-content]
+verify_jwt = true
+
+[functions.moderate-content]
+verify_jwt = false
