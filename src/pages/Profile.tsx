@@ -502,6 +502,31 @@ const Profile = () => {
     navigate("/");
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Vous devez être connecté");
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Votre compte a été supprimé avec succès");
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast.error(error.message || "Erreur lors de la suppression du compte");
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -667,10 +692,40 @@ const Profile = () => {
                     <Button variant="outline" className="w-full" onClick={() => navigate("/favorites")}>
                       Mes favoris
                     </Button>
-                    <Button variant="destructive" className="w-full" onClick={handleLogout}>
+                    <Button variant="outline" className="w-full" onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Se déconnecter
                     </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Supprimer mon compte
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible. Cela supprimera définitivement votre compte,
+                            toutes vos annonces, vos messages et vos données personnelles de nos serveurs.
+                            <br /><br />
+                            Conformément au RGPD, toutes vos données seront effacées, à l'exception des
+                            données de transaction qui doivent être conservées pour des raisons légales.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={handleDeleteAccount}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Supprimer définitivement
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
