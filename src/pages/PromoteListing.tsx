@@ -12,6 +12,15 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { useCountry } from "@/contexts/CountryContext";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
+import { Capacitor } from "@capacitor/core";
+import { Purchases } from "@revenuecat/purchases-capacitor";
+
+// Mapping des packages vers les Product IDs iOS
+const IOS_PRODUCT_IDS: { [key: number]: string } = {
+  7: "com.missdee.carflextest.premium.7days",
+  30: "com.missdee.carflextest.premium.30days",
+  90: "com.missdee.carflextest.premium.90days",
+};
 
 interface PremiumPackage {
   id: string;
@@ -48,7 +57,21 @@ const PromoteListing = () => {
 
   useEffect(() => {
     checkUser();
+    initializeRevenueCat();
   }, []);
+
+  const initializeRevenueCat = async () => {
+    if (Capacitor.getPlatform() === 'ios') {
+      try {
+        await Purchases.configure({
+          apiKey: "YOUR_REVENUECAT_API_KEY_HERE", // TODO: Remplacer par votre clé RevenueCat
+        });
+        console.log('[PromoteListing] RevenueCat initialized');
+      } catch (error) {
+        console.error('[PromoteListing] RevenueCat init error:', error);
+      }
+    }
+  };
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -114,9 +137,105 @@ const PromoteListing = () => {
     setShowPaymentSelector(true);
   };
 
+  const handleIOSPremiumPurchase = async () => {
+    const listing = userListings.find(l => l.id === selectedListing);
+    const pkg = packages.find(p => p.id === selectedPackage);
+    if (!listing || !pkg) return;
+
+    const productId = IOS_PRODUCT_IDS[pkg.duration_days];
+    if (!productId) {
+      toast({
+        title: "Erreur",
+        description: "Pack non disponible sur iOS",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      toast({
+        title: "Préparation de l'achat",
+        description: "Ouverture de l'App Store...",
+      });
+
+      // Récupérer les offerings RevenueCat
+      const offerings = await Purchases.getOfferings();
+      const availablePackages = offerings.current?.availablePackages || [];
+      
+      // Trouver le package correspondant
+      const revenueCatPackage = availablePackages.find(
+        (pkg: any) => pkg.product.identifier === productId
+      );
+
+      if (!revenueCatPackage) {
+        throw new Error("Produit non trouvé dans RevenueCat");
+      }
+
+      // Acheter le produit via RevenueCat
+      const { customerInfo } = await Purchases.purchasePackage({ 
+        aPackage: revenueCatPackage 
+      });
+
+      console.log('[iOS Purchase] Success:', customerInfo);
+
+      // Vérifier et activer le premium via notre backend
+      const { data: sessionData } = await supabase.auth.getSession();
+      const verifyResponse = await supabase.functions.invoke('verify-ios-purchase', {
+        body: {
+          purchase_type: 'premium_listing',
+          package_id: selectedPackage,
+          listing_id: selectedListing,
+          listing_type: listing.type,
+          product_id: productId,
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
+
+      if (verifyResponse.error) {
+        throw verifyResponse.error;
+      }
+
+      toast({
+        title: "✅ Pack Premium activé !",
+        description: `Votre annonce est maintenant promue pour ${pkg.duration_days} jours.`,
+      });
+
+      // Rediriger vers les annonces
+      setTimeout(() => navigate('/listings'), 2000);
+
+    } catch (error: any) {
+      console.error('[iOS Purchase] Error:', error);
+      
+      if (error.code === 'PURCHASE_CANCELLED') {
+        toast({
+          title: "Achat annulé",
+          description: "Vous avez annulé l'achat",
+        });
+      } else {
+        toast({
+          title: "Erreur d'achat",
+          description: error.message || "Impossible de finaliser l'achat",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+      setShowPaymentSelector(false);
+    }
+  };
+
   const handlePaymentMethod = async (method: 'stripe' | 'apple-pay' | 'wave' | 'paypal') => {
     const listing = userListings.find(l => l.id === selectedListing);
     if (!listing) return;
+
+    // Sur iOS, utiliser IAP natif au lieu de Stripe
+    if (Capacitor.getPlatform() === 'ios') {
+      await handleIOSPremiumPurchase();
+      return;
+    }
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
