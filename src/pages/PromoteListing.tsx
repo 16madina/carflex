@@ -17,9 +17,9 @@ import { Purchases } from "@revenuecat/purchases-capacitor";
 
 // Mapping des packages vers les Product IDs iOS
 const IOS_PRODUCT_IDS: { [key: number]: string } = {
+  3: "com.missdee.carflextest.premium.3jours",
   7: "com.missdee.carflextest.premium.7days",
-  30: "com.missdee.carflextest.premium.30days",
-  90: "com.missdee.carflextest.premium.90days",
+  15: "com.missdee.carflextest.premium.15days",
 };
 
 interface PremiumPackage {
