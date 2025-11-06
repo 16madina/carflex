@@ -11,6 +11,8 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
+import { Capacitor } from "@capacitor/core";
+import { Purchases, LOG_LEVEL } from "@revenuecat/purchases-capacitor";
 
 interface SubscriptionPlan {
   id: string;
@@ -40,6 +42,37 @@ const Subscription = () => {
   const [showPromoInput, setShowPromoInput] = useState(false);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [isIOS, setIsIOS] = useState(false);
+
+  // ID du produit IAP configuré dans App Store Connect
+  const IOS_PRODUCT_ID = "com.missdee.carflextest.pro.monthly";
+  
+  // Initialiser RevenueCat pour iOS
+  useEffect(() => {
+    const platform = Capacitor.getPlatform();
+    setIsIOS(platform === 'ios');
+    
+    if (platform === 'ios') {
+      initializeRevenueCat();
+    }
+  }, []);
+
+  const initializeRevenueCat = async () => {
+    try {
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+      
+      // Configurer RevenueCat avec votre API key
+      // NOTE: L'utilisateur doit créer un compte RevenueCat et obtenir sa clé API
+      // à partir de https://app.revenuecat.com/
+      await Purchases.configure({
+        apiKey: "YOUR_REVENUECAT_API_KEY_HERE", // À remplacer
+      });
+      
+      console.log('[IAP] RevenueCat initialisé');
+    } catch (error) {
+      console.error('[IAP] Erreur initialisation RevenueCat:', error);
+    }
+  };
 
   // Charger les plans depuis la base de données
   useEffect(() => {
@@ -89,33 +122,119 @@ const Subscription = () => {
     }
 
     setSubscribing(true);
+    
     try {
-      const body: any = { plan_id: proPlan.id };
-      if (promoCode) {
-        body.coupon_code = promoCode;
-      }
-
-      console.log('[Subscription] Calling create-checkout with:', body);
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body
-      });
-      console.log('[Subscription] create-checkout response:', { data, error });
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        console.log('[Subscription] Redirecting to:', data.url);
-        window.location.href = data.url;
+      // Sur iOS, utiliser les achats in-app natifs
+      if (isIOS) {
+        await handleIOSPurchase();
+      } else {
+        // Sur web/Android, utiliser Stripe
+        await handleStripePurchase();
       }
     } catch (error: any) {
-      console.error('Erreur lors de la création du checkout:', error);
+      console.error('Erreur lors de l\'achat:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de créer la session de paiement. Veuillez réessayer.",
+        description: error.message || "Impossible de traiter le paiement. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
       setSubscribing(false);
+    }
+  };
+
+  const handleIOSPurchase = async () => {
+    try {
+      console.log('[IAP] Récupération des offres disponibles...');
+      
+      // Récupérer les offres disponibles
+      const offerings = await Purchases.getOfferings();
+      
+      if (!offerings.current) {
+        throw new Error("Aucune offre disponible");
+      }
+
+      // Trouver le package approprié
+      const packageToPurchase = offerings.current.availablePackages.find(
+        pkg => pkg.product.identifier === IOS_PRODUCT_ID
+      );
+
+      if (!packageToPurchase) {
+        throw new Error("Produit introuvable");
+      }
+
+      console.log('[IAP] Achat du package:', packageToPurchase.identifier);
+      
+      // Effectuer l'achat
+      const purchaseResult = await Purchases.purchasePackage({
+        aPackage: packageToPurchase
+      });
+
+      console.log('[IAP] Achat réussi:', purchaseResult);
+
+      // Synchroniser avec le backend
+      await syncIOSPurchase(purchaseResult);
+
+      // Rafraîchir le statut d'abonnement
+      await refreshSubscription();
+
+      toast({
+        title: "Abonnement activé !",
+        description: "Votre plan Pro est maintenant actif",
+      });
+
+    } catch (error: any) {
+      console.error('[IAP] Erreur achat:', error);
+      
+      // Gérer les erreurs spécifiques
+      if (error.code === '1') { // User cancelled
+        throw new Error("Achat annulé");
+      }
+      
+      throw error;
+    }
+  };
+
+  const handleStripePurchase = async () => {
+    const body: any = { plan_id: proPlan!.id };
+    if (promoCode) {
+      body.coupon_code = promoCode;
+    }
+
+    console.log('[Subscription] Calling create-checkout with:', body);
+    const { data, error } = await supabase.functions.invoke('create-checkout', {
+      body
+    });
+    console.log('[Subscription] create-checkout response:', { data, error });
+    
+    if (error) throw error;
+    
+    if (data?.url) {
+      console.log('[Subscription] Redirecting to:', data.url);
+      window.location.href = data.url;
+    }
+  };
+
+  const syncIOSPurchase = async (purchaseResult: any) => {
+    try {
+      // Envoyer le reçu au backend pour validation
+      const { error } = await supabase.functions.invoke('verify-ios-purchase', {
+        body: {
+          transaction_id: purchaseResult.customerInfo.originalAppUserId,
+          product_id: IOS_PRODUCT_ID,
+          customer_info: purchaseResult.customerInfo
+        }
+      });
+
+      if (error) {
+        console.error('[IAP] Erreur sync:', error);
+        throw error;
+      }
+
+      console.log('[IAP] Achat synchronisé avec succès');
+    } catch (error) {
+      console.error('[IAP] Erreur lors de la synchronisation:', error);
+      throw error;
     }
   };
 
