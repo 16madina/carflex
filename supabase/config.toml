@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.moderate-content]
 verify_jwt = false
+
+[functions.verify-ios-purchase]
+verify_jwt = true
