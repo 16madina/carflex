@@ -64,7 +64,7 @@ const PromoteListing = () => {
     if (Capacitor.getPlatform() === 'ios') {
       try {
         await Purchases.configure({
-          apiKey: "YOUR_REVENUECAT_API_KEY_HERE", // TODO: Remplacer par votre clé RevenueCat
+          apiKey: "appl_AENJJUNifyVsvGvFNHeZPKSfETy",
         });
         console.log('[PromoteListing] RevenueCat initialized');
       } catch (error) {
