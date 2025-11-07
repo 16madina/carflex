@@ -45,7 +45,7 @@ const Subscription = () => {
   const [isIOS, setIsIOS] = useState(false);
 
   // ID du produit IAP configuré dans App Store Connect
-  const IOS_PRODUCT_ID = "com.missdee.carflextest.pro.monthly";
+  const IOS_PRODUCT_ID = "com.missdee.carflextest.subscription.pro.monthly";
   
   // Initialiser RevenueCat pour iOS
   useEffect(() => {
@@ -61,11 +61,9 @@ const Subscription = () => {
     try {
       await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
       
-      // Configurer RevenueCat avec votre API key
-      // NOTE: L'utilisateur doit créer un compte RevenueCat et obtenir sa clé API
-      // à partir de https://app.revenuecat.com/
+      // Configurer RevenueCat avec l'API key iOS
       await Purchases.configure({
-        apiKey: "YOUR_REVENUECAT_API_KEY_HERE", // À remplacer
+        apiKey: "appl_EtkJmPIhjcTNZXDcGYLNsrqRQgm",
       });
       
       console.log('[IAP] RevenueCat initialisé');
@@ -150,12 +148,15 @@ const Subscription = () => {
       // Récupérer les offres disponibles
       const offerings = await Purchases.getOfferings();
       
-      if (!offerings.current) {
-        throw new Error("Aucune offre disponible");
+      // Utiliser l'offering "pro_subscription" configuré dans RevenueCat
+      const proOffering = offerings.all["pro_subscription"];
+      
+      if (!proOffering) {
+        throw new Error("L'offre 'pro_subscription' n'est pas disponible");
       }
 
       // Trouver le package approprié
-      const packageToPurchase = offerings.current.availablePackages.find(
+      const packageToPurchase = proOffering.availablePackages.find(
         pkg => pkg.product.identifier === IOS_PRODUCT_ID
       );
 
