@@ -43,31 +43,15 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
-  const [showATTDialog, setShowATTDialog] = useState(false);
   
   // Initialise le splash screen natif et les push notifications
   useSplashScreen();
   usePushNotifications();
-  const { hasRequestedPermission, requestTrackingPermission } = useAppTracking();
-
-  useEffect(() => {
-    // Show ATT dialog after splash screen, only once
-    if (!showSplash && !hasRequestedPermission) {
-      const timer = setTimeout(() => {
-        setShowATTDialog(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSplash, hasRequestedPermission]);
+  useAppTracking(); // Initialize but don't show dialog here
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
-
-  const handleATTAccept = async () => {
-    await requestTrackingPermission();
-    setShowATTDialog(false);
-  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -75,32 +59,6 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          
-          {/* App Tracking Transparency Dialog */}
-          <AlertDialog open={showATTDialog} onOpenChange={setShowATTDialog}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confidentialité des données</AlertDialogTitle>
-                <AlertDialogDescription className="space-y-2">
-                  <p>
-                    CarFlex collecte des informations de base (email, nom, téléphone) 
-                    uniquement pour le fonctionnement de l'application :
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Créer et gérer votre compte</li>
-                    <li>Permettre la messagerie entre utilisateurs</li>
-                    <li>Gérer vos annonces et réservations</li>
-                  </ul>
-                  <p className="font-semibold mt-2">
-                    Aucun suivi publicitaire n'est effectué.
-                  </p>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogAction onClick={handleATTAccept}>
-                J'ai compris
-              </AlertDialogAction>
-            </AlertDialogContent>
-          </AlertDialog>
 
           <BrowserRouter>
             <AuthSync />

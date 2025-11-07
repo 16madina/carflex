@@ -19,6 +19,8 @@ import { validatePassword } from "@/lib/passwordValidation";
 import { TermsDialog } from "@/components/TermsDialog";
 import { PrivacyDialog } from "@/components/PrivacyDialog";
 import { ImagePicker } from "@/components/ImagePicker";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useAppTracking } from "@/hooks/useAppTracking";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -27,6 +29,8 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showATTDialog, setShowATTDialog] = useState(false);
+  const { requestTrackingPermission } = useAppTracking();
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
@@ -201,7 +205,8 @@ const Auth = () => {
         toast.warning("Compte créé, mais l'email de vérification n'a pas pu être envoyé.");
       }
       
-      navigate("/");
+      // Show ATT dialog after successful signup
+      setShowATTDialog(true);
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'inscription");
     } finally {
@@ -555,6 +560,36 @@ const Auth = () => {
 
       <TermsDialog open={showTermsDialog} onOpenChange={setShowTermsDialog} />
       <PrivacyDialog open={showPrivacyDialog} onOpenChange={setShowPrivacyDialog} />
+      
+      {/* App Tracking Transparency Dialog */}
+      <AlertDialog open={showATTDialog} onOpenChange={setShowATTDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confidentialité des données</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                CarFlex collecte des informations de base (email, nom, téléphone) 
+                uniquement pour le fonctionnement de l'application :
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Créer et gérer votre compte</li>
+                <li>Permettre la messagerie entre utilisateurs</li>
+                <li>Gérer vos annonces et réservations</li>
+              </ul>
+              <p className="font-semibold mt-2">
+                Aucun suivi publicitaire n'est effectué.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogAction onClick={async () => {
+            await requestTrackingPermission();
+            setShowATTDialog(false);
+            navigate("/");
+          }}>
+            J'ai compris
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
