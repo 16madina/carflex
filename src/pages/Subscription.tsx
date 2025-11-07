@@ -197,22 +197,37 @@ const Subscription = () => {
   };
 
   const handleStripePurchase = async () => {
-    const body: any = { plan_id: proPlan!.id };
-    if (promoCode) {
-      body.coupon_code = promoCode;
-    }
-
-    console.log('[Subscription] Calling create-checkout with:', body);
-    const { data, error } = await supabase.functions.invoke('create-checkout', {
-      body
-    });
-    console.log('[Subscription] create-checkout response:', { data, error });
-    
-    if (error) throw error;
-    
-    if (data?.url) {
-      console.log('[Subscription] Redirecting to:', data.url);
-      window.location.href = data.url;
+    try {
+      // Prix Stripe pour le Plan Pro mensuel (10,000 XOF/mois)
+      const STRIPE_PRICE_ID = 'price_1SO66N0uNiBPsOk0hWzYsLTW';
+      
+      console.log('[STRIPE] Création de la session de paiement...');
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          priceId: STRIPE_PRICE_ID,
+          ...(promoCode && { couponCode: promoCode })
+        }
+      });
+      
+      if (error) {
+        console.error('[STRIPE] Erreur:', error);
+        throw error;
+      }
+      
+      if (data?.url) {
+        console.log('[STRIPE] Ouverture de la session de paiement');
+        // Ouvrir dans un nouvel onglet pour faciliter le test
+        window.open(data.url, '_blank');
+        
+        toast({
+          title: "Redirection vers le paiement",
+          description: "Une nouvelle fenêtre s'est ouverte pour effectuer le paiement",
+        });
+      }
+    } catch (error: any) {
+      console.error('[STRIPE] Erreur complète:', error);
+      throw new Error(error.message || "Erreur lors de la création de la session de paiement");
     }
   };
 

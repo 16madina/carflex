@@ -49,23 +49,58 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Parse request body for coupon code and plan_id
+    // Parse request body for priceId, coupon code and plan_id
     logStep("Parsing request body");
-    let couponCode, planId;
+    let couponCode, planId, priceId;
     try {
       const body = await req.json();
-      couponCode = body?.coupon_code;
+      couponCode = body?.coupon_code || body?.couponCode;
       planId = body?.plan_id;
-      logStep("Request body parsed", { couponCode: couponCode || 'none', planId: planId || 'none' });
+      priceId = body?.priceId;
+      logStep("Request body parsed", { 
+        couponCode: couponCode || 'none', 
+        planId: planId || 'none',
+        priceId: priceId || 'none'
+      });
     } catch (e) {
       logStep("No body provided or invalid JSON");
       couponCode = null;
       planId = null;
+      priceId = null;
     }
     
-    if (!planId) {
-      logStep("ERROR: No plan_id provided");
-      throw new Error("Le plan_id est requis");
+    // Si priceId est fourni directement, l'utiliser (mode simple pour tests)
+    // Sinon, récupérer le priceId depuis la table subscription_plans
+    if (priceId) {
+      logStep("Using direct priceId", { priceId });
+    } else if (planId) {
+      logStep("Fetching subscription plan", { planId });
+      const { data: plan, error: planError } = await supabaseClient
+        .from("subscription_plans")
+        .select("stripe_price_id, name, price, is_active")
+        .eq("id", planId)
+        .single();
+      
+      if (planError) {
+        logStep("ERROR: Database error fetching plan", { error: planError.message });
+        throw new Error(`Erreur lors de la récupération du plan: ${planError.message}`);
+      }
+      
+      if (!plan) {
+        logStep("ERROR: Plan not found", { planId });
+        throw new Error("Plan d'abonnement non trouvé");
+      }
+      
+      if (!plan.is_active) {
+        logStep("ERROR: Plan is inactive", { planId });
+        throw new Error("Ce plan d'abonnement n'est plus actif");
+      }
+      
+      priceId = plan.stripe_price_id;
+      logStep("Plan found", { planName: plan.name, priceId, price: plan.price });
+    } else {
+      logStep("ERROR: No priceId or plan_id provided");
+      throw new Error("priceId ou plan_id est requis");
     }
 
     logStep("Initializing Stripe");
@@ -94,32 +129,6 @@ serve(async (req) => {
       });
       logStep("Customer created", { customerId: customer.id });
     }
-
-    // Get subscription plan price
-    logStep("Fetching subscription plan", { planId });
-    const { data: plan, error: planError } = await supabaseClient
-      .from("subscription_plans")
-      .select("stripe_price_id, name, price, is_active")
-      .eq("id", planId)
-      .single();
-    
-    if (planError) {
-      logStep("ERROR: Database error fetching plan", { error: planError.message });
-      throw new Error(`Erreur lors de la récupération du plan: ${planError.message}`);
-    }
-    
-    if (!plan) {
-      logStep("ERROR: Plan not found", { planId });
-      throw new Error("Plan d'abonnement non trouvé");
-    }
-    
-    if (!plan.is_active) {
-      logStep("ERROR: Plan is inactive", { planId });
-      throw new Error("Ce plan d'abonnement n'est plus actif");
-    }
-    
-    const priceId = plan.stripe_price_id;
-    logStep("Plan found", { planName: plan.name, priceId, price: plan.price });
 
     logStep("Creating Stripe checkout session");
     const origin = req.headers.get("origin") || "https://carflex.lovable.app";
