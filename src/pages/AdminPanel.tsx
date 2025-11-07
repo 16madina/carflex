@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCountry } from "@/contexts/CountryContext";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { ModerationPanel } from "@/components/admin/ModerationPanel";
+import { ImagePicker } from "@/components/ImagePicker";
 
 interface PremiumPackage {
   id: string;
@@ -202,8 +203,8 @@ const AdminPanel = () => {
     setAdBanners(data || []);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageUpload = async (files: File[]) => {
+    const file = files[0];
     if (!file) return;
 
     setUploadingImage(true);
@@ -869,12 +870,10 @@ const AdminPanel = () => {
 
                     <div>
                       <Label htmlFor="banner-image">Image de la bannière</Label>
-                      <Input
-                        id="banner-image"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
+                      <ImagePicker
+                        onImageSelect={handleImageUpload}
                         disabled={uploadingImage}
+                        className="w-full"
                       />
                       {uploadingImage && <p className="text-sm text-muted-foreground mt-2">Upload en cours...</p>}
                       {bannerFormData.image_url && (

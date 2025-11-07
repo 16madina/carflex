@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Upload, User as UserIcon, Trash2 } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ImagePicker } from "@/components/ImagePicker";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -66,8 +67,8 @@ const ProfileEdit = () => {
     setLoading(false);
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleAvatarUpload = async (files: File[]) => {
+    const file = files[0];
     if (!file || !user) return;
 
     setUploading(true);
@@ -195,20 +196,10 @@ const ProfileEdit = () => {
                       <UserIcon className="h-12 w-12" />
                     </AvatarFallback>
                   </Avatar>
-                  <Label htmlFor="avatar-upload" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 border border-input rounded-md hover:bg-accent hover:text-accent-foreground transition-smooth">
-                      <Upload className="h-4 w-4" />
-                      {uploading ? "Upload en cours..." : "Changer la photo"}
-                    </div>
-                    <Input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarUpload}
-                      disabled={uploading}
-                    />
-                  </Label>
+                  <ImagePicker
+                    onImageSelect={handleAvatarUpload}
+                    disabled={uploading}
+                  />
                 </div>
 
                 {/* Form Fields */}

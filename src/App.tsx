@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { useSplashScreen } from "./hooks/useSplashScreen";
 import { usePushNotifications } from "./hooks/usePushNotifications";
+import { useAppTracking } from "./hooks/useAppTracking";
 import SplashScreen from "./components/SplashScreen";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EmailVerification from "./pages/EmailVerification";
@@ -41,14 +43,31 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
+  const [showATTDialog, setShowATTDialog] = useState(false);
   
   // Initialise le splash screen natif et les push notifications
   useSplashScreen();
   usePushNotifications();
+  const { hasRequestedPermission, requestTrackingPermission } = useAppTracking();
+
+  useEffect(() => {
+    // Show ATT dialog after splash screen, only once
+    if (!showSplash && !hasRequestedPermission) {
+      const timer = setTimeout(() => {
+        setShowATTDialog(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash, hasRequestedPermission]);
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
+
+  const handleATTAccept = async () => {
+    await requestTrackingPermission();
+    setShowATTDialog(false);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -56,6 +75,33 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          
+          {/* App Tracking Transparency Dialog */}
+          <AlertDialog open={showATTDialog} onOpenChange={setShowATTDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confidentialité des données</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <p>
+                    CarFlex collecte des informations de base (email, nom, téléphone) 
+                    uniquement pour le fonctionnement de l'application :
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Créer et gérer votre compte</li>
+                    <li>Permettre la messagerie entre utilisateurs</li>
+                    <li>Gérer vos annonces et réservations</li>
+                  </ul>
+                  <p className="font-semibold mt-2">
+                    Aucun suivi publicitaire n'est effectué.
+                  </p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogAction onClick={handleATTAccept}>
+                J'ai compris
+              </AlertDialogAction>
+            </AlertDialogContent>
+          </AlertDialog>
+
           <BrowserRouter>
             <AuthSync />
             <Routes>

@@ -18,6 +18,7 @@ import { validateImageFile } from "@/lib/fileValidation";
 import { validatePassword } from "@/lib/passwordValidation";
 import { TermsDialog } from "@/components/TermsDialog";
 import { PrivacyDialog } from "@/components/PrivacyDialog";
+import { ImagePicker } from "@/components/ImagePicker";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -46,14 +47,13 @@ const Auth = () => {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleAvatarChange = (files: File[]) => {
+    const file = files[0];
     if (file) {
       // Validate file
       const validation = validateImageFile(file);
       if (!validation.valid) {
         toast.error(validation.error || "Fichier invalide");
-        e.target.value = ''; // Reset input
         return;
       }
       
@@ -338,13 +338,9 @@ const Auth = () => {
                         )}
                       </Avatar>
                       <div className="flex-1">
-                        <Input
-                          id="avatar"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleAvatarChange}
-                          className="cursor-pointer"
-                          required
+                        <ImagePicker
+                          onImageSelect={handleAvatarChange}
+                          className="w-full"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
                           JPG, PNG ou WEBP (max. 5MB)

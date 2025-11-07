@@ -12,10 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CAR_BRANDS, BODY_TYPES, CAR_MODELS } from "@/constants/vehicles";
 import { validateImageFiles } from "@/lib/fileValidation";
+import { ImagePicker } from "@/components/ImagePicker";
 
 const AVAILABLE_FEATURES = [
   "Climatisation", "GPS", "Bluetooth", "Sièges chauffants",
@@ -63,14 +64,11 @@ const RentForm = () => {
     checkAuth();
   }, [navigate]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    
+  const handleImageChange = (files: File[]) => {
     // Validate files
     const validation = validateImageFiles(files, images.length);
     if (!validation.valid) {
       toast.error(validation.error || "Fichiers invalides");
-      e.target.value = ''; // Reset input
       return;
     }
 
@@ -537,25 +535,13 @@ const RentForm = () => {
                 <h3 className="font-semibold text-lg">Photos *</h3>
                 
                 <div className="space-y-3">
-                  <Label
-                    htmlFor="images"
-                    className="cursor-pointer flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg hover:border-primary transition-colors"
-                  >
-                    <div className="text-center">
-                      <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Cliquez pour ajouter des photos (max 10)
-                      </p>
-                    </div>
-                    <Input
-                      id="images"
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </Label>
+                  <ImagePicker
+                    onImageSelect={handleImageChange}
+                    multiple={true}
+                    maxFiles={10}
+                    currentFilesCount={images.length}
+                    disabled={loading}
+                  />
 
                   {imagePreviews.length > 0 && (
                     <div className="grid grid-cols-3 gap-3">

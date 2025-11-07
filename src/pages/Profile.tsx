@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
@@ -6,7 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Camera, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2 } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { ProfileSkeleton } from "@/components/ProfileSkeleton";
+import { ImagePicker } from "@/components/ImagePicker";
 
 interface PremiumPackage {
   id: string;
@@ -60,7 +61,6 @@ const Profile = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [receivedBookings, setReceivedBookings] = useState<any[]>([]);
   const [verifyEmailDialogOpen, setVerifyEmailDialogOpen] = useState(false);
@@ -383,8 +383,8 @@ const Profile = () => {
     }
   };
 
-  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleAvatarChange = async (files: File[]) => {
+    const file = files[0];
     if (!file || !user) return;
 
     // Vérifier le type de fichier
@@ -443,9 +443,6 @@ const Profile = () => {
       toast.error("Erreur lors du téléchargement de la photo");
     } finally {
       setUploadingAvatar(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
@@ -566,33 +563,17 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center gap-4">
-                    <div className="relative">
+                    <div className="flex flex-col items-center gap-2">
                       <Avatar className="h-20 w-20">
                         <AvatarImage src={profile?.avatar_url} />
                         <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                           <UserIcon className="h-10 w-10" />
                         </AvatarFallback>
                       </Avatar>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        className="hidden"
-                      />
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-md"
-                        onClick={() => fileInputRef.current?.click()}
+                      <ImagePicker
+                        onImageSelect={handleAvatarChange}
                         disabled={uploadingAvatar}
-                      >
-                        {uploadingAvatar ? (
-                          <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Camera className="h-4 w-4" />
-                        )}
-                      </Button>
+                      />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
