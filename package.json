@@ -46,7 +46,6 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
-    "@revenuecat/purchases-capacitor": "^11.2.10",
     "@supabase/supabase-js": "^2.75.0",
     "@tanstack/react-query": "^5.83.0",
     "capacitor-plugin-app-tracking-transparency": "^2.0.5",

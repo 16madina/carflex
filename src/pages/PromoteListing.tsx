@@ -13,7 +13,7 @@ import BottomNav from "@/components/BottomNav";
 import { useCountry } from "@/contexts/CountryContext";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { Capacitor } from "@capacitor/core";
-import { Purchases } from "@revenuecat/purchases-capacitor";
+import { storeKitService } from "@/services/storekit";
 
 // Mapping des packages vers les Product IDs iOS
 const IOS_PRODUCT_IDS: { [key: number]: string } = {
@@ -57,18 +57,16 @@ const PromoteListing = () => {
 
   useEffect(() => {
     checkUser();
-    initializeRevenueCat();
+    initializeStoreKit();
   }, []);
 
-  const initializeRevenueCat = async () => {
+  const initializeStoreKit = async () => {
     if (Capacitor.getPlatform() === 'ios') {
       try {
-        await Purchases.configure({
-          apiKey: "appl_AENJJUNifyVsvGvFNHeZPKSfETy",
-        });
-        console.log('[PromoteListing] RevenueCat initialized');
+        await storeKitService.initialize();
+        console.log('[PromoteListing] StoreKit initialized');
       } catch (error) {
-        console.error('[PromoteListing] RevenueCat init error:', error);
+        console.error('[PromoteListing] StoreKit init error:', error);
       }
     }
   };
@@ -154,30 +152,30 @@ const PromoteListing = () => {
 
     try {
       setSubmitting(true);
-      toast({
-        title: "Préparation de l'achat",
-        description: "Ouverture de l'App Store...",
-      });
-
-      // Récupérer les offerings RevenueCat
-      const offerings = await Purchases.getOfferings();
-      const availablePackages = offerings.current?.availablePackages || [];
       
-      // Trouver le package correspondant
-      const revenueCatPackage = availablePackages.find(
-        (pkg: any) => pkg.product.identifier === productId
-      );
-
-      if (!revenueCatPackage) {
-        throw new Error("Produit non trouvé dans RevenueCat");
+      if (!storeKitService.isAvailable()) {
+        toast({
+          title: "Service indisponible",
+          description: "StoreKit n'est pas disponible. Veuillez tester sur un appareil iOS réel.",
+          variant: "destructive"
+        });
+        throw new Error("StoreKit non disponible");
       }
-
-      // Acheter le produit via RevenueCat
-      const { customerInfo } = await Purchases.purchasePackage({ 
-        aPackage: revenueCatPackage 
+      
+      toast({
+        title: "Traitement en cours...",
+        description: "Ouverture du système de paiement Apple",
       });
 
-      console.log('[iOS Purchase] Success:', customerInfo);
+      // Acheter le produit via StoreKit natif
+      const purchaseResult = await storeKitService.purchase(productId);
+      
+      console.log('[StoreKit Purchase] Success:', purchaseResult);
+
+      toast({
+        title: "Validation en cours...",
+        description: "Vérification de votre achat avec le serveur",
+      });
 
       // Vérifier et activer le premium via notre backend
       const { data: sessionData } = await supabase.auth.getSession();
@@ -188,6 +186,9 @@ const PromoteListing = () => {
           listing_id: selectedListing,
           listing_type: listing.type,
           product_id: productId,
+          transaction_id: purchaseResult.transactionId,
+          purchase_date: purchaseResult.purchaseDate.toISOString(),
+          original_transaction_id: purchaseResult.originalTransactionId
         },
         headers: {
           Authorization: `Bearer ${sessionData.session?.access_token}`
@@ -207,12 +208,25 @@ const PromoteListing = () => {
       setTimeout(() => navigate('/listings'), 2000);
 
     } catch (error: any) {
-      console.error('[iOS Purchase] Error:', error);
+      console.error('[StoreKit Purchase] Error:', error);
       
-      if (error.code === 'PURCHASE_CANCELLED') {
+      // Ne pas afficher de toast si c'est une annulation
+      if (error.message === 'CANCELLED') {
         toast({
           title: "Achat annulé",
-          description: "Vous avez annulé l'achat",
+          description: "Vous pouvez réessayer quand vous voulez",
+        });
+      } else if (error.message?.includes('Méthode de paiement invalide')) {
+        toast({
+          title: "Paiement invalide",
+          description: "Veuillez vérifier votre méthode de paiement dans les réglages iOS",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('Erreur réseau')) {
+        toast({
+          title: "Problème de connexion",
+          description: "Vérifiez votre connexion internet et réessayez",
+          variant: "destructive"
         });
       } else {
         toast({
