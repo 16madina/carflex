@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft } from "lucide-react";
+import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft, RefreshCw } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +43,7 @@ const Subscription = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [isIOS, setIsIOS] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
   // ID du produit IAP configuré dans App Store Connect
   const IOS_PRODUCT_ID = "com.missdee.carflextest.subscription.pro.monthly";
@@ -297,6 +298,85 @@ const Subscription = () => {
     }
   };
 
+  const handleRestorePurchases = async () => {
+    if (!isIOS) return;
+    
+    setRestoring(true);
+    
+    try {
+      console.log('[StoreKit] Démarrage de la restauration...');
+      
+      if (!storeKitService.isAvailable()) {
+        toast({
+          title: "Service indisponible",
+          description: "StoreKit n'est pas disponible. Veuillez tester sur un appareil iOS réel.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "Restauration en cours...",
+        description: "Recherche de vos achats précédents",
+      });
+      
+      const restoredPurchases = await storeKitService.restorePurchases();
+      
+      console.log('[StoreKit] Achats restaurés:', restoredPurchases.length);
+      
+      if (restoredPurchases.length === 0) {
+        toast({
+          title: "Aucun achat trouvé",
+          description: "Aucun abonnement n'a été trouvé pour ce compte Apple",
+        });
+        return;
+      }
+      
+      // Vérifier chaque achat restauré avec le backend
+      toast({
+        title: "Validation en cours...",
+        description: `Vérification de ${restoredPurchases.length} achat(s)`,
+      });
+      
+      let successCount = 0;
+      for (const purchase of restoredPurchases) {
+        try {
+          await syncIOSPurchase(purchase);
+          successCount++;
+        } catch (error) {
+          console.error('[StoreKit] Erreur sync achat restauré:', error);
+        }
+      }
+      
+      // Rafraîchir le statut d'abonnement
+      await refreshSubscription();
+      
+      if (successCount > 0) {
+        toast({
+          title: "✅ Achats restaurés avec succès !",
+          description: `${successCount} abonnement(s) restauré(s). Votre compte a été mis à jour.`,
+        });
+      } else {
+        toast({
+          title: "Erreur de restauration",
+          description: "Impossible de vérifier les achats restaurés. Contactez le support.",
+          variant: "destructive"
+        });
+      }
+      
+    } catch (error: any) {
+      console.error('[StoreKit] Erreur restauration:', error);
+      
+      toast({
+        title: "Erreur de restauration",
+        description: error.message || "Impossible de restaurer les achats. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   if (loading || loadingPlans) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -402,7 +482,7 @@ const Subscription = () => {
 
                   <Button 
                     onClick={handleSubscribe} 
-                    disabled={subscribing}
+                    disabled={subscribing || restoring}
                     className="w-full"
                     size="lg"
                   >
@@ -418,6 +498,27 @@ const Subscription = () => {
                       </>
                     )}
                   </Button>
+                  
+                  {isIOS && (
+                    <Button
+                      onClick={handleRestorePurchases}
+                      disabled={subscribing || restoring}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {restoring ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Restauration...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Restaurer mes achats
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="w-full space-y-2">
@@ -426,21 +527,44 @@ const Subscription = () => {
                       Renouvelé le {new Date(subscriptionEnd).toLocaleDateString('fr-FR')}
                     </p>
                   )}
-                  <Button 
-                    onClick={handleManageSubscription} 
-                    disabled={managing}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {managing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Chargement...
-                      </>
-                    ) : (
-                      "Gérer mon abonnement"
-                    )}
-                  </Button>
+                  {!isIOS && (
+                    <Button 
+                      onClick={handleManageSubscription} 
+                      disabled={managing}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {managing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Chargement...
+                        </>
+                      ) : (
+                        "Gérer mon abonnement"
+                      )}
+                    </Button>
+                  )}
+                  
+                  {isIOS && (
+                    <Button
+                      onClick={handleRestorePurchases}
+                      disabled={restoring}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {restoring ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Restauration...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Restaurer mes achats
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               )}
             </CardFooter>
