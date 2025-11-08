@@ -125,7 +125,23 @@ const Subscription = () => {
         await handleStripePurchase();
       }
     } catch (error: any) {
-      console.error('Erreur lors de l\'achat:', error);
+      console.error('===== Erreur lors de l\'achat (handleSubscribe) =====');
+      console.error('Type:', typeof error);
+      console.error('Message:', error?.message);
+      console.error('Code:', error?.code);
+      console.error('Name:', error?.name);
+      
+      // Extraire toutes les propriétés de l'erreur pour debug complet
+      try {
+        const errorDetails: any = {};
+        Object.getOwnPropertyNames(error).forEach(key => {
+          errorDetails[key] = error[key];
+        });
+        console.error('Détails complets de l\'erreur:', JSON.stringify(errorDetails, null, 2));
+      } catch (e) {
+        console.error('Impossible de sérialiser l\'erreur:', e);
+      }
+      console.error('===================================================');
       
       // Ne pas afficher de toast si c'est une annulation (déjà géré dans handleIOSPurchase)
       if (error.message !== 'CANCELLED') {
@@ -180,7 +196,22 @@ const Subscription = () => {
       });
 
     } catch (error: any) {
-      console.error('[StoreKit] Erreur achat:', error);
+      console.error('[StoreKit] Erreur achat dans Subscription.tsx:');
+      console.error('Type:', typeof error);
+      console.error('Message:', error?.message);
+      console.error('Code:', error?.code);
+      console.error('Stack:', error?.stack);
+      
+      // Extraire toutes les propriétés de l'erreur pour debug
+      try {
+        const errorProps = Object.getOwnPropertyNames(error);
+        console.error('[StoreKit] Propriétés de l\'erreur:', errorProps);
+        errorProps.forEach(prop => {
+          console.error(`[StoreKit] ${prop}:`, error[prop]);
+        });
+      } catch (e) {
+        console.error('[StoreKit] Impossible d\'extraire les propriétés:', e);
+      }
       
       // Ne pas afficher de toast pour l'annulation (l'utilisateur est déjà au courant)
       if (error.message === 'CANCELLED') {
