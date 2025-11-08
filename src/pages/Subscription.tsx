@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { Capacitor } from "@capacitor/core";
-import { Purchases, LOG_LEVEL } from "@revenuecat/purchases-capacitor";
+import { storeKitService } from "@/services/storekit";
 
 interface SubscriptionPlan {
   id: string;
@@ -47,28 +47,22 @@ const Subscription = () => {
   // ID du produit IAP configuré dans App Store Connect
   const IOS_PRODUCT_ID = "com.missdee.carflextest.subscription.pro.monthly";
   
-  // Initialiser RevenueCat pour iOS
+  // Initialiser StoreKit pour iOS
   useEffect(() => {
     const platform = Capacitor.getPlatform();
     setIsIOS(platform === 'ios');
     
     if (platform === 'ios') {
-      initializeRevenueCat();
+      initializeStoreKit();
     }
   }, []);
 
-  const initializeRevenueCat = async () => {
+  const initializeStoreKit = async () => {
     try {
-      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
-      
-      // Configurer RevenueCat avec l'API key iOS
-      await Purchases.configure({
-        apiKey: "appl_EtkJmPIhjcTNZXDcGYLNsrqRQgm",
-      });
-      
-      console.log('[IAP] RevenueCat initialisé');
+      await storeKitService.initialize();
+      console.log('[StoreKit] Service initialisé');
     } catch (error) {
-      console.error('[IAP] Erreur initialisation RevenueCat:', error);
+      console.error('[StoreKit] Erreur initialisation:', error);
     }
   };
 
@@ -143,35 +137,16 @@ const Subscription = () => {
 
   const handleIOSPurchase = async () => {
     try {
-      console.log('[IAP] Récupération des offres disponibles...');
+      console.log('[StoreKit] Démarrage de l\'achat...');
       
-      // Récupérer les offres disponibles
-      const offerings = await Purchases.getOfferings();
-      
-      // Utiliser l'offering "pro_subscription" configuré dans RevenueCat
-      const proOffering = offerings.all["pro_subscription"];
-      
-      if (!proOffering) {
-        throw new Error("L'offre 'pro_subscription' n'est pas disponible");
+      if (!storeKitService.isAvailable()) {
+        throw new Error("StoreKit non disponible. Veuillez tester sur un appareil iOS ou dans XCode avec le fichier .storekit configuré.");
       }
-
-      // Trouver le package approprié
-      const packageToPurchase = proOffering.availablePackages.find(
-        pkg => pkg.product.identifier === IOS_PRODUCT_ID
-      );
-
-      if (!packageToPurchase) {
-        throw new Error("Produit introuvable");
-      }
-
-      console.log('[IAP] Achat du package:', packageToPurchase.identifier);
       
-      // Effectuer l'achat
-      const purchaseResult = await Purchases.purchasePackage({
-        aPackage: packageToPurchase
-      });
-
-      console.log('[IAP] Achat réussi:', purchaseResult);
+      // Effectuer l'achat via StoreKit natif
+      const purchaseResult = await storeKitService.purchase(IOS_PRODUCT_ID);
+      
+      console.log('[StoreKit] Achat réussi:', purchaseResult);
 
       // Synchroniser avec le backend
       await syncIOSPurchase(purchaseResult);
@@ -185,10 +160,9 @@ const Subscription = () => {
       });
 
     } catch (error: any) {
-      console.error('[IAP] Erreur achat:', error);
+      console.error('[StoreKit] Erreur achat:', error);
       
-      // Gérer les erreurs spécifiques
-      if (error.code === '1') { // User cancelled
+      if (error.message?.includes('annulé')) {
         throw new Error("Achat annulé");
       }
       
@@ -236,20 +210,21 @@ const Subscription = () => {
       // Envoyer le reçu au backend pour validation
       const { error } = await supabase.functions.invoke('verify-ios-purchase', {
         body: {
-          transaction_id: purchaseResult.customerInfo.originalAppUserId,
-          product_id: IOS_PRODUCT_ID,
-          customer_info: purchaseResult.customerInfo
+          transaction_id: purchaseResult.transactionId,
+          product_id: purchaseResult.productId,
+          purchase_date: purchaseResult.purchaseDate.toISOString(),
+          original_transaction_id: purchaseResult.originalTransactionId
         }
       });
 
       if (error) {
-        console.error('[IAP] Erreur sync:', error);
+        console.error('[StoreKit] Erreur sync:', error);
         throw error;
       }
 
-      console.log('[IAP] Achat synchronisé avec succès');
+      console.log('[StoreKit] Achat synchronisé avec succès');
     } catch (error) {
-      console.error('[IAP] Erreur lors de la synchronisation:', error);
+      console.error('[StoreKit] Erreur lors de la synchronisation:', error);
       throw error;
     }
   };
