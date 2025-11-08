@@ -125,11 +125,15 @@ const Subscription = () => {
       }
     } catch (error: any) {
       console.error('Erreur lors de l\'achat:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de traiter le paiement. Veuillez réessayer.",
-        variant: "destructive"
-      });
+      
+      // Ne pas afficher de toast si c'est une annulation (déjà géré dans handleIOSPurchase)
+      if (error.message !== 'CANCELLED') {
+        toast({
+          title: "Erreur de paiement",
+          description: error.message || "Impossible de traiter le paiement. Veuillez réessayer.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setSubscribing(false);
     }
@@ -140,13 +144,28 @@ const Subscription = () => {
       console.log('[StoreKit] Démarrage de l\'achat...');
       
       if (!storeKitService.isAvailable()) {
-        throw new Error("StoreKit non disponible. Veuillez tester sur un appareil iOS ou dans XCode avec le fichier .storekit configuré.");
+        toast({
+          title: "Service indisponible",
+          description: "StoreKit n'est pas disponible. Veuillez tester sur un appareil iOS réel.",
+          variant: "destructive"
+        });
+        throw new Error("StoreKit non disponible");
       }
+      
+      toast({
+        title: "Traitement en cours...",
+        description: "Ouverture du système de paiement Apple",
+      });
       
       // Effectuer l'achat via StoreKit natif
       const purchaseResult = await storeKitService.purchase(IOS_PRODUCT_ID);
       
       console.log('[StoreKit] Achat réussi:', purchaseResult);
+
+      toast({
+        title: "Validation en cours...",
+        description: "Vérification de votre achat avec le serveur",
+      });
 
       // Synchroniser avec le backend
       await syncIOSPurchase(purchaseResult);
@@ -155,15 +174,41 @@ const Subscription = () => {
       await refreshSubscription();
 
       toast({
-        title: "Abonnement activé !",
-        description: "Votre plan Pro est maintenant actif",
+        title: "🎉 Abonnement activé !",
+        description: "Votre plan Pro est maintenant actif. Profitez de tous les avantages premium !",
       });
 
     } catch (error: any) {
       console.error('[StoreKit] Erreur achat:', error);
       
-      if (error.message?.includes('annulé')) {
-        throw new Error("Achat annulé");
+      // Ne pas afficher de toast pour l'annulation (l'utilisateur est déjà au courant)
+      if (error.message === 'CANCELLED') {
+        toast({
+          title: "Achat annulé",
+          description: "Vous pouvez réessayer quand vous voulez",
+        });
+        throw new Error("CANCELLED");
+      }
+      
+      // Pour les autres erreurs, afficher un message spécifique
+      if (error.message?.includes('Méthode de paiement invalide')) {
+        toast({
+          title: "Paiement invalide",
+          description: "Veuillez vérifier votre méthode de paiement dans les réglages iOS",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('Erreur réseau')) {
+        toast({
+          title: "Problème de connexion",
+          description: "Vérifiez votre connexion internet et réessayez",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('sync')) {
+        toast({
+          title: "Erreur de synchronisation",
+          description: "L'achat a réussi mais la synchronisation a échoué. Contactez le support.",
+          variant: "destructive"
+        });
       }
       
       throw error;
@@ -219,13 +264,13 @@ const Subscription = () => {
 
       if (error) {
         console.error('[StoreKit] Erreur sync:', error);
-        throw error;
+        throw new Error('Erreur de synchronisation: ' + error.message);
       }
 
       console.log('[StoreKit] Achat synchronisé avec succès');
     } catch (error) {
       console.error('[StoreKit] Erreur lors de la synchronisation:', error);
-      throw error;
+      throw new Error('sync: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
     }
   };
 

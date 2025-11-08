@@ -51,14 +51,20 @@ class StoreKitService {
   async getProducts(productIds: string[]): Promise<Product[]> {
     if (!this.isInitialized || !this.storeKitPlugin) {
       console.warn('[StoreKit] Service non initialisé');
-      return [];
+      throw new Error('StoreKit n\'est pas disponible. Veuillez redémarrer l\'application.');
     }
 
     try {
+      console.log('[StoreKit] Récupération des produits:', productIds);
       const products = await this.storeKitPlugin.getProducts({ 
         productIdentifiers: productIds 
       });
       
+      if (!products || !products.products || products.products.length === 0) {
+        throw new Error('Aucun produit disponible');
+      }
+
+      console.log('[StoreKit] Produits récupérés:', products.products.length);
       return products.products.map((p: any) => ({
         id: p.productIdentifier,
         title: p.localizedTitle,
@@ -67,9 +73,9 @@ class StoreKitService {
         priceValue: p.price,
         currency: p.priceLocale.currencyCode
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('[StoreKit] Erreur récupération produits:', error);
-      return [];
+      throw new Error(error.message || 'Impossible de récupérer les produits disponibles');
     }
   }
 
@@ -79,11 +85,15 @@ class StoreKitService {
     }
 
     try {
-      console.log('[StoreKit] Achat du produit:', productId);
+      console.log('[StoreKit] Démarrage de l\'achat:', productId);
       
       const result = await this.storeKitPlugin.purchaseProduct({ 
         productIdentifier: productId 
       });
+      
+      if (!result || !result.transactionIdentifier) {
+        throw new Error('Transaction invalide');
+      }
       
       console.log('[StoreKit] Achat réussi:', result);
       
@@ -96,11 +106,19 @@ class StoreKitService {
     } catch (error: any) {
       console.error('[StoreKit] Erreur achat:', error);
       
-      if (error.code === 'E_USER_CANCELLED') {
-        throw new Error('Achat annulé');
+      if (error.code === 'E_USER_CANCELLED' || error.message?.includes('cancelled')) {
+        throw new Error('CANCELLED');
       }
       
-      throw error;
+      if (error.code === 'E_PAYMENT_INVALID') {
+        throw new Error('Méthode de paiement invalide');
+      }
+      
+      if (error.code === 'E_NETWORK_ERROR') {
+        throw new Error('Erreur réseau. Vérifiez votre connexion internet');
+      }
+      
+      throw new Error(error.message || 'Erreur lors de l\'achat');
     }
   }
 
@@ -114,15 +132,21 @@ class StoreKitService {
       
       const result = await this.storeKitPlugin.restorePurchases();
       
+      if (!result || !result.transactions) {
+        return [];
+      }
+
+      console.log('[StoreKit] Achats restaurés:', result.transactions.length);
+      
       return result.transactions.map((t: any) => ({
         transactionId: t.transactionIdentifier,
         productId: t.productIdentifier,
         purchaseDate: new Date(t.transactionDate),
         originalTransactionId: t.originalTransactionIdentifier
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('[StoreKit] Erreur restauration:', error);
-      throw error;
+      throw new Error(error.message || 'Erreur lors de la restauration des achats');
     }
   }
 
