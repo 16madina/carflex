@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
 /**
  * Service pour gérer les achats in-app iOS avec StoreKit natif
@@ -21,9 +21,19 @@ export interface PurchaseResult {
   originalTransactionId?: string;
 }
 
+// Interface TypeScript pour le plugin StoreKit
+export interface StoreKitPlugin {
+  getProducts(options: { productIdentifiers: string[] }): Promise<{ products: any[] }>;
+  purchaseProduct(options: { productIdentifier: string }): Promise<any>;
+  restorePurchases(): Promise<{ transactions: any[] }>;
+}
+
+// Enregistrer le plugin avec Capacitor
+const StoreKit = registerPlugin<StoreKitPlugin>('StoreKit');
+
 class StoreKitService {
   private isInitialized = false;
-  private storeKitPlugin: any = null;
+  private storeKitPlugin: StoreKitPlugin | null = null;
 
   async initialize(): Promise<void> {
     if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'ios') {
@@ -32,15 +42,15 @@ class StoreKitService {
     }
 
     try {
-      // Enregistrer le plugin StoreKit natif
-      this.storeKitPlugin = (window as any).StoreKit;
+      // Utiliser le plugin enregistré
+      this.storeKitPlugin = StoreKit;
       
       if (!this.storeKitPlugin) {
         console.warn('[StoreKit] Plugin non disponible - utiliser XCode pour tester');
         return;
       }
 
-      console.log('[StoreKit] Service initialisé');
+      console.log('[StoreKit] Service initialisé avec registerPlugin');
       this.isInitialized = true;
     } catch (error) {
       console.error('[StoreKit] Erreur initialisation:', error);
