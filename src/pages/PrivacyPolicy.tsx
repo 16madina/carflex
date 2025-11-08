@@ -70,8 +70,8 @@ const PrivacyPolicy = () => {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">3.4 Données de transaction</h3>
             <ul className="list-disc pl-6 text-muted-foreground mb-4 space-y-2">
-              <li>Historique des achats de services premium (via FedaPay)</li>
-              <li>Informations de paiement (traitées par FedaPay, nous ne stockons pas vos données bancaires)</li>
+              <li>Historique des achats de services premium (via Stripe)</li>
+              <li>Informations de paiement (traitées par Stripe, nous ne stockons pas vos données bancaires)</li>
             </ul>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">3.5 Données de navigation</h3>
@@ -150,7 +150,7 @@ const PrivacyPolicy = () => {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">6.2 Prestataires de services</h3>
             <ul className="list-disc pl-6 text-muted-foreground mb-4 space-y-2">
-              <li><strong>FedaPay :</strong> Pour le traitement des paiements</li>
+              <li><strong>Stripe :</strong> Pour le traitement des paiements</li>
               <li><strong>Hébergement :</strong> Pour stocker vos données en toute sécurité</li>
               <li><strong>Services cloud :</strong> Pour le stockage des photos</li>
             </ul>

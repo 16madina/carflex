@@ -3,6 +3,7 @@ import { Heart, MapPin, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import ImageCarousel from "@/components/ImageCarousel";
@@ -73,16 +74,20 @@ const PremiumCarCard = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
-      <div className="relative">
-        <ImageCarousel 
-          images={images.length > 0 ? images : ["/placeholder.svg"]} 
-          alt={`${brand} ${model}`}
-          showNavigation={false}
-        />
+    <Card className="overflow-hidden hover:shadow-material-xl transition-all duration-300 hover:-translate-y-1 animate-spring">
+      <div className="relative h-48 bg-muted">
+        {images.length > 0 ? (
+          <ImageCarousel 
+            images={images} 
+            alt={`${brand} ${model}`}
+            showNavigation={false}
+          />
+        ) : (
+          <Skeleton className="w-full h-48" />
+        )}
         <div className="absolute top-3 left-3 z-10">
-          <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center gap-1">
-            <Zap className="h-3 w-3" />
+          <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-material glass-morphism text-xs">
+            <Zap className="h-3.5 w-3.5" />
             Premium
           </Badge>
         </div>
@@ -90,7 +95,7 @@ const PremiumCarCard = ({
           <Button
             variant="ghost"
             size="icon"
-            className="bg-background/80 hover:bg-background h-11 w-11 md:h-10 md:w-10"
+            className="glass-morphism hover:bg-background/90 h-12 w-12 rounded-full shadow-material-lg hover:scale-110"
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite?.();
@@ -113,15 +118,15 @@ const PremiumCarCard = ({
         </div>
       </div>
 
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <h3 className="font-semibold text-lg mb-2">
           {year} {brand} {model}
         </h3>
-        <p className={`text-2xl font-bold ${getPriceColorClass(rating)} mb-1`}>
+        <p className={`text-xl font-bold ${getPriceColorClass(rating)} mb-2`}>
           {formatPrice(price)}
         </p>
         {sellerName && sellerType && (
-          <div className="text-xs text-muted-foreground mb-3">
+          <div className="text-[10px] text-muted-foreground mb-3">
             {sellerName} • {
               sellerType === 'dealer' ? 'Concessionnaire' :
               sellerType === 'seller' ? 'Vendeur' :
@@ -130,11 +135,11 @@ const PremiumCarCard = ({
             }
           </div>
         )}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-          <MapPin className="h-4 w-4" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+          <MapPin className="h-3.5 w-3.5" />
           <span>{city}</span>
         </div>
-        <div className="flex gap-3 text-sm text-muted-foreground mb-4">
+        <div className="flex gap-2 text-xs text-muted-foreground mb-4">
           <span>{mileage.toLocaleString()} km</span>
           <span>•</span>
           <span className="capitalize">{transmission}</span>
@@ -142,7 +147,8 @@ const PremiumCarCard = ({
           <span className="capitalize">{fuel_type}</span>
         </div>
         <Button
-          className="w-full h-11 md:h-10"
+          size="sm"
+          className="w-full"
           onClick={() => navigate(`/listing/${id}`)}
         >
           Voir détails

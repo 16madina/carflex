@@ -11,15 +11,7 @@ export interface Country {
 }
 
 export const WEST_AFRICAN_COUNTRIES: Country[] = [
-  {
-    code: 'SN',
-    name: 'Sénégal',
-    flag: '🇸🇳',
-    currency: 'XOF',
-    currencySymbol: 'CFA',
-    exchangeRate: 1,
-    dialCode: '+221'
-  },
+  // Pays UEMOA (Afrique francophone avec CFA)
   {
     code: 'CI',
     name: "Côte d'Ivoire",
@@ -28,6 +20,15 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     currencySymbol: 'CFA',
     exchangeRate: 1,
     dialCode: '+225'
+  },
+  {
+    code: 'SN',
+    name: 'Sénégal',
+    flag: '🇸🇳',
+    currency: 'XOF',
+    currencySymbol: 'CFA',
+    exchangeRate: 1,
+    dialCode: '+221'
   },
   {
     code: 'BJ',
@@ -83,6 +84,107 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     exchangeRate: 1,
     dialCode: '+245'
   },
+  // Autres pays africains francophones
+  {
+    code: 'GN',
+    name: 'Guinée',
+    flag: '🇬🇳',
+    currency: 'GNF',
+    currencySymbol: 'FG',
+    exchangeRate: 14,
+    dialCode: '+224'
+  },
+  {
+    code: 'CM',
+    name: 'Cameroun',
+    flag: '🇨🇲',
+    currency: 'XAF',
+    currencySymbol: 'FCFA',
+    exchangeRate: 1,
+    dialCode: '+237'
+  },
+  {
+    code: 'CD',
+    name: 'RD Congo',
+    flag: '🇨🇩',
+    currency: 'CDF',
+    currencySymbol: 'FC',
+    exchangeRate: 3.5,
+    dialCode: '+243'
+  },
+  {
+    code: 'CG',
+    name: 'Congo',
+    flag: '🇨🇬',
+    currency: 'XAF',
+    currencySymbol: 'FCFA',
+    exchangeRate: 1,
+    dialCode: '+242'
+  },
+  {
+    code: 'GA',
+    name: 'Gabon',
+    flag: '🇬🇦',
+    currency: 'XAF',
+    currencySymbol: 'FCFA',
+    exchangeRate: 1,
+    dialCode: '+241'
+  },
+  {
+    code: 'TD',
+    name: 'Tchad',
+    flag: '🇹🇩',
+    currency: 'XAF',
+    currencySymbol: 'FCFA',
+    exchangeRate: 1,
+    dialCode: '+235'
+  },
+  {
+    code: 'CF',
+    name: 'Centrafrique',
+    flag: '🇨🇫',
+    currency: 'XAF',
+    currencySymbol: 'FCFA',
+    exchangeRate: 1,
+    dialCode: '+236'
+  },
+  {
+    code: 'MG',
+    name: 'Madagascar',
+    flag: '🇲🇬',
+    currency: 'MGA',
+    currencySymbol: 'Ar',
+    exchangeRate: 5.5,
+    dialCode: '+261'
+  },
+  {
+    code: 'MA',
+    name: 'Maroc',
+    flag: '🇲🇦',
+    currency: 'MAD',
+    currencySymbol: 'DH',
+    exchangeRate: 0.055,
+    dialCode: '+212'
+  },
+  {
+    code: 'DZ',
+    name: 'Algérie',
+    flag: '🇩🇿',
+    currency: 'DZD',
+    currencySymbol: 'DA',
+    exchangeRate: 0.13,
+    dialCode: '+213'
+  },
+  {
+    code: 'TN',
+    name: 'Tunisie',
+    flag: '🇹🇳',
+    currency: 'TND',
+    currencySymbol: 'DT',
+    exchangeRate: 0.0033,
+    dialCode: '+216'
+  },
+  // Autres pays africains
   {
     code: 'NG',
     name: 'Nigeria',
@@ -102,22 +204,151 @@ export const WEST_AFRICAN_COUNTRIES: Country[] = [
     dialCode: '+233'
   },
   {
-    code: 'GN',
-    name: 'Guinée',
-    flag: '🇬🇳',
-    currency: 'GNF',
-    currencySymbol: 'FG',
-    exchangeRate: 14,
-    dialCode: '+224'
+    code: 'KE',
+    name: 'Kenya',
+    flag: '🇰🇪',
+    currency: 'KES',
+    currencySymbol: 'KSh',
+    exchangeRate: 0.18,
+    dialCode: '+254'
   },
   {
-    code: 'MA',
-    name: 'Maroc',
-    flag: '🇲🇦',
-    currency: 'MAD',
-    currencySymbol: 'DH',
-    exchangeRate: 0.055,
-    dialCode: '+212'
+    code: 'ZA',
+    name: 'Afrique du Sud',
+    flag: '🇿🇦',
+    currency: 'ZAR',
+    currencySymbol: 'R',
+    exchangeRate: 0.033,
+    dialCode: '+27'
+  },
+  {
+    code: 'ET',
+    name: 'Éthiopie',
+    flag: '🇪🇹',
+    currency: 'ETB',
+    currencySymbol: 'Br',
+    exchangeRate: 0.08,
+    dialCode: '+251'
+  },
+  {
+    code: 'EG',
+    name: 'Égypte',
+    flag: '🇪🇬',
+    currency: 'EGP',
+    currencySymbol: 'E£',
+    exchangeRate: 0.035,
+    dialCode: '+20'
+  },
+  // Europe francophone
+  {
+    code: 'FR',
+    name: 'France',
+    flag: '🇫🇷',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+33'
+  },
+  {
+    code: 'BE',
+    name: 'Belgique',
+    flag: '🇧🇪',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+32'
+  },
+  {
+    code: 'CH',
+    name: 'Suisse',
+    flag: '🇨🇭',
+    currency: 'CHF',
+    currencySymbol: 'CHF',
+    exchangeRate: 0.0016,
+    dialCode: '+41'
+  },
+  {
+    code: 'LU',
+    name: 'Luxembourg',
+    flag: '🇱🇺',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+352'
+  },
+  // Autres pays européens
+  {
+    code: 'DE',
+    name: 'Allemagne',
+    flag: '🇩🇪',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+49'
+  },
+  {
+    code: 'GB',
+    name: 'Royaume-Uni',
+    flag: '🇬🇧',
+    currency: 'GBP',
+    currencySymbol: '£',
+    exchangeRate: 0.0013,
+    dialCode: '+44'
+  },
+  {
+    code: 'IT',
+    name: 'Italie',
+    flag: '🇮🇹',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+39'
+  },
+  {
+    code: 'ES',
+    name: 'Espagne',
+    flag: '🇪🇸',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+34'
+  },
+  {
+    code: 'NL',
+    name: 'Pays-Bas',
+    flag: '🇳🇱',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+31'
+  },
+  {
+    code: 'PT',
+    name: 'Portugal',
+    flag: '🇵🇹',
+    currency: 'EUR',
+    currencySymbol: '€',
+    exchangeRate: 0.0015,
+    dialCode: '+351'
+  },
+  // Amérique
+  {
+    code: 'CA',
+    name: 'Canada',
+    flag: '🇨🇦',
+    currency: 'CAD',
+    currencySymbol: '$',
+    exchangeRate: 0.0021,
+    dialCode: '+1'
+  },
+  {
+    code: 'US',
+    name: 'États-Unis',
+    flag: '🇺🇸',
+    currency: 'USD',
+    currencySymbol: '$',
+    exchangeRate: 0.0017,
+    dialCode: '+1'
   }
 ];
 

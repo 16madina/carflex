@@ -7,6 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper logging function for debugging
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -18,48 +24,178 @@ serve(async (req) => {
   );
 
   try {
-    const authHeader = req.headers.get("Authorization")!;
+    logStep("Function started");
+    
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      logStep("ERROR: No authorization header");
+      throw new Error("En-tête d'autorisation manquant");
+    }
+    
+    logStep("Authenticating user");
     const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
+    const { data, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError) {
+      logStep("ERROR: Authentication failed", { error: authError.message });
+      throw new Error(`Erreur d'authentification: ${authError.message}`);
+    }
+    
     const user = data.user;
-    if (!user?.email) throw new Error("Utilisateur non authentifié");
+    if (!user?.email) {
+      logStep("ERROR: No user email");
+      throw new Error("Utilisateur non authentifié ou email manquant");
+    }
+    
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2025-08-27.basil" 
-    });
-
-    // Vérifier si un client Stripe existe déjà
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
+    // Parse request body for priceId, coupon code and plan_id
+    logStep("Parsing request body");
+    let couponCode, planId, priceId;
+    try {
+      const body = await req.json();
+      couponCode = body?.coupon_code || body?.couponCode;
+      planId = body?.plan_id;
+      priceId = body?.priceId;
+      logStep("Request body parsed", { 
+        couponCode: couponCode || 'none', 
+        planId: planId || 'none',
+        priceId: priceId || 'none'
+      });
+    } catch (e) {
+      logStep("No body provided or invalid JSON");
+      couponCode = null;
+      planId = null;
+      priceId = null;
+    }
+    
+    // Si priceId est fourni directement, l'utiliser (mode simple pour tests)
+    // Sinon, récupérer le priceId depuis la table subscription_plans
+    if (priceId) {
+      logStep("Using direct priceId", { priceId });
+    } else if (planId) {
+      logStep("Fetching subscription plan", { planId });
+      const { data: plan, error: planError } = await supabaseClient
+        .from("subscription_plans")
+        .select("stripe_price_id, name, price, is_active")
+        .eq("id", planId)
+        .single();
+      
+      if (planError) {
+        logStep("ERROR: Database error fetching plan", { error: planError.message });
+        throw new Error(`Erreur lors de la récupération du plan: ${planError.message}`);
+      }
+      
+      if (!plan) {
+        logStep("ERROR: Plan not found", { planId });
+        throw new Error("Plan d'abonnement non trouvé");
+      }
+      
+      if (!plan.is_active) {
+        logStep("ERROR: Plan is inactive", { planId });
+        throw new Error("Ce plan d'abonnement n'est plus actif");
+      }
+      
+      priceId = plan.stripe_price_id;
+      logStep("Plan found", { planName: plan.name, priceId, price: plan.price });
+    } else {
+      logStep("ERROR: No priceId or plan_id provided");
+      throw new Error("priceId ou plan_id est requis");
     }
 
-    // Créer une session de paiement pour l'abonnement Pro
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+    logStep("Initializing Stripe");
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
+
+    // Get or create customer
+    logStep("Checking for existing Stripe customer");
+    const customers = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    let customer;
+    if (customers.data.length > 0) {
+      customer = customers.data[0];
+      logStep("Found existing customer", { customerId: customer.id });
+    } else {
+      logStep("Creating new Stripe customer");
+      customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          supabase_user_id: user.id,
+        },
+      });
+      logStep("Customer created", { customerId: customer.id });
+    }
+
+    logStep("Creating Stripe checkout session");
+    const origin = req.headers.get("origin") || "https://carflex.lovable.app";
+    
+    const sessionConfig: any = {
+      customer: customer.id,
       line_items: [
         {
-          price: "price_1SIf7NDFVGkgPxNEVGJOYNJ3",
+          price: priceId,
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/subscription-success`,
-      cancel_url: `${req.headers.get("origin")}/subscription`,
-    });
+      success_url: `${origin}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/subscription`,
+      metadata: {
+        user_id: user.id,
+        plan_id: planId,
+      },
+    };
+
+    // Add coupon if provided
+    if (couponCode) {
+      logStep("Verifying coupon code", { couponCode });
+      try {
+        // Liste tous les coupons et cherche par nom (insensible à la casse)
+        const coupons = await stripe.coupons.list({ limit: 100 });
+        const matchingCoupon = coupons.data.find(
+          (c: Stripe.Coupon) => c.name?.toLowerCase() === couponCode.toLowerCase()
+        );
+        
+        if (matchingCoupon) {
+          logStep("Coupon found and applied", { 
+            couponId: matchingCoupon.id, 
+            name: matchingCoupon.name,
+            discount: matchingCoupon.percent_off || matchingCoupon.amount_off 
+          });
+          sessionConfig.discounts = [{ coupon: matchingCoupon.id }];
+        } else {
+          logStep("Coupon not found, proceeding without discount", { couponCode });
+          // Continue sans code promo plutôt que de bloquer
+        }
+      } catch (couponError) {
+        logStep("Error verifying coupon, proceeding without discount", { 
+          error: couponError instanceof Error ? couponError.message : String(couponError) 
+        });
+        // Continue sans code promo en cas d'erreur
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    console.error("Erreur create-checkout:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue";
+    logStep("ERROR in create-checkout", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
+    console.error("Error creating checkout session:", error);
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      }
+    );
   }
 });

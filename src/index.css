@@ -43,6 +43,7 @@ All colors MUST be HSL.
     --shadow-card: 0 4px 20px -2px hsl(220 70% 30% / 0.08);
     --shadow-elevated: 0 10px 40px -10px hsl(220 70% 30% / 0.15);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --spring-timing: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
@@ -53,20 +54,32 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    /* iOS Safe Areas - Compatible avec tous les iPhones (notch, Dynamic Island, etc.) */
+    /* Safe Areas - Compatible iOS et Android (notch, Dynamic Island, pliables, etc.) */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    /* Empêche le swipe horizontal sur toute la page */
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: none;
   }
 
-  /* Support pour tous les téléphones iOS avec encoche */
+  /* Support pour tous les téléphones avec encoches et pliables */
   @supports (padding: max(0px)) {
     body {
       padding-top: max(0px, env(safe-area-inset-top));
       padding-bottom: max(0px, env(safe-area-inset-bottom));
       padding-left: max(0px, env(safe-area-inset-left));
       padding-right: max(0px, env(safe-area-inset-right));
+    }
+  }
+
+  /* Optimisation pour écrans pliables Android */
+  @media (min-width: 884px) and (max-width: 1768px) {
+    .container {
+      max-width: 100%;
+      padding-left: 2rem;
+      padding-right: 2rem;
     }
   }
 }
@@ -89,5 +102,17 @@ All colors MUST be HSL.
   
   .pb-safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .glass-morphism {
+    @apply backdrop-blur-md bg-background/80 border border-border/50;
+  }
+
+  .active-press {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+
+  .spring-animation {
+    transition: all 0.4s var(--spring-timing);
   }
 }

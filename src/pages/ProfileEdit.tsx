@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Upload, User as UserIcon } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ImagePicker } from "@/components/ImagePicker";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ const ProfileEdit = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -64,8 +67,8 @@ const ProfileEdit = () => {
     setLoading(false);
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleAvatarUpload = async (files: File[]) => {
+    const file = files[0];
     if (!file || !user) return;
 
     setUploading(true);
@@ -128,6 +131,30 @@ const ProfileEdit = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    setDeleting(true);
+
+    try {
+      // Appeler l'edge function pour supprimer le compte
+      const { error } = await supabase.functions.invoke('delete-account', {
+        body: { userId: user.id }
+      });
+
+      if (error) throw error;
+
+      toast.success("Votre compte a été supprimé");
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("Erreur lors de la suppression du compte. Veuillez contacter le support.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -144,7 +171,7 @@ const ProfileEdit = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 pt-24 pb-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/profile")}
@@ -169,20 +196,10 @@ const ProfileEdit = () => {
                       <UserIcon className="h-12 w-12" />
                     </AvatarFallback>
                   </Avatar>
-                  <Label htmlFor="avatar-upload" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 border border-input rounded-md hover:bg-accent hover:text-accent-foreground transition-smooth">
-                      <Upload className="h-4 w-4" />
-                      {uploading ? "Upload en cours..." : "Changer la photo"}
-                    </div>
-                    <Input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarUpload}
-                      disabled={uploading}
-                    />
-                  </Label>
+                  <ImagePicker
+                    onImageSelect={handleAvatarUpload}
+                    disabled={uploading}
+                  />
                 </div>
 
                 {/* Form Fields */}
@@ -247,6 +264,46 @@ const ProfileEdit = () => {
                   {saving ? "Enregistrement..." : "Enregistrer les modifications"}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* Zone de danger - Suppression du compte */}
+          <Card className="shadow-card mt-6 border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-destructive">Zone de danger</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  La suppression de votre compte est irréversible. Toutes vos données, annonces et messages seront définitivement supprimés.
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="w-full" disabled={deleting}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {deleting ? "Suppression..." : "Supprimer mon compte"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action est irréversible. Cela supprimera définitivement votre compte
+                        et toutes vos données de nos serveurs.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteAccount}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Oui, supprimer mon compte
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </CardContent>
           </Card>
         </div>

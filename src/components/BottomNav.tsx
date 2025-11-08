@@ -73,21 +73,21 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t shadow-elevated">
-      <div className="flex items-center justify-around h-16 px-2 pb-safe-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t shadow-material-xl" style={{ touchAction: 'none' }}>
+      <div className="flex items-center justify-around px-2 pb-safe-bottom" style={{ height: 'max(60px, calc(60px + env(safe-area-inset-bottom)))' }}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
 
           if (item.isCenter) {
             return (
-              <Link key={item.path} to={item.path} className="relative -top-4">
+              <Link key={item.path} to={item.path} className="relative -top-6">
                 <Button
                   size="icon"
-                  className="h-14 w-14 rounded-full bg-gradient-hero shadow-elevated hover:scale-105 transition-transform"
+                  className="h-16 w-16 rounded-full bg-gradient-hero shadow-material-xl hover:scale-110 active:scale-95 transition-all"
                   aria-label={item.label}
                 >
-                  <Icon className="h-6 w-6" />
+                  <Icon className="h-7 w-7" />
                 </Button>
               </Link>
             );
@@ -98,26 +98,31 @@ const BottomNav = () => {
               key={item.path}
               to={item.path}
               className={`
-                flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg
-                transition-all duration-300 relative min-h-[44px] min-w-[44px]
+                flex flex-col items-center justify-center gap-1.5 px-4 py-2 rounded-2xl
+                transition-all duration-300 relative min-h-[48px] min-w-[48px] active-press
                 ${
                   active
-                    ? "text-primary scale-105 bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    ? "text-primary scale-105"
+                    : "text-muted-foreground hover:text-foreground"
                 }
               `}
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
               <div className="relative">
-                <Icon className="h-5 w-5" />
+                <div className={`p-2 rounded-xl ${active ? 'glass-morphism' : ''}`}>
+                  <Icon className="h-6 w-6" />
+                </div>
                 {item.showBadge && unreadCount > 0 && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-2 -right-2 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px]"
+                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] shadow-material"
                   >
                     {unreadCount}
                   </Badge>
+                )}
+                {active && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
                 )}
               </div>
               <span className="text-xs font-medium">{item.label}</span>

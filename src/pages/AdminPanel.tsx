@@ -9,12 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent, ArrowLeft, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCountry } from "@/contexts/CountryContext";
 import { UserManagement } from "@/components/admin/UserManagement";
+import { ModerationPanel } from "@/components/admin/ModerationPanel";
+import { ImagePicker } from "@/components/ImagePicker";
 
 interface PremiumPackage {
   id: string;
@@ -32,7 +34,9 @@ interface Listing {
   model: string;
   year: number;
   price: number;
-  seller_id: string;
+  seller_id?: string;
+  owner_id?: string;
+  listing_type: 'sale' | 'rental';
 }
 
 interface AdBanner {
@@ -140,13 +144,21 @@ const AdminPanel = () => {
   };
 
   const fetchListings = async () => {
-    const { data, error } = await supabase
+    // Récupérer les annonces de vente
+    const { data: saleData, error: saleError } = await supabase
       .from("sale_listings")
       .select("id, brand, model, year, price, seller_id")
       .order("created_at", { ascending: false })
       .limit(20);
 
-    if (error) {
+    // Récupérer les annonces de location
+    const { data: rentalData, error: rentalError } = await supabase
+      .from("rental_listings")
+      .select("id, brand, model, year, price_per_day, owner_id")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (saleError || rentalError) {
       toast({
         title: "Erreur",
         description: "Impossible de charger les annonces",
@@ -155,7 +167,22 @@ const AdminPanel = () => {
       return;
     }
 
-    setListings(data || []);
+    // Combiner les deux types d'annonces
+    const saleListings = (saleData || []).map(listing => ({
+      ...listing,
+      price: listing.price,
+      listing_type: 'sale' as const,
+      seller_id: listing.seller_id
+    }));
+
+    const rentalListings = (rentalData || []).map(listing => ({
+      ...listing,
+      price: listing.price_per_day,
+      listing_type: 'rental' as const,
+      owner_id: listing.owner_id
+    }));
+
+    setListings([...saleListings, ...rentalListings]);
   };
 
   const fetchAdBanners = async () => {
@@ -176,8 +203,8 @@ const AdminPanel = () => {
     setAdBanners(data || []);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageUpload = async (files: File[]) => {
+    const file = files[0];
     if (!file) return;
 
     setUploadingImage(true);
@@ -278,6 +305,19 @@ const AdminPanel = () => {
       image_url: banner.image_url,
       link_url: banner.link_url,
       is_active: banner.is_active,
+    });
+    
+    // Scroll vers le formulaire d'édition
+    setTimeout(() => {
+      const formElement = document.querySelector('[data-banner-form]');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+    
+    toast({
+      title: "Mode édition",
+      description: `Vous pouvez maintenant modifier la bannière "${banner.title}"`,
     });
   };
 
@@ -386,8 +426,30 @@ const AdminPanel = () => {
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    // Trouver l'annonce sélectionnée pour obtenir son propriétaire et son type
+    const selectedListing = listings.find(l => l.id === promotionData.listing_id);
+    if (!selectedListing) {
+      toast({
+        title: "Erreur",
+        description: "Annonce non trouvée",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Déterminer le user_id (propriétaire de l'annonce)
+    const listingOwnerId = selectedListing.listing_type === 'sale' 
+      ? selectedListing.seller_id 
+      : selectedListing.owner_id;
+
+    if (!listingOwnerId) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de trouver le propriétaire de l'annonce",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Get package details
     const pkg = packages.find(p => p.id === promotionData.package_id);
@@ -400,9 +462,9 @@ const AdminPanel = () => {
       .from("premium_listings")
       .insert([{
         listing_id: promotionData.listing_id,
-        listing_type: promotionData.listing_type,
+        listing_type: selectedListing.listing_type,
         package_id: promotionData.package_id,
-        user_id: user.id,
+        user_id: listingOwnerId,
         end_date: endDate.toISOString(),
         is_active: true,
       }]);
@@ -521,7 +583,16 @@ const AdminPanel = () => {
     <div className="min-h-screen bg-background">
       <TopBar />
       
-      <main className="container mx-auto px-4 py-8 pb-24">
+      <main className="container mx-auto px-4 pt-24 pb-24">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+        
         <div className="flex items-center gap-3 mb-6">
           <Crown className="h-8 w-8 text-amber-500" />
           <h1 className="text-3xl font-bold">Panneau d'Administration</h1>
@@ -533,7 +604,12 @@ const AdminPanel = () => {
             <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
             <TabsTrigger value="users">Gestion des Utilisateurs</TabsTrigger>
+            <TabsTrigger value="moderation">
+              <Shield className="h-4 w-4 mr-2" />
+              Modération
+            </TabsTrigger>
             <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
+            <TabsTrigger value="coupons">Codes Promo</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
@@ -688,6 +764,22 @@ const AdminPanel = () => {
               <CardContent>
                 <form onSubmit={handlePromoteToTrending} className="space-y-4">
                   <div>
+                    <Label htmlFor="listing-type">Type d'annonce</Label>
+                    <Select
+                      value={promotionData.listing_type}
+                      onValueChange={(value) => setPromotionData({ ...promotionData, listing_type: value as 'sale' | 'rental', listing_id: "" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir le type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sale">🚗 Vente</SelectItem>
+                        <SelectItem value="rental">🔑 Location</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <Label htmlFor="listing">Sélectionner une annonce</Label>
                     <Select
                       value={promotionData.listing_id}
@@ -697,11 +789,13 @@ const AdminPanel = () => {
                         <SelectValue placeholder="Choisir une annonce" />
                       </SelectTrigger>
                       <SelectContent>
-                        {listings.map((listing) => (
-                          <SelectItem key={listing.id} value={listing.id}>
-                            {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
-                          </SelectItem>
-                        ))}
+                        {listings
+                          .filter((listing) => listing.listing_type === promotionData.listing_type)
+                          .map((listing) => (
+                            <SelectItem key={listing.id} value={listing.id}>
+                              {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -736,14 +830,17 @@ const AdminPanel = () => {
 
           <TabsContent value="banners">
             <div className="grid md:grid-cols-2 gap-6">
-              <Card>
+              <Card data-banner-form>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ImageIcon className="h-5 w-5 text-blue-500" />
                     {editingBanner ? "Modifier" : "Créer"} une Bannière Publicitaire
                   </CardTitle>
                   <CardDescription>
-                    Gérez les bannières publicitaires affichées entre les annonces
+                    {editingBanner 
+                      ? `Modification de la bannière "${editingBanner.title}"`
+                      : "Gérez les bannières publicitaires affichées entre les annonces"
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -773,12 +870,10 @@ const AdminPanel = () => {
 
                     <div>
                       <Label htmlFor="banner-image">Image de la bannière</Label>
-                      <Input
-                        id="banner-image"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
+                      <ImagePicker
+                        onImageSelect={handleImageUpload}
                         disabled={uploadingImage}
+                        className="w-full"
                       />
                       {uploadingImage && <p className="text-sm text-muted-foreground mt-2">Upload en cours...</p>}
                       {bannerFormData.image_url && (
@@ -906,6 +1001,14 @@ const AdminPanel = () => {
             <ProPlanSettings />
           </TabsContent>
 
+          <TabsContent value="moderation">
+            <ModerationPanel />
+          </TabsContent>
+
+          <TabsContent value="coupons">
+            <CouponManagement />
+          </TabsContent>
+
           <TabsContent value="settings">
             <Card>
               <CardHeader>
@@ -936,6 +1039,25 @@ const AdminPanel = () => {
                     disabled={savingSettings}
                   />
                 </div>
+
+                <div className="flex items-center justify-between border-t pt-6">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="enable-listings-limit">
+                      Activer la limite de 5 annonces gratuites
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Limite le nombre d'annonces gratuites à 5 par utilisateur. Les utilisateurs Pro n'ont pas de limite.
+                    </p>
+                  </div>
+                  <Switch
+                    id="enable-listings-limit"
+                    checked={appSettings.enable_free_listings_limit || false}
+                    onCheckedChange={(checked) => 
+                      handleSettingChange('enable_free_listings_limit', checked)
+                    }
+                    disabled={savingSettings}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -951,7 +1073,7 @@ const ProPlanSettings = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [proPlanData, setProPlanData] = useState({
-    productId: "prod_TF9Qwq8CkwzIUw",
+    productId: "prod_TKldqbLd1nRzXX",
     priceId: "",
     currentPrice: 0,
     newPrice: 0,
@@ -1046,52 +1168,329 @@ const ProPlanSettings = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Crown className="h-5 w-5 text-primary" />
-          Gestion du Plan Pro
+          Gestion des Plans d'Abonnement
         </CardTitle>
         <CardDescription>
-          Modifiez le prix mensuel du plan d'abonnement Pro
+          Gérez tous vos plans d'abonnement Stripe (prix, fonctionnalités, etc.)
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleUpdatePrice} className="space-y-4">
-          <div>
-            <Label>Prix actuel</Label>
-            <div className="text-2xl font-bold text-primary">
-              {formatPrice(proPlanData.currentPrice)}/mois
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="newPrice">Nouveau prix ({selectedCountry.currencySymbol})</Label>
-            <Input
-              id="newPrice"
-              type="number"
-              step="0.01"
-              value={proPlanData.newPrice}
-              onChange={(e) => setProPlanData({ ...proPlanData, newPrice: parseFloat(e.target.value) })}
-              required
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Équivalent: {formatPrice(proPlanData.newPrice / selectedCountry.exchangeRate)} XOF
-            </p>
-          </div>
-
-          <Button type="submit" disabled={updating} className="w-full">
-            {updating ? (
-              <>
-                <Edit className="mr-2 h-4 w-4 animate-spin" />
-                Mise à jour...
-              </>
-            ) : (
-              <>
-                <Edit className="mr-2 h-4 w-4" />
-                Mettre à jour le prix
-              </>
-            )}
-          </Button>
-        </form>
+        <Button 
+          onClick={() => window.location.href = '/admin/subscription-plans'}
+          className="w-full"
+        >
+          <Crown className="mr-2 h-4 w-4" />
+          Accéder à la gestion des plans
+        </Button>
       </CardContent>
     </Card>
+  );
+};
+
+const CouponManagement = () => {
+  const [loading, setLoading] = useState(true);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [creatingCoupon, setCreatingCoupon] = useState(false);
+  const [couponForm, setCouponForm] = useState({
+    code: "",
+    discountType: "percent" as "percent" | "amount",
+    percentOff: 0,
+    amountOff: 0,
+    duration: "once" as "once" | "forever" | "repeating",
+    durationInMonths: 1,
+  });
+  const { toast } = useToast();
+  const { formatPrice } = useCountry();
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  const fetchCoupons = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('manage-stripe-coupons', {
+        body: { action: 'list' },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      setCoupons(data.coupons || []);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+      toast({
+        title: "Information",
+        description: "Les coupons Stripe seront disponibles après configuration",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingCoupon(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const couponData = {
+        code: couponForm.code,
+        duration: couponForm.duration,
+        percentOff: couponForm.discountType === "percent" ? couponForm.percentOff : undefined,
+        amountOff: couponForm.discountType === "amount" ? couponForm.amountOff : undefined,
+        durationInMonths: couponForm.duration === "repeating" ? couponForm.durationInMonths : undefined,
+      };
+
+      const { data, error } = await supabase.functions.invoke('manage-stripe-coupons', {
+        body: { action: 'create', couponData },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Code promo créé avec succès",
+      });
+
+      setCouponForm({
+        code: "",
+        discountType: "percent",
+        percentOff: 0,
+        amountOff: 0,
+        duration: "once",
+        durationInMonths: 1,
+      });
+
+      fetchCoupons();
+    } catch (error) {
+      console.error("Error creating coupon:", error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible de créer le code promo",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingCoupon(false);
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce code promo ?")) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('manage-stripe-coupons', {
+        body: { action: 'delete', couponId },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Code promo supprimé avec succès",
+      });
+
+      fetchCoupons();
+    } catch (error) {
+      console.error("Error deleting coupon:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le code promo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p>Chargement...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Tag className="h-5 w-5 text-primary" />
+            Créer un Code Promo
+          </CardTitle>
+          <CardDescription>
+            Créez des codes de réduction pour vos clients
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreateCoupon} className="space-y-4">
+            <div>
+              <Label htmlFor="code">Nom du code</Label>
+              <Input
+                id="code"
+                value={couponForm.code}
+                onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value })}
+                placeholder="PROMO2025"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="discountType">Type de réduction</Label>
+              <Select
+                value={couponForm.discountType}
+                onValueChange={(value: "percent" | "amount") => 
+                  setCouponForm({ ...couponForm, discountType: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percent">Pourcentage</SelectItem>
+                  <SelectItem value="amount">Montant fixe</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {couponForm.discountType === "percent" ? (
+              <div>
+                <Label htmlFor="percentOff">Pourcentage de réduction (%)</Label>
+                <Input
+                  id="percentOff"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={couponForm.percentOff}
+                  onChange={(e) => setCouponForm({ ...couponForm, percentOff: parseFloat(e.target.value) })}
+                  required
+                />
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="amountOff">Montant de réduction (XOF)</Label>
+                <Input
+                  id="amountOff"
+                  type="number"
+                  min="1"
+                  value={couponForm.amountOff}
+                  onChange={(e) => setCouponForm({ ...couponForm, amountOff: parseFloat(e.target.value) })}
+                  required
+                />
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="duration">Durée</Label>
+              <Select
+                value={couponForm.duration}
+                onValueChange={(value: "once" | "forever" | "repeating") => 
+                  setCouponForm({ ...couponForm, duration: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="once">Une fois</SelectItem>
+                  <SelectItem value="forever">Toujours</SelectItem>
+                  <SelectItem value="repeating">Récurrent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {couponForm.duration === "repeating" && (
+              <div>
+                <Label htmlFor="durationInMonths">Nombre de mois</Label>
+                <Input
+                  id="durationInMonths"
+                  type="number"
+                  min="1"
+                  value={couponForm.durationInMonths}
+                  onChange={(e) => setCouponForm({ ...couponForm, durationInMonths: parseInt(e.target.value) })}
+                  required
+                />
+              </div>
+            )}
+
+            <Button type="submit" disabled={creatingCoupon} className="w-full">
+              {creatingCoupon ? "Création..." : "Créer le code promo"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Percent className="h-5 w-5" />
+          Codes Promo Actifs
+        </h2>
+        {coupons.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              Aucun code promo pour le moment
+            </CardContent>
+          </Card>
+        ) : (
+          coupons.map((coupon) => (
+            <Card key={coupon.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      {coupon.name}
+                      {coupon.valid && (
+                        <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded">
+                          Actif
+                        </span>
+                      )}
+                    </CardTitle>
+                    <CardDescription>
+                      {coupon.percent_off 
+                        ? `${coupon.percent_off}% de réduction`
+                        : `${formatPrice(coupon.amount_off / 100)} de réduction`
+                      }
+                    </CardDescription>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    onClick={() => handleDeleteCoupon(coupon.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm space-y-1">
+                  <p><strong>Durée:</strong> {
+                    coupon.duration === "once" ? "Une utilisation" :
+                    coupon.duration === "forever" ? "Illimité" :
+                    `${coupon.duration_in_months} mois`
+                  }</p>
+                  {coupon.times_redeemed > 0 && (
+                    <p><strong>Utilisations:</strong> {coupon.times_redeemed}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
   );
 };
 

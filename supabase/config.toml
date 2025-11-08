@@ -1,7 +1,13 @@
 project_id = "dgmqdovojzzbdovgkawu"
 
-[functions.payment-webhook]
+[functions.stripe-webhook]
 verify_jwt = false
+
+[functions.verify-stripe-payment]
+verify_jwt = false
+
+[functions.create-premium-payment]
+verify_jwt = true
 
 [functions.ai-price-evaluation]
 verify_jwt = false
@@ -29,3 +35,15 @@ verify_jwt = false
 
 [functions.verify-email]
 verify_jwt = false
+
+[functions.manage-stripe-coupons]
+verify_jwt = true
+
+[functions.report-content]
+verify_jwt = true
+
+[functions.moderate-content]
+verify_jwt = false
+
+[functions.verify-ios-purchase]
+verify_jwt = true

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { useSplashScreen } from "./hooks/useSplashScreen";
 import { usePushNotifications } from "./hooks/usePushNotifications";
+import { useAppTracking } from "./hooks/useAppTracking";
 import SplashScreen from "./components/SplashScreen";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EmailVerification from "./pages/EmailVerification";
@@ -29,6 +31,8 @@ import PromoteListing from "./pages/PromoteListing";
 import Dashboard from "./pages/Dashboard";
 import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import SubscriptionPlansAdmin from "./pages/SubscriptionPlansAdmin";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import DataProtection from "./pages/DataProtection";
@@ -43,6 +47,7 @@ const App = () => {
   // Initialise le splash screen natif et les push notifications
   useSplashScreen();
   usePushNotifications();
+  useAppTracking(); // Initialize but don't show dialog here
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
@@ -54,6 +59,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+
           <BrowserRouter>
             <AuthSync />
             <Routes>
@@ -74,10 +80,12 @@ const App = () => {
               <Route path="/profile/:userId" element={<PublicProfile />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/subscription-plans" element={<SubscriptionPlansAdmin />} />
               <Route path="/promote" element={<PromoteListing />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/subscription-success" element={<SubscriptionSuccess />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route path="/data-protection" element={<DataProtection />} />

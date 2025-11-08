@@ -198,7 +198,7 @@ const Messages = () => {
           flex-col w-full md:w-[380px] border-r border-border bg-card
         `}>
           {/* Header */}
-          <div className="p-4 border-b border-border">
+          <div className="pt-20 px-4 pb-4 border-b border-border">
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
@@ -335,6 +335,9 @@ const Messages = () => {
                   onClose={() => setSelectedConversation(null)}
                   otherParticipantName={participantName}
                   otherParticipantAvatar={otherParticipant?.avatar_url}
+                  listingId={conv?.listing_id}
+                  listingType={conv?.listing_type as 'sale' | 'rental'}
+                  listingInfo={conv?.listing ? `${conv.listing.brand} ${conv.listing.model}` : undefined}
                 />
               );
             })()

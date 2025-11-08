@@ -7,12 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Car, Upload, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { WEST_AFRICAN_COUNTRIES } from "@/contexts/CountryContext";
 import CitySelector from "@/components/CitySelector";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { validateImageFile } from "@/lib/fileValidation";
+import { validatePassword } from "@/lib/passwordValidation";
+import { TermsDialog } from "@/components/TermsDialog";
+import { PrivacyDialog } from "@/components/PrivacyDialog";
+import { ImagePicker } from "@/components/ImagePicker";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useAppTracking } from "@/hooks/useAppTracking";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -21,6 +29,8 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showATTDialog, setShowATTDialog] = useState(false);
+  const { requestTrackingPermission } = useAppTracking();
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
@@ -37,10 +47,20 @@ const Auth = () => {
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleAvatarChange = (files: File[]) => {
+    const file = files[0];
     if (file) {
+      // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error || "Fichier invalide");
+        return;
+      }
+      
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -94,6 +114,25 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation de la photo de profil
+    if (!avatarFile) {
+      toast.error("La photo de profil est obligatoire");
+      return;
+    }
+    
+    // Validation des CGU
+    if (!acceptedTerms) {
+      toast.error("Vous devez accepter les Conditions Générales d'Utilisation");
+      return;
+    }
+    
+    // Validation de la force du mot de passe
+    const passwordValidation = validatePassword(signupData.password);
+    if (!passwordValidation.valid) {
+      toast.error(passwordValidation.errors[0]); // Show first error
+      return;
+    }
     
     // Validation des mots de passe
     if (signupData.password !== signupData.confirmPassword) {
@@ -166,7 +205,8 @@ const Auth = () => {
         toast.warning("Compte créé, mais l'email de vérification n'a pas pu être envoyé.");
       }
       
-      navigate("/");
+      // Show ATT dialog after successful signup
+      setShowATTDialog(true);
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'inscription");
     } finally {
@@ -303,13 +343,9 @@ const Auth = () => {
                         )}
                       </Avatar>
                       <div className="flex-1">
-                        <Input
-                          id="avatar"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleAvatarChange}
-                          required
-                          className="cursor-pointer"
+                        <ImagePicker
+                          onImageSelect={handleAvatarChange}
+                          className="w-full"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
                           JPG, PNG ou WEBP (max. 5MB)
@@ -481,7 +517,38 @@ const Auth = () => {
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <div className="flex items-start space-x-2">
+                    <Checkbox 
+                      id="terms" 
+                      checked={acceptedTerms}
+                      onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                      required
+                    />
+                    <label
+                      htmlFor="terms"
+                      className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      J'accepte les{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowTermsDialog(true)}
+                        className="text-primary underline hover:no-underline"
+                      >
+                        Conditions Générales d'Utilisation
+                      </button>{" "}
+                      et la{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowPrivacyDialog(true)}
+                        className="text-primary underline hover:no-underline"
+                      >
+                        Politique de Confidentialité
+                      </button>
+                      <span className="text-destructive ml-1">*</span>
+                    </label>
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={loading || !acceptedTerms}>
                     {loading ? "Inscription..." : "S'inscrire"}
                   </Button>
                 </form>
@@ -490,6 +557,39 @@ const Auth = () => {
           </CardContent>
         </Card>
       </div>
+
+      <TermsDialog open={showTermsDialog} onOpenChange={setShowTermsDialog} />
+      <PrivacyDialog open={showPrivacyDialog} onOpenChange={setShowPrivacyDialog} />
+      
+      {/* App Tracking Transparency Dialog */}
+      <AlertDialog open={showATTDialog} onOpenChange={setShowATTDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confidentialité des données</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                CarFlex collecte des informations de base (email, nom, téléphone) 
+                uniquement pour le fonctionnement de l'application :
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Créer et gérer votre compte</li>
+                <li>Permettre la messagerie entre utilisateurs</li>
+                <li>Gérer vos annonces et réservations</li>
+              </ul>
+              <p className="font-semibold mt-2">
+                Aucun suivi publicitaire n'est effectué.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogAction onClick={async () => {
+            await requestTrackingPermission();
+            setShowATTDialog(false);
+            navigate("/");
+          }}>
+            J'ai compris
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

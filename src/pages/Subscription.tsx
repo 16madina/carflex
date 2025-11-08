@@ -5,36 +5,32 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
+import { Capacitor } from "@capacitor/core";
+import { Purchases, LOG_LEVEL } from "@revenuecat/purchases-capacitor";
 
-const SUBSCRIPTION_TIERS = {
-  free: {
-    name: "Gratuit",
-    price: 0,
-    features: [
-      "Jusqu'à 5 annonces",
-      "Fonctionnalités de base",
-      "Support standard"
-    ]
-  },
-  pro: {
-    name: "Pro",
-    price: 5000,
-    productId: "prod_TF9Qwq8CkwzIUw",
-    features: [
-      "Annonces illimitées",
-      "Boost de visibilité (apparaît en premier)",
-      "Badge 'Pro' sur vos annonces",
-      "Statistiques avancées",
-      "Priorité dans les résultats de recherche",
-      "Support prioritaire"
-    ]
-  }
-};
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  stripe_product_id: string;
+  stripe_price_id: string;
+  price: number;
+  currency: string;
+  description: string | null;
+  features: string[];
+  display_order: number;
+}
+
+const FREE_FEATURES = [
+  "Jusqu'à 5 annonces",
+  "Fonctionnalités de base",
+  "Support standard"
+];
 
 const Subscription = () => {
   const navigate = useNavigate();
@@ -42,28 +38,219 @@ const Subscription = () => {
   const { subscribed, productId, subscriptionEnd, loading, refreshSubscription } = useSubscription();
   const [subscribing, setSubscribing] = useState(false);
   const [managing, setManaging] = useState(false);
-  // Prix fixe pour éviter les variations
-  const proPrice = SUBSCRIPTION_TIERS.pro.price;
+  const [promoCode, setPromoCode] = useState("");
+  const [showPromoInput, setShowPromoInput] = useState(false);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+  const [isIOS, setIsIOS] = useState(false);
+
+  // ID du produit IAP configuré dans App Store Connect
+  const IOS_PRODUCT_ID = "com.missdee.carflextest.subscription.pro.monthly";
+  
+  // Initialiser RevenueCat pour iOS
+  useEffect(() => {
+    const platform = Capacitor.getPlatform();
+    setIsIOS(platform === 'ios');
+    
+    if (platform === 'ios') {
+      initializeRevenueCat();
+    }
+  }, []);
+
+  const initializeRevenueCat = async () => {
+    try {
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+      
+      // Configurer RevenueCat avec l'API key iOS
+      await Purchases.configure({
+        apiKey: "appl_EtkJmPIhjcTNZXDcGYLNsrqRQgm",
+      });
+      
+      console.log('[IAP] RevenueCat initialisé');
+    } catch (error) {
+      console.error('[IAP] Erreur initialisation RevenueCat:', error);
+    }
+  };
+
+  // Charger les plans depuis la base de données
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+
+        if (error) throw error;
+        
+        // Convertir features de Json vers string[]
+        const formattedPlans = (data || []).map(plan => ({
+          ...plan,
+          features: Array.isArray(plan.features) ? plan.features as string[] : []
+        }));
+        
+        setPlans(formattedPlans);
+      } catch (error) {
+        console.error('Erreur lors du chargement des plans:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les plans d'abonnement",
+          variant: "destructive"
+        });
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  const proPlan = plans.find(plan => plan.name === 'Pro');
+  const isPro = subscribed && proPlan && productId === proPlan.stripe_product_id;
 
   const handleSubscribe = async () => {
-    setSubscribing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error: any) {
-      console.error('Erreur lors de la création du checkout:', error);
+    if (!proPlan) {
       toast({
         title: "Erreur",
-        description: "Impossible de créer la session de paiement. Veuillez réessayer.",
+        description: "Le plan Pro n'est pas disponible",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSubscribing(true);
+    
+    try {
+      // Sur iOS, utiliser les achats in-app natifs
+      if (isIOS) {
+        await handleIOSPurchase();
+      } else {
+        // Sur web/Android, utiliser Stripe
+        await handleStripePurchase();
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de l\'achat:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de traiter le paiement. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
       setSubscribing(false);
+    }
+  };
+
+  const handleIOSPurchase = async () => {
+    try {
+      console.log('[IAP] Récupération des offres disponibles...');
+      
+      // Récupérer les offres disponibles
+      const offerings = await Purchases.getOfferings();
+      
+      // Utiliser l'offering "pro_subscription" configuré dans RevenueCat
+      const proOffering = offerings.all["pro_subscription"];
+      
+      if (!proOffering) {
+        throw new Error("L'offre 'pro_subscription' n'est pas disponible");
+      }
+
+      // Trouver le package approprié
+      const packageToPurchase = proOffering.availablePackages.find(
+        pkg => pkg.product.identifier === IOS_PRODUCT_ID
+      );
+
+      if (!packageToPurchase) {
+        throw new Error("Produit introuvable");
+      }
+
+      console.log('[IAP] Achat du package:', packageToPurchase.identifier);
+      
+      // Effectuer l'achat
+      const purchaseResult = await Purchases.purchasePackage({
+        aPackage: packageToPurchase
+      });
+
+      console.log('[IAP] Achat réussi:', purchaseResult);
+
+      // Synchroniser avec le backend
+      await syncIOSPurchase(purchaseResult);
+
+      // Rafraîchir le statut d'abonnement
+      await refreshSubscription();
+
+      toast({
+        title: "Abonnement activé !",
+        description: "Votre plan Pro est maintenant actif",
+      });
+
+    } catch (error: any) {
+      console.error('[IAP] Erreur achat:', error);
+      
+      // Gérer les erreurs spécifiques
+      if (error.code === '1') { // User cancelled
+        throw new Error("Achat annulé");
+      }
+      
+      throw error;
+    }
+  };
+
+  const handleStripePurchase = async () => {
+    try {
+      // Prix Stripe pour le Plan Pro mensuel (10,000 XOF/mois)
+      const STRIPE_PRICE_ID = 'price_1SO66N0uNiBPsOk0hWzYsLTW';
+      
+      console.log('[STRIPE] Création de la session de paiement...');
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          priceId: STRIPE_PRICE_ID,
+          ...(promoCode && { couponCode: promoCode })
+        }
+      });
+      
+      if (error) {
+        console.error('[STRIPE] Erreur:', error);
+        throw error;
+      }
+      
+      if (data?.url) {
+        console.log('[STRIPE] Ouverture de la session de paiement');
+        // Ouvrir dans un nouvel onglet pour faciliter le test
+        window.open(data.url, '_blank');
+        
+        toast({
+          title: "Redirection vers le paiement",
+          description: "Une nouvelle fenêtre s'est ouverte pour effectuer le paiement",
+        });
+      }
+    } catch (error: any) {
+      console.error('[STRIPE] Erreur complète:', error);
+      throw new Error(error.message || "Erreur lors de la création de la session de paiement");
+    }
+  };
+
+  const syncIOSPurchase = async (purchaseResult: any) => {
+    try {
+      // Envoyer le reçu au backend pour validation
+      const { error } = await supabase.functions.invoke('verify-ios-purchase', {
+        body: {
+          transaction_id: purchaseResult.customerInfo.originalAppUserId,
+          product_id: IOS_PRODUCT_ID,
+          customer_info: purchaseResult.customerInfo
+        }
+      });
+
+      if (error) {
+        console.error('[IAP] Erreur sync:', error);
+        throw error;
+      }
+
+      console.log('[IAP] Achat synchronisé avec succès');
+    } catch (error) {
+      console.error('[IAP] Erreur lors de la synchronisation:', error);
+      throw error;
     }
   };
 
@@ -75,7 +262,8 @@ const Subscription = () => {
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        console.log('[Subscription] Opening customer portal:', data.url);
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Erreur lors de l\'ouverture du portail client:', error);
@@ -89,9 +277,7 @@ const Subscription = () => {
     }
   };
 
-  const isPro = subscribed && productId === SUBSCRIPTION_TIERS.pro.productId;
-
-  if (loading) {
+  if (loading || loadingPlans) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -103,7 +289,16 @@ const Subscription = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 pt-24 pb-8 max-w-4xl">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
+        
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2">Choisissez votre plan</h1>
           <p className="text-muted-foreground">
@@ -126,7 +321,7 @@ const Subscription = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {SUBSCRIPTION_TIERS.free.features.map((feature, index) => (
+                {FREE_FEATURES.map((feature, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>{feature}</span>
@@ -136,24 +331,25 @@ const Subscription = () => {
             </CardContent>
           </Card>
 
-          {/* Plan Pro */}
-          <Card className={isPro ? "border-primary bg-gradient-to-br from-primary/5 to-transparent" : ""}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle>Pro</CardTitle>
-                  <Crown className="h-5 w-5 text-primary" />
+          {/* Plan Pro - Chargé depuis la base de données */}
+          {proPlan && (
+            <Card className={isPro ? "border-primary bg-gradient-to-br from-primary/5 to-transparent" : ""}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CardTitle>{proPlan.name}</CardTitle>
+                    <Crown className="h-5 w-5 text-primary" />
+                  </div>
+                  {isPro && <Badge className="bg-primary">Plan actuel</Badge>}
                 </div>
-                {isPro && <Badge className="bg-primary">Plan actuel</Badge>}
-              </div>
-              <CardDescription>
-                <span className="text-3xl font-bold">{formatPrice(proPrice)}</span>
-                <span className="text-muted-foreground">/mois</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {SUBSCRIPTION_TIERS.pro.features.map((feature, index) => (
+                <CardDescription>
+                  <span className="text-3xl font-bold">{formatPrice(proPlan.price)}</span>
+                  <span className="text-muted-foreground">/mois</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {proPlan.features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>{feature}</span>
@@ -163,24 +359,46 @@ const Subscription = () => {
             </CardContent>
             <CardFooter>
               {!isPro ? (
-                <Button 
-                  onClick={handleSubscribe} 
-                  disabled={subscribing}
-                  className="w-full"
-                  size="lg"
-                >
-                  {subscribing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Chargement...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Passer à Pro
-                    </>
-                  )}
-                </Button>
+                <div className="w-full space-y-3">
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowPromoInput(!showPromoInput)}
+                      className="w-full"
+                    >
+                      <Tag className="mr-2 h-4 w-4" />
+                      {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                    </Button>
+                    
+                    {showPromoInput && (
+                      <Input
+                        placeholder="Code promo (optionnel)"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                      />
+                    )}
+                  </div>
+
+                  <Button 
+                    onClick={handleSubscribe} 
+                    disabled={subscribing}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {subscribing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Chargement...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Passer à Pro
+                      </>
+                    )}
+                  </Button>
+                </div>
               ) : (
                 <div className="w-full space-y-2">
                   {subscriptionEnd && (
@@ -207,6 +425,7 @@ const Subscription = () => {
               )}
             </CardFooter>
           </Card>
+          )}
         </div>
 
         {/* Avantages du plan Pro */}

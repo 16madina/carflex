@@ -3,6 +3,7 @@ import { Heart, MapPin, Calendar, Gauge } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -75,10 +76,10 @@ const CarCard = ({
 
   return (
     <Card 
-      className="group overflow-hidden hover:shadow-elevated transition-all duration-300 cursor-pointer"
+      className="group overflow-hidden hover:shadow-material-xl transition-all duration-300 cursor-pointer animate-spring"
       onClick={handleCardClick}
     >
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-48 overflow-hidden bg-muted">
         {displayImages.length > 0 ? (
           <div onClick={(e) => e.stopPropagation()}>
             <ImageCarousel 
@@ -88,21 +89,19 @@ const CarCard = ({
             />
           </div>
         ) : (
-          <div className="w-full h-48 bg-gradient-card flex items-center justify-center">
-            <span className="text-muted-foreground">Image non disponible</span>
-          </div>
+          <Skeleton className="w-full h-48" />
         )}
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-3 right-3 rounded-full shadow-lg z-10 h-11 w-11 md:h-10 md:w-10"
+          className="absolute top-3 right-3 rounded-full shadow-material-lg z-10 h-12 w-12 glass-morphism hover:scale-110"
           onClick={(e) => {
             e.stopPropagation();
             handleFavoriteClick();
           }}
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
-          <Heart className={`h-5 w-5 md:h-4 md:w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
+          <Heart className={`h-5 w-5 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
         </Button>
         <div className="absolute bottom-3 left-3 z-10">
           <DealRatingBadge 
@@ -119,35 +118,35 @@ const CarCard = ({
             {brand} {model}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary">{transmission}</Badge>
+            <Badge variant="secondary" className="rounded-lg px-2.5 py-0.5 text-xs">{transmission}</Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
           <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-3.5 w-3.5" />
             <span>{year}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Gauge className="h-4 w-4" />
+            <Gauge className="h-3.5 w-3.5" />
             <span>{mileage.toLocaleString()} km</span>
           </div>
           <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
+            <MapPin className="h-3.5 w-3.5" />
             <span>{city}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <div className={`text-xl font-bold ${getPriceColorClass(rating)}`}>
               {formatPrice(price)}
               {isRental && (
-                <span className="text-sm text-muted-foreground ml-1">/jour</span>
+                <span className="text-xs text-muted-foreground ml-1">/jour</span>
               )}
             </div>
             {sellerName && sellerType && (
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-[10px] text-muted-foreground mt-0.5">
                 {sellerName} • {
                   sellerType === 'dealer' ? 'Concessionnaire' :
                   sellerType === 'seller' ? 'Vendeur' :
@@ -159,7 +158,7 @@ const CarCard = ({
           </div>
           <Button 
             variant="default"
-            className="h-11 md:h-10"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
               handleCardClick();

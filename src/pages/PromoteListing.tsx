@@ -4,12 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { useCountry } from "@/contexts/CountryContext";
+import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
+import { Capacitor } from "@capacitor/core";
+import { Purchases } from "@revenuecat/purchases-capacitor";
+
+// Mapping des packages vers les Product IDs iOS
+const IOS_PRODUCT_IDS: { [key: number]: string } = {
+  3: "com.missdee.carflextest.premium.3jours",
+  7: "com.missdee.carflextest.premium.7days",
+  15: "com.missdee.carflextest.premium.15days",
+};
 
 interface PremiumPackage {
   id: string;
@@ -39,10 +50,28 @@ const PromoteListing = () => {
   const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [showPromoInput, setShowPromoInput] = useState(false);
+  const [showPaymentSelector, setShowPaymentSelector] = useState(false);
+  const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
 
   useEffect(() => {
     checkUser();
+    initializeRevenueCat();
   }, []);
+
+  const initializeRevenueCat = async () => {
+    if (Capacitor.getPlatform() === 'ios') {
+      try {
+        await Purchases.configure({
+          apiKey: "appl_AENJJUNifyVsvGvFNHeZPKSfETy",
+        });
+        console.log('[PromoteListing] RevenueCat initialized');
+      } catch (error) {
+        console.error('[PromoteListing] RevenueCat init error:', error);
+      }
+    }
+  };
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -101,45 +130,191 @@ const PromoteListing = () => {
       return;
     }
 
-    setSubmitting(true);
+    const pkg = packages.find(p => p.id === selectedPackage);
+    if (!pkg) return;
 
+    setSelectedPackageData(pkg);
+    setShowPaymentSelector(true);
+  };
+
+  const handleIOSPremiumPurchase = async () => {
     const listing = userListings.find(l => l.id === selectedListing);
-    if (!listing) {
-      setSubmitting(false);
+    const pkg = packages.find(p => p.id === selectedPackage);
+    if (!listing || !pkg) return;
+
+    const productId = IOS_PRODUCT_IDS[pkg.duration_days];
+    if (!productId) {
+      toast({
+        title: "Erreur",
+        description: "Pack non disponible sur iOS",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      setSubmitting(true);
+      toast({
+        title: "Préparation de l'achat",
+        description: "Ouverture de l'App Store...",
+      });
+
+      // Récupérer les offerings RevenueCat
+      const offerings = await Purchases.getOfferings();
+      const availablePackages = offerings.current?.availablePackages || [];
       
-      const { data, error } = await supabase.functions.invoke('initiate-payment', {
+      // Trouver le package correspondant
+      const revenueCatPackage = availablePackages.find(
+        (pkg: any) => pkg.product.identifier === productId
+      );
+
+      if (!revenueCatPackage) {
+        throw new Error("Produit non trouvé dans RevenueCat");
+      }
+
+      // Acheter le produit via RevenueCat
+      const { customerInfo } = await Purchases.purchasePackage({ 
+        aPackage: revenueCatPackage 
+      });
+
+      console.log('[iOS Purchase] Success:', customerInfo);
+
+      // Vérifier et activer le premium via notre backend
+      const { data: sessionData } = await supabase.auth.getSession();
+      const verifyResponse = await supabase.functions.invoke('verify-ios-purchase', {
         body: {
+          purchase_type: 'premium_listing',
           package_id: selectedPackage,
           listing_id: selectedListing,
-          listing_type: listing.type
+          listing_type: listing.type,
+          product_id: productId,
         },
         headers: {
           Authorization: `Bearer ${sessionData.session?.access_token}`
         }
       });
 
-      if (error) throw error;
+      if (verifyResponse.error) {
+        throw verifyResponse.error;
+      }
 
-      if (data?.url) {
-        // Rediriger vers la page de paiement Fedapay
-        window.location.href = data.url;
+      toast({
+        title: "✅ Pack Premium activé !",
+        description: `Votre annonce est maintenant promue pour ${pkg.duration_days} jours.`,
+      });
+
+      // Rediriger vers les annonces
+      setTimeout(() => navigate('/listings'), 2000);
+
+    } catch (error: any) {
+      console.error('[iOS Purchase] Error:', error);
+      
+      if (error.code === 'PURCHASE_CANCELLED') {
+        toast({
+          title: "Achat annulé",
+          description: "Vous avez annulé l'achat",
+        });
       } else {
-        throw new Error("URL de paiement non reçue");
+        toast({
+          title: "Erreur d'achat",
+          description: error.message || "Impossible de finaliser l'achat",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+      setShowPaymentSelector(false);
+    }
+  };
+
+  const handlePaymentMethod = async (method: 'stripe' | 'apple-pay' | 'wave' | 'paypal') => {
+    const listing = userListings.find(l => l.id === selectedListing);
+    if (!listing) return;
+
+    // Sur iOS, utiliser IAP natif au lieu de Stripe
+    if (Capacitor.getPlatform() === 'ios') {
+      await handleIOSPremiumPurchase();
+      return;
+    }
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (method === 'stripe' || method === 'apple-pay') {
+        toast({
+          title: "Préparation du paiement",
+          description: "Redirection vers la page de paiement...",
+        });
+
+        const response = await supabase.functions.invoke('create-premium-payment', {
+          body: {
+            package_id: selectedPackage,
+            listing_id: selectedListing,
+            listing_type: listing.type
+          },
+          headers: {
+            Authorization: `Bearer ${sessionData.session?.access_token}`
+          }
+        });
+
+        console.log('Response complète:', response);
+
+        if (response.error) {
+          console.error('Erreur:', response.error);
+          throw response.error;
+        }
+
+        if (response.data?.url) {
+          console.log('Redirection vers:', response.data.url);
+          
+          toast({
+            title: method === 'apple-pay' ? "Redirection vers Apple Pay" : "Redirection vers Stripe",
+            description: "Si la page ne s'ouvre pas, cliquez sur le lien ci-dessous",
+            duration: 10000,
+          });
+          
+          // Ouvrir dans un nouvel onglet (mieux pour mobile)
+          const newWindow = window.open(response.data.url, '_blank');
+          
+          // Fallback si le popup est bloqué
+          if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            // Créer un lien de secours
+            const link = document.createElement('a');
+            link.href = response.data.url;
+            link.target = '_blank';
+            link.textContent = 'Cliquez ici pour continuer vers le paiement';
+            link.style.cssText = 'display: block; margin: 20px auto; padding: 15px; background: hsl(var(--primary)); color: white; text-align: center; border-radius: 8px; max-width: 400px; text-decoration: none; font-weight: 500;';
+            document.body.appendChild(link);
+            
+            toast({
+              title: "Action requise",
+              description: "Veuillez cliquer sur le lien qui vient d'apparaître pour continuer",
+              variant: "default",
+            });
+          }
+        } else {
+          console.error('Pas d\'URL dans la réponse:', response.data);
+          throw new Error("URL de paiement non reçue");
+        }
+      } else if (method === 'wave') {
+        toast({
+          title: "Bientôt disponible",
+          description: "Le paiement Wave sera disponible prochainement",
+        });
+      } else if (method === 'paypal') {
+        toast({
+          title: "Bientôt disponible",
+          description: "Le paiement PayPal sera disponible prochainement",
+        });
       }
 
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Erreur complète:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'initier le paiement",
         variant: "destructive",
       });
-      setSubmitting(false);
     }
   };
 
@@ -159,7 +334,7 @@ const PromoteListing = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 pt-24 pb-8 max-w-6xl">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -255,37 +430,64 @@ const PromoteListing = () => {
                   </Button>
                 </p>
               ) : (
-                <>
-                  <Select value={selectedListing} onValueChange={setSelectedListing}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir une annonce" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {userListings.map((listing) => (
-                        <SelectItem key={listing.id} value={listing.id}>
-                          {listing.brand} {listing.model} ({listing.year}) -{" "}
-                          <Badge variant="outline" className="ml-2">
-                            {listing.type === 'sale' ? 'Vente' : 'Location'}
-                          </Badge>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select value={selectedListing} onValueChange={setSelectedListing}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir une annonce" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userListings.map((listing) => (
+                          <SelectItem key={listing.id} value={listing.id}>
+                            {listing.brand} {listing.model} ({listing.year}) -{" "}
+                            <Badge variant="outline" className="ml-2">
+                              {listing.type === 'sale' ? 'Vente' : 'Location'}
+                            </Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                  <Button
-                    onClick={handlePromote}
-                    disabled={!selectedListing || submitting}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {submitting ? "Traitement..." : "Promouvoir cette annonce"}
-                  </Button>
-                </>
-              )}
+                    <div className="space-y-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowPromoInput(!showPromoInput)}
+                        className="w-full"
+                      >
+                        {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                      </Button>
+                      
+                      {showPromoInput && (
+                        <Input
+                          placeholder="Code promo (optionnel)"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        />
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={handlePromote}
+                      disabled={!selectedListing || submitting}
+                      className="w-full"
+                      size="lg"
+                    >
+                      Continuer vers le paiement
+                    </Button>
+                  </>
+                )}
             </CardContent>
           </Card>
         )}
       </div>
+
+      <PaymentMethodSelector
+        open={showPaymentSelector}
+        onOpenChange={setShowPaymentSelector}
+        onSelectMethod={handlePaymentMethod}
+        amount={selectedPackageData?.price || 0}
+        formatPrice={formatPrice}
+      />
 
       <BottomNav />
     </div>

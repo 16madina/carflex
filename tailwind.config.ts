@@ -12,6 +12,15 @@ export default {
         "2xl": "1400px",
       },
     },
+    screens: {
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'fold-closed': '884px', // Galaxy Fold fermé
+      'xl': '1280px',
+      'fold-open': '1768px', // Galaxy Fold ouvert
+      '2xl': '1536px',
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -48,6 +57,10 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+      },
       backgroundImage: {
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-card': 'var(--gradient-card)',
@@ -55,6 +68,9 @@ export default {
       boxShadow: {
         'card': 'var(--shadow-card)',
         'elevated': 'var(--shadow-elevated)',
+        'material': '0 4px 6px -1px hsl(220 70% 30% / 0.1), 0 2px 4px -1px hsl(220 70% 30% / 0.06)',
+        'material-lg': '0 10px 15px -3px hsl(220 70% 30% / 0.15), 0 4px 6px -2px hsl(220 70% 30% / 0.08)',
+        'material-xl': '0 20px 25px -5px hsl(220 70% 30% / 0.2), 0 10px 10px -5px hsl(220 70% 30% / 0.1)',
       },
       transitionProperty: {
         'smooth': 'var(--transition-smooth)',
@@ -63,6 +79,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'xl': '1rem',
+        '2xl': '1.25rem',
+        '3xl': '1.5rem',
       },
       keyframes: {
         "accordion-down": {
@@ -81,10 +100,33 @@ export default {
             height: "0",
           },
         },
+        "spring": {
+          "0%": {
+            transform: "scale(0.95)",
+            opacity: "0",
+          },
+          "50%": {
+            transform: "scale(1.02)",
+          },
+          "100%": {
+            transform: "scale(1)",
+            opacity: "1",
+          },
+        },
+        "skeleton": {
+          "0%": {
+            backgroundPosition: "200% 0",
+          },
+          "100%": {
+            backgroundPosition: "-200% 0",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "spring": "spring 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "skeleton": "skeleton 2s ease-in-out infinite",
       },
     },
   },

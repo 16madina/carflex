@@ -20,7 +20,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { token }: VerifyEmailRequest = await req.json();
-    console.log("Verifying token:", token);
+    console.log("Verifying token for user");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -33,69 +33,38 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (fetchError || !profile) {
       console.error("Token not found:", fetchError);
-      return new Response(
-        JSON.stringify({ error: "Token invalide ou expiré" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Invalid verification token" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Check if token is expired
-    const expiresAt = new Date(profile.verification_token_expires);
-    const now = new Date();
-
-    if (now > expiresAt) {
-      console.error("Token expired");
-      return new Response(
-        JSON.stringify({ error: "Ce lien de vérification a expiré" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
-
-    // Mark email as verified
+    // Update profile to mark email as verified
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
         email_verified: true,
         verification_token: null,
-        verification_token_expires: null,
       })
       .eq("id", profile.id);
 
     if (updateError) {
       console.error("Error updating profile:", updateError);
-      throw updateError;
+      return new Response(JSON.stringify({ error: "Failed to verify email" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    console.log("Email verified successfully for user:", profile.id);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Votre email a été vérifié avec succès!" 
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
-    );
-  } catch (error: any) {
-    console.error("Error in verify-email:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error in verify-email function:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 };
 

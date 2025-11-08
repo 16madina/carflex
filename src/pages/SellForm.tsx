@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useCountry } from "@/contexts/CountryContext";
+import { useCountry, WEST_AFRICAN_COUNTRIES } from "@/contexts/CountryContext";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
+import CitySelector from "@/components/CitySelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, MapPin, Upload, X, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CAR_BRANDS, BODY_TYPES, AVAILABLE_DOCUMENTS, CAR_MODELS } from "@/constants/vehicles";
+import { validateImageFiles } from "@/lib/fileValidation";
+import { ImagePicker } from "@/components/ImagePicker";
 
 const SellForm = () => {
   const navigate = useNavigate();
@@ -63,11 +66,11 @@ const SellForm = () => {
     checkAuth();
   }, [navigate]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    
-    if (images.length + files.length > 10) {
-      toast.error("Maximum 10 images autorisées");
+  const handleImageChange = (files: File[]) => {
+    // Validate files
+    const validation = validateImageFiles(files, images.length);
+    if (!validation.valid) {
+      toast.error(validation.error || "Fichiers invalides");
       return;
     }
 
@@ -98,17 +101,57 @@ const SellForm = () => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData({
-          ...formData,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        toast.success("Localisation obtenue avec succès !");
-        setGeoLoading(false);
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        try {
+          // Reverse geocoding avec Nominatim (OpenStreetMap)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=fr`
+          );
+          
+          if (!response.ok) {
+            throw new Error("Erreur lors de la récupération de l'adresse");
+          }
+
+          const data = await response.json();
+          const city = data.address.city || data.address.town || data.address.village || data.address.municipality || "";
+          const detectedCountry = data.address.country || "";
+          const countryCode = data.address.country_code?.toUpperCase() || "";
+
+          // Trouver le pays correspondant dans notre liste
+          const matchingCountry = WEST_AFRICAN_COUNTRIES.find(
+            c => c.code === countryCode || c.name === detectedCountry
+          );
+
+          setFormData({
+            ...formData,
+            latitude: lat,
+            longitude: lon,
+            city: city,
+            country: matchingCountry?.name || formData.country,
+          });
+
+          if (matchingCountry) {
+            toast.success(`Localisation détectée : ${city}, ${matchingCountry.name}. Vous pouvez modifier si le véhicule est ailleurs.`);
+          } else {
+            toast.success(`Position GPS obtenue. Veuillez sélectionner le pays où se trouve le véhicule.`);
+          }
+        } catch (error) {
+          // Si le reverse geocoding échoue, on garde quand même les coordonnées
+          setFormData({
+            ...formData,
+            latitude: lat,
+            longitude: lon,
+          });
+          toast.success("Coordonnées GPS obtenues. Veuillez sélectionner le pays et la ville du véhicule.");
+        } finally {
+          setGeoLoading(false);
+        }
       },
       (error) => {
-        toast.error("Impossible d'obtenir votre localisation");
+        toast.error("Impossible d'obtenir votre localisation. Vérifiez les autorisations.");
         setGeoLoading(false);
       }
     );
@@ -122,6 +165,7 @@ const SellForm = () => {
       const timestamp = Date.now();
       const fileName = `${user.id}/${timestamp}_${i}.${file.name.split(".").pop()}`;
 
+      // TODO: Migrer vers bucket "vehicle-images" - voir MIGRATION_GUIDE.md
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file);
@@ -227,7 +271,7 @@ const SellForm = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 pt-24 pb-6">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -551,20 +595,40 @@ const SellForm = () => {
 
               {/* Location */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Localisation</h3>
+                <h3 className="font-semibold text-lg">Localisation du véhicule</h3>
+                <p className="text-sm text-muted-foreground">
+                  Où se trouve physiquement le véhicule ? (Peut être différent de votre position actuelle)
+                </p>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="city">Ville *</Label>
-                  <Input
-                    id="city"
-                    placeholder="Paris"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  <Label htmlFor="country">Pays *</Label>
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) => setFormData({ ...formData, country: value, city: "" })}
                     required
-                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Veuillez renseigner la ville')}
-                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
-                  />
+                  >
+                    <SelectTrigger id="country">
+                      <SelectValue placeholder="Sélectionnez le pays du véhicule" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {WEST_AFRICAN_COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.name}>
+                          <span className="flex items-center gap-2">
+                            <span>{country.flag}</span>
+                            <span>{country.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                <CitySelector
+                  country={WEST_AFRICAN_COUNTRIES.find(c => c.name === formData.country)?.code || ""}
+                  value={formData.city}
+                  onChange={(value) => setFormData({ ...formData, city: value })}
+                  required
+                />
 
                 <Button
                   type="button"
@@ -585,6 +649,9 @@ const SellForm = () => {
                     </>
                   )}
                 </Button>
+                <p className="text-xs text-muted-foreground">
+                  Le GPS détecte automatiquement le pays et la ville, mais vous pouvez les modifier manuellement
+                </p>
               </div>
 
               {/* Images */}
@@ -592,25 +659,13 @@ const SellForm = () => {
                 <h3 className="font-semibold text-lg">Photos *</h3>
                 
                 <div className="space-y-3">
-                  <Label
-                    htmlFor="images"
-                    className="cursor-pointer flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg hover:border-primary transition-colors"
-                  >
-                    <div className="text-center">
-                      <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Cliquez pour ajouter des photos (max 10)
-                      </p>
-                    </div>
-                    <Input
-                      id="images"
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </Label>
+                  <ImagePicker
+                    onImageSelect={handleImageChange}
+                    multiple={true}
+                    maxFiles={10}
+                    currentFilesCount={images.length}
+                    disabled={loading}
+                  />
 
                   {imagePreviews.length > 0 && (
                     <div className="grid grid-cols-3 gap-3">

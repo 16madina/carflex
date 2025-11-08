@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Car } from "lucide-react";
+import carflexLogo from "@/assets/carflex-logo.png";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -9,75 +9,95 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Animation de 2.5 secondes avant de commencer le fadeout
+    // Animation optimisée de 1.8 secondes avant le fadeout
     const timer = setTimeout(() => {
       setFadeOut(true);
-      // Attendre la fin de l'animation fadeout avant de notifier la completion
-      setTimeout(onComplete, 500);
-    }, 2500);
+      // Attendre la fin de l'animation fadeout (300ms) avant de notifier la completion
+      setTimeout(onComplete, 300);
+    }, 1800);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-primary via-primary/90 to-accent transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-300 ${
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
+      style={{
+        background: 'linear-gradient(135deg, hsl(220 70% 30%), hsl(220 70% 40%), hsl(25 95% 55%))'
+      }}
     >
-      <div className="text-center space-y-6 animate-fade-in">
-        {/* Logo/Icône */}
-        <div className="relative w-24 h-24 mx-auto mb-8 animate-bounce-slow">
-          <div className="absolute inset-0 bg-white/20 rounded-2xl rotate-12 animate-pulse"></div>
-          <div className="absolute inset-0 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
-            <Car className="w-16 h-16 text-primary" strokeWidth={2.5} />
+      <div className="text-center space-y-8">
+        {/* Logo CarFlex */}
+        <div className="relative w-40 h-40 mx-auto animate-logo-entrance">
+          <div className="absolute inset-0 bg-white/10 rounded-3xl blur-2xl animate-glow"></div>
+          <div className="relative w-full h-full bg-white rounded-3xl flex items-center justify-center shadow-2xl p-6 animate-float">
+            <img 
+              src={carflexLogo} 
+              alt="CarFlex Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
 
         {/* Texte Carflex */}
-        <div className="space-y-2">
-          <h1 className="text-6xl font-bold tracking-tight animate-scale-in">
-            <span className="text-blue-500">Car</span>
-            <span className="text-red-500">Flex</span>
+        <div className="space-y-3 animate-text-entrance">
+          <h1 className="text-7xl font-bold tracking-tight">
+            <span className="text-white drop-shadow-lg">CarFlex</span>
           </h1>
-          <p className="text-white/80 text-lg animate-fade-in-delayed">
+          <p className="text-white/90 text-xl font-medium animate-fade-slide-up">
             Votre marketplace automobile
           </p>
         </div>
 
         {/* Loading indicator */}
-        <div className="flex justify-center gap-2 mt-8 animate-fade-in-delayed">
-          <div className="w-2 h-2 bg-white rounded-full animate-bounce-dot" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 bg-white rounded-full animate-bounce-dot" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 bg-white rounded-full animate-bounce-dot" style={{ animationDelay: '300ms' }}></div>
+        <div className="flex justify-center gap-2.5 mt-10 animate-loader-entrance">
+          <div className="w-2.5 h-2.5 bg-white/90 rounded-full animate-pulse-dot shadow-glow" style={{ animationDelay: '0ms' }}></div>
+          <div className="w-2.5 h-2.5 bg-white/90 rounded-full animate-pulse-dot shadow-glow" style={{ animationDelay: '150ms' }}></div>
+          <div className="w-2.5 h-2.5 bg-white/90 rounded-full animate-pulse-dot shadow-glow" style={{ animationDelay: '300ms' }}></div>
         </div>
       </div>
 
       <style>{`
-        @keyframes bounce-slow {
+        @keyframes logo-entrance {
+          0% {
+            transform: scale(0.5) translateY(-30px);
+            opacity: 0;
+          }
+          60% {
+            transform: scale(1.05) translateY(0);
+          }
+          100% {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes float {
           0%, 100% {
             transform: translateY(0) rotate(0deg);
           }
           50% {
-            transform: translateY(-10px) rotate(5deg);
-          }
-        }
-        
-        @keyframes scale-in {
-          0% {
-            transform: scale(0.8);
-            opacity: 0;
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
+            transform: translateY(-8px) rotate(2deg);
           }
         }
 
-        @keyframes fade-in-delayed {
+        @keyframes glow {
+          0%, 100% {
+            opacity: 0.3;
+            transform: scale(0.95);
+          }
+          50% {
+            opacity: 0.6;
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes text-entrance {
           0% {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(20px);
           }
           100% {
             opacity: 1;
@@ -85,29 +105,67 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           }
         }
 
-        @keyframes bounce-dot {
-          0%, 80%, 100% {
+        @keyframes fade-slide-up {
+          0% {
+            opacity: 0;
+            transform: translateY(15px);
+          }
+          100% {
+            opacity: 1;
             transform: translateY(0);
           }
-          40% {
-            transform: translateY(-8px);
+        }
+
+        @keyframes loader-entrance {
+          0% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 1;
           }
         }
 
-        .animate-bounce-slow {
-          animation: bounce-slow 2s ease-in-out infinite;
+        @keyframes pulse-dot {
+          0%, 60%, 100% {
+            transform: translateY(0) scale(1);
+            opacity: 0.7;
+          }
+          30% {
+            transform: translateY(-10px) scale(1.2);
+            opacity: 1;
+          }
         }
 
-        .animate-scale-in {
-          animation: scale-in 0.6s ease-out;
+        .animate-logo-entrance {
+          animation: logo-entrance 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
         }
 
-        .animate-fade-in-delayed {
-          animation: fade-in-delayed 0.8s ease-out 0.3s both;
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
         }
 
-        .animate-bounce-dot {
-          animation: bounce-dot 1.4s ease-in-out infinite;
+        .animate-glow {
+          animation: glow 2s ease-in-out infinite;
+        }
+
+        .animate-text-entrance {
+          animation: text-entrance 0.6s ease-out 0.3s backwards;
+        }
+
+        .animate-fade-slide-up {
+          animation: fade-slide-up 0.6s ease-out 0.5s backwards;
+        }
+
+        .animate-loader-entrance {
+          animation: loader-entrance 0.4s ease-out 0.7s backwards;
+        }
+
+        .animate-pulse-dot {
+          animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .shadow-glow {
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
       `}</style>
     </div>

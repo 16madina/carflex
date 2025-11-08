@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Heart, MessageSquare, TrendingUp, Car, DollarSign, Calendar, Plus } from "lucide-react";
+import { Eye, Heart, MessageSquare, TrendingUp, Car, DollarSign, Calendar, Plus, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useCountry } from "@/contexts/CountryContext";
 
@@ -156,8 +156,17 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 pt-24 pb-6">
         <div className="max-w-6xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour
+          </Button>
+          
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Dashboard</h1>

@@ -22,7 +22,7 @@ const ImageCarousel = ({ images, alt, showNavigation = true }: ImageCarouselProp
 
   return (
     <>
-      <Carousel className="w-full" opts={{ loop: true }}>
+      <Carousel className="w-full" opts={{ loop: true }} style={{ touchAction: 'pan-x' }}>
         <CarouselContent>
           {images.map((image, index) => (
             <CarouselItem key={index}>

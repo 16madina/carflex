@@ -37,7 +37,14 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      // Timeout de 5 secondes pour éviter les blocages
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+
+      const checkPromise = supabase.functions.invoke('check-subscription');
+      
+      const { data, error } = await Promise.race([checkPromise, timeoutPromise]) as any;
       
       if (error) throw error;
       
@@ -48,6 +55,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     } catch (error) {
       console.error('Erreur lors de la vérification de l\'abonnement:', error);
+      // En cas d'erreur, continuer avec les valeurs par défaut
       setSubscribed(false);
       setProductId('free');
       setSubscriptionEnd(null);
@@ -73,8 +81,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     refreshSubscription();
     
-    // Rafraîchir toutes les 60 secondes
-    const interval = setInterval(refreshSubscription, 60000);
+    // Rafraîchir toutes les 10 minutes (optimisation de coûts)
+    const interval = setInterval(refreshSubscription, 10 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, [user]);
