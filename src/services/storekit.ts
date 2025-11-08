@@ -5,6 +5,26 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
  * Compatible avec le fichier Products.storekit
  */
 
+// Helper pour sérialiser les erreurs de manière lisible
+function serializeError(error: any): string {
+  if (!error) return 'Unknown error';
+  
+  const errorDetails: any = {
+    message: error.message || 'No message',
+    code: error.code || 'No code',
+    name: error.name || 'Error',
+  };
+  
+  // Extraire toutes les propriétés non-héritées
+  Object.getOwnPropertyNames(error).forEach(key => {
+    if (!errorDetails[key]) {
+      errorDetails[key] = error[key];
+    }
+  });
+  
+  return JSON.stringify(errorDetails, null, 2);
+}
+
 export interface Product {
   id: string;
   title: string;
@@ -52,8 +72,8 @@ class StoreKitService {
 
       console.log('[StoreKit] Service initialisé avec registerPlugin');
       this.isInitialized = true;
-    } catch (error) {
-      console.error('[StoreKit] Erreur initialisation:', error);
+    } catch (error: any) {
+      console.error('[StoreKit] Erreur initialisation:', serializeError(error));
       throw error;
     }
   }
@@ -84,7 +104,8 @@ class StoreKitService {
         currency: p.priceLocale.currencyCode
       }));
     } catch (error: any) {
-      console.error('[StoreKit] Erreur récupération produits:', error);
+      console.error('[StoreKit] Erreur récupération produits:');
+      console.error(serializeError(error));
       throw new Error(error.message || 'Impossible de récupérer les produits disponibles');
     }
   }
@@ -114,21 +135,36 @@ class StoreKitService {
         originalTransactionId: result.originalTransactionIdentifier
       };
     } catch (error: any) {
-      console.error('[StoreKit] Erreur achat:', error);
+      console.error('[StoreKit] Erreur achat - Détails complets:');
+      console.error(serializeError(error));
+      console.error('[StoreKit] Type d\'erreur:', typeof error);
+      console.error('[StoreKit] Constructeur:', error?.constructor?.name);
       
-      if (error.code === 'E_USER_CANCELLED' || error.message?.includes('cancelled')) {
+      // Extraire le code et le message de l'erreur
+      const errorCode = error?.code || error?.errorCode || 'UNKNOWN';
+      const errorMessage = error?.message || error?.localizedDescription || error?.toString() || 'Erreur inconnue';
+      
+      console.error('[StoreKit] Code erreur extrait:', errorCode);
+      console.error('[StoreKit] Message erreur extrait:', errorMessage);
+      
+      if (errorCode === 'E_USER_CANCELLED' || errorMessage.toLowerCase().includes('cancel')) {
         throw new Error('CANCELLED');
       }
       
-      if (error.code === 'E_PAYMENT_INVALID') {
+      if (errorCode === 'E_PAYMENT_INVALID' || errorMessage.includes('payment')) {
         throw new Error('Méthode de paiement invalide');
       }
       
-      if (error.code === 'E_NETWORK_ERROR') {
+      if (errorCode === 'E_NETWORK_ERROR' || errorMessage.includes('network')) {
         throw new Error('Erreur réseau. Vérifiez votre connexion internet');
       }
       
-      throw new Error(error.message || 'Erreur lors de l\'achat');
+      // Si StoreKit n'est pas disponible
+      if (errorMessage.includes('not available') || errorMessage.includes('unavailable')) {
+        throw new Error('StoreKit non disponible. Veuillez tester sur un appareil iOS réel avec XCode.');
+      }
+      
+      throw new Error(errorMessage || 'Erreur lors de l\'achat');
     }
   }
 
@@ -155,7 +191,8 @@ class StoreKitService {
         originalTransactionId: t.originalTransactionIdentifier
       }));
     } catch (error: any) {
-      console.error('[StoreKit] Erreur restauration:', error);
+      console.error('[StoreKit] Erreur restauration:');
+      console.error(serializeError(error));
       throw new Error(error.message || 'Erreur lors de la restauration des achats');
     }
   }
