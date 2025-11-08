@@ -89,7 +89,16 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     public func request(_ request: SKRequest, didFailWithError error: Error) {
         if let callbackId = productsCallbackId ?? purchaseCallbackId {
             let call = bridge?.savedCall(withID: callbackId)
-            call?.reject("Request failed: \(error.localizedDescription)")
+            
+            let errorCode = "E_REQUEST_FAILED"
+            let errorMessage = "StoreKit request failed: \(error.localizedDescription)"
+            
+            call?.reject(errorMessage, errorCode, error, [
+                "code": errorCode,
+                "message": errorMessage,
+                "underlyingError": error.localizedDescription
+            ])
+            
             productsCallbackId = nil
             purchaseCallbackId = nil
         }
@@ -133,13 +142,50 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
             let call = bridge?.savedCall(withID: callbackId)
             
             if let error = transaction.error as? SKError {
-                if error.code == .paymentCancelled {
-                    call?.reject("User cancelled", "E_USER_CANCELLED")
-                } else {
-                    call?.reject("Purchase failed: \(error.localizedDescription)")
+                let errorCode: String
+                let errorMessage: String
+                
+                switch error.code {
+                case .paymentCancelled:
+                    errorCode = "E_USER_CANCELLED"
+                    errorMessage = "User cancelled the purchase"
+                case .paymentInvalid:
+                    errorCode = "E_PAYMENT_INVALID"
+                    errorMessage = "The purchase identifier was invalid"
+                case .paymentNotAllowed:
+                    errorCode = "E_PAYMENT_NOT_ALLOWED"
+                    errorMessage = "This device is not allowed to make purchases"
+                case .storeProductNotAvailable:
+                    errorCode = "E_PRODUCT_NOT_AVAILABLE"
+                    errorMessage = "The product is not available in the store"
+                case .cloudServiceNetworkConnectionFailed:
+                    errorCode = "E_NETWORK_ERROR"
+                    errorMessage = "Network connection failed"
+                case .cloudServicePermissionDenied:
+                    errorCode = "E_PERMISSION_DENIED"
+                    errorMessage = "User has not allowed access to cloud service information"
+                default:
+                    errorCode = "E_PURCHASE_FAILED"
+                    errorMessage = error.localizedDescription
                 }
+                
+                call?.reject(errorMessage, errorCode, error, [
+                    "code": errorCode,
+                    "message": errorMessage,
+                    "underlyingError": error.localizedDescription,
+                    "errorDomain": error.errorDomain,
+                    "errorCode": error.errorCode
+                ])
+            } else if let error = transaction.error {
+                call?.reject("Purchase failed: \(error.localizedDescription)", "E_UNKNOWN_ERROR", error, [
+                    "code": "E_UNKNOWN_ERROR",
+                    "message": error.localizedDescription
+                ])
             } else {
-                call?.reject("Purchase failed")
+                call?.reject("Purchase failed with unknown error", "E_UNKNOWN_ERROR", nil, [
+                    "code": "E_UNKNOWN_ERROR",
+                    "message": "Purchase failed with unknown error"
+                ])
             }
             purchaseCallbackId = nil
         }
@@ -171,7 +217,44 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     public func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
         if let callbackId = purchaseCallbackId {
             let call = bridge?.savedCall(withID: callbackId)
-            call?.reject("Restore failed: \(error.localizedDescription)")
+            
+            let errorCode: String
+            let errorMessage: String
+            
+            if let skError = error as? SKError {
+                switch skError.code {
+                case .paymentCancelled:
+                    errorCode = "E_RESTORE_CANCELLED"
+                    errorMessage = "Restore was cancelled by user"
+                case .cloudServiceNetworkConnectionFailed:
+                    errorCode = "E_NETWORK_ERROR"
+                    errorMessage = "Network connection failed during restore"
+                case .cloudServicePermissionDenied:
+                    errorCode = "E_PERMISSION_DENIED"
+                    errorMessage = "User has not allowed access to cloud service information"
+                default:
+                    errorCode = "E_RESTORE_FAILED"
+                    errorMessage = "Restore failed: \(skError.localizedDescription)"
+                }
+                
+                call?.reject(errorMessage, errorCode, error, [
+                    "code": errorCode,
+                    "message": errorMessage,
+                    "underlyingError": skError.localizedDescription,
+                    "errorDomain": skError.errorDomain,
+                    "errorCode": skError.errorCode
+                ])
+            } else {
+                errorCode = "E_RESTORE_FAILED"
+                errorMessage = "Restore failed: \(error.localizedDescription)"
+                
+                call?.reject(errorMessage, errorCode, error, [
+                    "code": errorCode,
+                    "message": errorMessage,
+                    "underlyingError": error.localizedDescription
+                ])
+            }
+            
             purchaseCallbackId = nil
         }
     }

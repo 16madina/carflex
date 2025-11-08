@@ -125,23 +125,7 @@ const Subscription = () => {
         await handleStripePurchase();
       }
     } catch (error: any) {
-      console.error('===== Erreur lors de l\'achat (handleSubscribe) =====');
-      console.error('Type:', typeof error);
-      console.error('Message:', error?.message);
-      console.error('Code:', error?.code);
-      console.error('Name:', error?.name);
-      
-      // Extraire toutes les propriétés de l'erreur pour debug complet
-      try {
-        const errorDetails: any = {};
-        Object.getOwnPropertyNames(error).forEach(key => {
-          errorDetails[key] = error[key];
-        });
-        console.error('Détails complets de l\'erreur:', JSON.stringify(errorDetails, null, 2));
-      } catch (e) {
-        console.error('Impossible de sérialiser l\'erreur:', e);
-      }
-      console.error('===================================================');
+      console.error('[Subscription] Erreur lors de l\'achat:', error?.message);
       
       // Ne pas afficher de toast si c'est une annulation (déjà géré dans handleIOSPurchase)
       if (error.message !== 'CANCELLED') {
@@ -196,22 +180,7 @@ const Subscription = () => {
       });
 
     } catch (error: any) {
-      console.error('[StoreKit] Erreur achat dans Subscription.tsx:');
-      console.error('Type:', typeof error);
-      console.error('Message:', error?.message);
-      console.error('Code:', error?.code);
-      console.error('Stack:', error?.stack);
-      
-      // Extraire toutes les propriétés de l'erreur pour debug
-      try {
-        const errorProps = Object.getOwnPropertyNames(error);
-        console.error('[StoreKit] Propriétés de l\'erreur:', errorProps);
-        errorProps.forEach(prop => {
-          console.error(`[StoreKit] ${prop}:`, error[prop]);
-        });
-      } catch (e) {
-        console.error('[StoreKit] Impossible d\'extraire les propriétés:', e);
-      }
+      // Les détails complets de l'erreur sont déjà loggés dans le service storekit.ts
       
       // Ne pas afficher de toast pour l'annulation (l'utilisateur est déjà au courant)
       if (error.message === 'CANCELLED') {
@@ -223,22 +192,47 @@ const Subscription = () => {
       }
       
       // Pour les autres erreurs, afficher un message spécifique
-      if (error.message?.includes('Méthode de paiement invalide')) {
+      if (error.message?.includes('identifiant du produit') || error.message?.includes('purchase identifier')) {
         toast({
-          title: "Paiement invalide",
-          description: "Veuillez vérifier votre méthode de paiement dans les réglages iOS",
+          title: "Produit invalide",
+          description: "L'identifiant du produit est invalide. Contactez le support.",
           variant: "destructive"
         });
-      } else if (error.message?.includes('Erreur réseau')) {
+      } else if (error.message?.includes('pas autorisés') || error.message?.includes('not allowed')) {
+        toast({
+          title: "Achats désactivés",
+          description: "Les achats ne sont pas autorisés sur cet appareil. Vérifiez vos réglages iOS.",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('pas disponible') || error.message?.includes('not available')) {
+        toast({
+          title: "Produit indisponible",
+          description: "Ce produit n'est pas disponible. Assurez-vous d'être sur un appareil iOS réel.",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('réseau') || error.message?.includes('network')) {
         toast({
           title: "Problème de connexion",
           description: "Vérifiez votre connexion internet et réessayez",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('Accès refusé') || error.message?.includes('permission')) {
+        toast({
+          title: "Accès refusé",
+          description: "Veuillez autoriser l'accès aux informations iCloud dans les réglages iOS",
           variant: "destructive"
         });
       } else if (error.message?.includes('sync')) {
         toast({
           title: "Erreur de synchronisation",
           description: "L'achat a réussi mais la synchronisation a échoué. Contactez le support.",
+          variant: "destructive"
+        });
+      } else {
+        // Erreur générique avec le message d'erreur
+        toast({
+          title: "Erreur d'achat",
+          description: error.message || "Une erreur est survenue. Veuillez réessayer.",
           variant: "destructive"
         });
       }
