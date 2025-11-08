@@ -22,7 +22,26 @@ function serializeError(error: any): string {
     }
   });
   
+  // Tenter d'extraire les propriétés Capacitor
+  if (error.errorMessage) errorDetails.errorMessage = error.errorMessage;
+  if (error.data) errorDetails.data = error.data;
+  
   return JSON.stringify(errorDetails, null, 2);
+}
+
+// Helper pour extraire les informations d'erreur Capacitor
+function extractCapacitorError(error: any): { code: string; message: string } {
+  // Capacitor envoie les erreurs avec une structure spécifique
+  const code = error?.code || error?.errorCode || error?.data?.code || 'UNKNOWN';
+  const message = 
+    error?.message || 
+    error?.errorMessage || 
+    error?.data?.message || 
+    error?.localizedDescription || 
+    error?.toString?.() || 
+    'Erreur inconnue';
+  
+  return { code, message };
 }
 
 export interface Product {
@@ -104,9 +123,18 @@ class StoreKitService {
         currency: p.priceLocale.currencyCode
       }));
     } catch (error: any) {
-      console.error('[StoreKit] Erreur récupération produits:');
-      console.error(serializeError(error));
-      throw new Error(error.message || 'Impossible de récupérer les produits disponibles');
+      console.error('[StoreKit] ===== ERREUR RÉCUPÉRATION PRODUITS =====');
+      console.error('[StoreKit] Erreur brute:', error);
+      console.error('[StoreKit] Erreur sérialisée:', serializeError(error));
+      
+      // Extraire les informations structurées de l'erreur Capacitor
+      const { code, message } = extractCapacitorError(error);
+      
+      console.error('[StoreKit] Code extrait:', code);
+      console.error('[StoreKit] Message extrait:', message);
+      console.error('[StoreKit] =======================================');
+      
+      throw new Error(message || 'Impossible de récupérer les produits disponibles');
     }
   }
 
@@ -135,36 +163,49 @@ class StoreKitService {
         originalTransactionId: result.originalTransactionIdentifier
       };
     } catch (error: any) {
-      console.error('[StoreKit] Erreur achat - Détails complets:');
-      console.error(serializeError(error));
-      console.error('[StoreKit] Type d\'erreur:', typeof error);
-      console.error('[StoreKit] Constructeur:', error?.constructor?.name);
+      console.error('[StoreKit] ===== ERREUR ACHAT =====');
+      console.error('[StoreKit] Erreur brute:', error);
+      console.error('[StoreKit] Erreur sérialisée:', serializeError(error));
       
-      // Extraire le code et le message de l'erreur
-      const errorCode = error?.code || error?.errorCode || 'UNKNOWN';
-      const errorMessage = error?.message || error?.localizedDescription || error?.toString() || 'Erreur inconnue';
+      // Extraire les informations structurées de l'erreur Capacitor
+      const { code, message } = extractCapacitorError(error);
       
-      console.error('[StoreKit] Code erreur extrait:', errorCode);
-      console.error('[StoreKit] Message erreur extrait:', errorMessage);
+      console.error('[StoreKit] Code extrait:', code);
+      console.error('[StoreKit] Message extrait:', message);
+      console.error('[StoreKit] ========================');
       
-      if (errorCode === 'E_USER_CANCELLED' || errorMessage.toLowerCase().includes('cancel')) {
+      // Gérer les différents types d'erreur
+      if (code === 'E_USER_CANCELLED' || message.toLowerCase().includes('cancel')) {
         throw new Error('CANCELLED');
       }
       
-      if (errorCode === 'E_PAYMENT_INVALID' || errorMessage.includes('payment')) {
-        throw new Error('Méthode de paiement invalide');
+      if (code === 'E_PAYMENT_INVALID') {
+        throw new Error('L\'identifiant du produit est invalide');
       }
       
-      if (errorCode === 'E_NETWORK_ERROR' || errorMessage.includes('network')) {
+      if (code === 'E_PAYMENT_NOT_ALLOWED') {
+        throw new Error('Les achats ne sont pas autorisés sur cet appareil. Vérifiez vos réglages iOS.');
+      }
+      
+      if (code === 'E_PRODUCT_NOT_AVAILABLE') {
+        throw new Error('Le produit n\'est pas disponible dans l\'App Store');
+      }
+      
+      if (code === 'E_NETWORK_ERROR' || message.toLowerCase().includes('network')) {
         throw new Error('Erreur réseau. Vérifiez votre connexion internet');
       }
       
+      if (code === 'E_PERMISSION_DENIED') {
+        throw new Error('Accès refusé aux informations du compte iCloud');
+      }
+      
       // Si StoreKit n'est pas disponible
-      if (errorMessage.includes('not available') || errorMessage.includes('unavailable')) {
+      if (message.includes('not available') || message.includes('unavailable')) {
         throw new Error('StoreKit non disponible. Veuillez tester sur un appareil iOS réel avec XCode.');
       }
       
-      throw new Error(errorMessage || 'Erreur lors de l\'achat');
+      // Erreur générique avec le message du système
+      throw new Error(message || 'Erreur lors de l\'achat');
     }
   }
 
@@ -191,9 +232,32 @@ class StoreKitService {
         originalTransactionId: t.originalTransactionIdentifier
       }));
     } catch (error: any) {
-      console.error('[StoreKit] Erreur restauration:');
-      console.error(serializeError(error));
-      throw new Error(error.message || 'Erreur lors de la restauration des achats');
+      console.error('[StoreKit] ===== ERREUR RESTAURATION =====');
+      console.error('[StoreKit] Erreur brute:', error);
+      console.error('[StoreKit] Erreur sérialisée:', serializeError(error));
+      
+      // Extraire les informations structurées de l'erreur Capacitor
+      const { code, message } = extractCapacitorError(error);
+      
+      console.error('[StoreKit] Code extrait:', code);
+      console.error('[StoreKit] Message extrait:', message);
+      console.error('[StoreKit] ==============================');
+      
+      // Gérer les différents types d'erreur
+      if (code === 'E_RESTORE_CANCELLED' || message.toLowerCase().includes('cancel')) {
+        throw new Error('Restauration annulée par l\'utilisateur');
+      }
+      
+      if (code === 'E_NETWORK_ERROR' || message.toLowerCase().includes('network')) {
+        throw new Error('Erreur réseau. Vérifiez votre connexion internet');
+      }
+      
+      if (code === 'E_PERMISSION_DENIED') {
+        throw new Error('Accès refusé aux informations du compte iCloud');
+      }
+      
+      // Erreur générique avec le message du système
+      throw new Error(message || 'Erreur lors de la restauration des achats');
     }
   }
 
