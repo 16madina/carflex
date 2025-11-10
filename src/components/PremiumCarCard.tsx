@@ -74,7 +74,10 @@ const PremiumCarCard = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-material-xl transition-all duration-300 hover:-translate-y-1 animate-spring">
+    <Card 
+      className="overflow-hidden hover:shadow-material-xl transition-all duration-300 hover:-translate-y-1 animate-spring cursor-pointer"
+      onClick={() => navigate(`/listing/${id}`)}
+    >
       <div className="relative h-48 bg-muted">
         {images.length > 0 ? (
           <ImageCarousel 

@@ -81,13 +81,11 @@ const CarCard = ({
     >
       <div className="relative h-48 overflow-hidden bg-muted">
         {displayImages.length > 0 ? (
-          <div onClick={(e) => e.stopPropagation()}>
-            <ImageCarousel 
-              images={displayImages} 
-              alt={`${brand} ${model}`}
-              showNavigation={false}
-            />
-          </div>
+          <ImageCarousel 
+            images={displayImages} 
+            alt={`${brand} ${model}`}
+            showNavigation={false}
+          />
         ) : (
           <Skeleton className="w-full h-48" />
         )}
