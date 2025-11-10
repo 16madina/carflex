@@ -43,6 +43,33 @@ serve(async (req) => {
     if (!user?.email) throw new Error("Utilisateur non authentifié");
     logStep("Utilisateur authentifié", { userId: user.id, email: user.email });
 
+    // Vérifier d'abord dans user_subscriptions (pour iOS et abonnements déjà synchronisés)
+    const { data: localSub } = await supabaseClient
+      .from('user_subscriptions')
+      .select('product_id, status, current_period_end')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .gte('current_period_end', new Date().toISOString())
+      .maybeSingle();
+
+    if (localSub) {
+      logStep("Abonnement actif trouvé en base", { 
+        productId: localSub.product_id,
+        endDate: localSub.current_period_end 
+      });
+      
+      return new Response(JSON.stringify({
+        subscribed: true,
+        product_id: localSub.product_id,
+        subscription_end: localSub.current_period_end
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    logStep("Aucun abonnement actif en base, vérification Stripe");
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
