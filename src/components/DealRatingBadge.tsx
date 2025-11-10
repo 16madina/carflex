@@ -40,8 +40,11 @@ const DealRatingBadge = ({
 
   const fetchDealRating = async () => {
     try {
-      // Use AI-powered evaluation
-      const { data, error } = await supabase.functions.invoke("ai-price-evaluation", {
+      // ⚠️ Évaluation IA désactivée - crédits insuffisants
+      // Pour réactiver: ajoutez des crédits dans Settings → Workspace → Usage
+      
+      // Utiliser directement le calcul de base
+      const { data, error } = await supabase.functions.invoke("calculate-deal-rating", {
         body: { listingId, listingType }
       });
 
@@ -51,21 +54,9 @@ const DealRatingBadge = ({
         onRatingCalculated?.(data.dealRating);
       }
     } catch (error) {
-      console.error("Error fetching AI price evaluation:", error);
-      // Fallback to basic calculation if AI fails
-      try {
-        const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke("calculate-deal-rating", {
-          body: { listingId, listingType }
-        });
-        if (!fallbackError) {
-          setRating(fallbackData);
-          if (fallbackData?.dealRating) {
-            onRatingCalculated?.(fallbackData.dealRating);
-          }
-        }
-      } catch (fallbackErr) {
-        console.error("Fallback also failed:", fallbackErr);
-      }
+      console.error("Error calculating deal rating:", error);
+      // Silencieusement échouer - pas de badge affiché
+      setRating(null);
     } finally {
       setLoading(false);
     }

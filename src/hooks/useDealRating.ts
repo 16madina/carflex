@@ -15,24 +15,14 @@ export const useDealRating = (listingId: string, listingType: 'sale' | 'rental')
       try {
         setLoading(true);
         
-        // Try AI evaluation first
-        const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-price-evaluation', {
+        // ⚠️ Évaluation IA désactivée - crédits insuffisants
+        // Utiliser directement le calcul de base
+        const { data, error } = await supabase.functions.invoke('calculate-deal-rating', {
           body: { listingId, listingType }
         });
 
-        if (!aiError && aiData?.dealRating) {
-          setRating(aiData.dealRating);
-          setLoading(false);
-          return;
-        }
-
-        // Fallback to basic calculation
-        const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke('calculate-deal-rating', {
-          body: { listingId, listingType }
-        });
-
-        if (!fallbackError && fallbackData?.dealRating) {
-          setRating(fallbackData.dealRating);
+        if (!error && data?.dealRating) {
+          setRating(data.dealRating);
         }
       } catch (error) {
         console.error('Error fetching deal rating:', error);
