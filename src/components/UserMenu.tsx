@@ -8,10 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, LayoutDashboard, LogOut, LogIn, UserCircle, Calendar, Crown, BadgeCheck, AlertCircle } from "lucide-react";
+import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -151,12 +151,12 @@ const UserMenu = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={profile?.avatar_url} alt={profile?.first_name || "User"} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                <User className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
+            <AvatarWithBadge
+              src={profile?.avatar_url}
+              alt={profile?.first_name || "User"}
+              fallback={<User className="h-5 w-5" />}
+              userId={user?.id}
+            />
             {pendingBookings > 0 && (
               <Badge 
                 variant="destructive" 

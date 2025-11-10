@@ -7,9 +7,9 @@ import ReportContentDialog from "@/components/ReportContentDialog";
 import BlockUserButton from "@/components/BlockUserButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { 
   User as UserIcon, 
   MapPin, 
@@ -231,12 +231,13 @@ const PublicProfile = () => {
         <Card className="mb-6 shadow-card">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={profile.avatar_url} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
-                  <UserIcon className="h-12 w-12" />
-                </AvatarFallback>
-              </Avatar>
+              <AvatarWithBadge
+                src={profile.avatar_url}
+                alt={`${profile.first_name} ${profile.last_name}`}
+                fallback={<UserIcon className="h-12 w-12" />}
+                className="h-24 w-24"
+                userId={userId}
+              />
 
               <div className="flex-1 w-full">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

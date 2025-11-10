@@ -5,8 +5,8 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2 } from "lucide-react";
+import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -564,12 +564,13 @@ const Profile = () => {
                 <CardContent className="space-y-6">
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col items-center gap-2">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src={profile?.avatar_url} />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                          <UserIcon className="h-10 w-10" />
-                        </AvatarFallback>
-                      </Avatar>
+                      <AvatarWithBadge
+                        src={profile?.avatar_url}
+                        alt={`${profile?.first_name} ${profile?.last_name}`}
+                        fallback={<UserIcon className="h-10 w-10" />}
+                        className="h-20 w-20"
+                        userId={user?.id}
+                      />
                       <ImagePicker
                         onImageSelect={handleAvatarChange}
                         disabled={uploadingAvatar}
