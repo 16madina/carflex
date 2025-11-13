@@ -173,8 +173,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
                     "code": errorCode,
                     "message": errorMessage,
                     "underlyingError": error.localizedDescription,
-                    "errorDomain": error.errorDomain,
-                    "errorCode": error.errorCode
+                    "errorDomain": (error as NSError).domain,
+                    "errorCode": (error as NSError).code
                 ])
             } else if let error = transaction.error {
                 call?.reject("Purchase failed: \(error.localizedDescription)", "E_UNKNOWN_ERROR", error, [
@@ -241,8 +241,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
                     "code": errorCode,
                     "message": errorMessage,
                     "underlyingError": skError.localizedDescription,
-                    "errorDomain": skError.errorDomain,
-                    "errorCode": skError.errorCode
+                    "errorDomain": (skError as NSError).domain,
+                    "errorCode": (skError as NSError).code
                 ])
             } else {
                 errorCode = "E_RESTORE_FAILED"
