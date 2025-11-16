@@ -365,7 +365,7 @@ export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedCountry, setSelectedCountry] = useState<Country>(() => {
     // Ne pas utiliser localStorage pour le pays par défaut
     // Toujours commencer avec la Côte d'Ivoire
-    return WEST_AFRICAN_COUNTRIES[1]; // Default: Côte d'Ivoire
+    return WEST_AFRICAN_COUNTRIES[0]; // Default: Côte d'Ivoire
   });
 
   // Ne plus sauvegarder automatiquement le pays dans localStorage
