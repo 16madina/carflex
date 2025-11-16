@@ -359,7 +359,23 @@ interface CountryContextType {
   convertPrice: (price: number, fromCurrency?: string) => number;
 }
 
-const CountryContext = createContext<CountryContextType | undefined>(undefined);
+// Valeur par défaut pour éviter les erreurs de timing
+const defaultCountry = {
+  code: 'CI',
+  name: "Côte d'Ivoire",
+  flag: '🇨🇮',
+  currency: 'XOF',
+  currencySymbol: 'CFA',
+  exchangeRate: 1,
+  dialCode: '+225'
+};
+
+const CountryContext = createContext<CountryContextType>({
+  selectedCountry: defaultCountry,
+  setSelectedCountry: () => {},
+  formatPrice: (price: number) => `${price} CFA`,
+  convertPrice: (price: number) => price,
+});
 
 export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(() => {
@@ -427,8 +443,5 @@ export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
 export const useCountry = () => {
   const context = useContext(CountryContext);
-  if (context === undefined) {
-    throw new Error('useCountry must be used within a CountryProvider');
-  }
   return context;
 };
