@@ -113,7 +113,7 @@ const CarCard = ({
       <CardContent className="p-5">
         <div className="mb-3">
           <h3 className="font-bold text-lg mb-1">
-            {brand} {model}
+            {brand} {model || "Modèle non spécifié"}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary" className="rounded-lg px-2.5 py-0.5 text-xs">{transmission}</Badge>
