@@ -85,7 +85,7 @@ const DealRatingBadge = ({
       icon: TrendingDown
     },
     fair: {
-      label: rating.savingsPercentage >= 0 ? "Négociable" : "Prix correct",
+      label: rating.savingsPercentage > 2 ? "À négocier" : "Prix correct",
       color: "bg-amber-500 hover:bg-amber-600 text-white",
       icon: Minus
     },

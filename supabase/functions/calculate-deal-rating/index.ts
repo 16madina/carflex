@@ -78,18 +78,18 @@ serve(async (req) => {
       const priceDiff = adjustedMarketAverage - listing[priceField];
       savingsPercentage = Math.round((priceDiff / adjustedMarketAverage) * 100);
 
-      // Determine deal rating with more nuanced thresholds
-      if (savingsPercentage >= 15) {
+      // Determine deal rating with balanced thresholds
+      if (savingsPercentage >= 12) {
         dealRating = "excellent";
         explanation = `Ce véhicule est ${savingsPercentage}% moins cher que le prix moyen du marché. Excellente affaire!`;
-      } else if (savingsPercentage >= 8) {
+      } else if (savingsPercentage >= 5) {
         dealRating = "good";
         explanation = `Ce véhicule est ${savingsPercentage}% moins cher que le prix moyen du marché. Bon prix!`;
-      } else if (savingsPercentage >= -5) {
+      } else if (savingsPercentage >= -3) {
         dealRating = "fair";
-        explanation = savingsPercentage > 0 
-          ? `Ce véhicule est ${savingsPercentage}% moins cher que le marché. Prix négociable.`
-          : `Ce véhicule est proche du prix du marché. Prix négociable.`;
+        explanation = savingsPercentage > 2 
+          ? `Prix intéressant, ${savingsPercentage}% sous le marché. À négocier.`
+          : `Prix dans la moyenne du marché.`;
       } else {
         dealRating = "poor";
         explanation = `Ce véhicule est ${Math.abs(savingsPercentage)}% plus cher que le prix moyen du marché.`;
