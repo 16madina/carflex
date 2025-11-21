@@ -99,7 +99,7 @@ const SocialLinks = () => {
       <main className="container mx-auto px-4 pt-24 pb-6">
         <Button
           variant="ghost"
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate(-1)}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
