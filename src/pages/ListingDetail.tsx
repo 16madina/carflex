@@ -170,7 +170,7 @@ const ListingDetail = () => {
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-xl md:text-2xl font-bold">
                 {listing.brand} {listing.model}
               </h1>
               <DealRatingBadge listingId={id!} listingType="sale" />
@@ -180,7 +180,7 @@ const ListingDetail = () => {
               <span>{listing.city}, {listing.country}</span>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <ReportContentDialog 
               contentType="sale_listing" 
               contentId={id!}
@@ -188,14 +188,14 @@ const ListingDetail = () => {
             />
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={handleShare}
             >
               <Share2 className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={handleFavorite}
             >
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
@@ -206,7 +206,7 @@ const ListingDetail = () => {
         {/* Price */}
         <div className="bg-gradient-card rounded-lg p-6 mb-6">
           <p className="text-sm text-muted-foreground mb-1">Prix</p>
-          <p className="text-2xl font-bold text-accent">
+          <p className="text-xl md:text-2xl font-bold text-accent">
             {formatPrice(listing.price)}
           </p>
         </div>
@@ -217,10 +217,10 @@ const ListingDetail = () => {
             <CardContent className="p-6">
               <h2 className="text-lg font-bold mb-4">À propos du vendeur</h2>
               <div className="flex items-start gap-4 mb-4">
-                <Avatar className="h-16 w-16 cursor-pointer" onClick={() => navigate(`/profile/${listing.seller_id}`)}>
-                  <AvatarImage src={listing.profiles.avatar_url} />
+                <Avatar className="h-14 w-14 cursor-pointer" onClick={() => navigate(`/profile/${listing.seller_id}`)}>
+                  <AvatarImage src={listing.profiles.avatar_url} className="object-cover" />
                   <AvatarFallback>
-                    <UserIcon className="h-8 w-8" />
+                    <UserIcon className="h-6 w-6" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
@@ -256,7 +256,7 @@ const ListingDetail = () => {
 
         {/* Specifications */}
         <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-          <h2 className="text-xl font-bold mb-4">Caractéristiques principales</h2>
+          <h2 className="text-lg font-bold mb-4">Caractéristiques principales</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-primary" />
@@ -291,7 +291,7 @@ const ListingDetail = () => {
 
         {/* Detailed Specifications */}
         <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-          <h2 className="text-xl font-bold mb-4">Détails complets</h2>
+          <h2 className="text-lg font-bold mb-4">Détails complets</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Exterior & Interior */}
             {(listing.exterior_color || listing.interior_color) && (
@@ -421,7 +421,7 @@ const ListingDetail = () => {
         {/* Description */}
         {listing.description && (
           <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-            <h2 className="text-xl font-bold mb-4">Description</h2>
+            <h2 className="text-lg font-bold mb-4">Description</h2>
             <p className="text-muted-foreground leading-relaxed">
               {listing.description}
             </p>
@@ -431,7 +431,7 @@ const ListingDetail = () => {
         {/* Features */}
         {features.length > 0 && (
           <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-            <h2 className="text-xl font-bold mb-4">Équipements</h2>
+            <h2 className="text-lg font-bold mb-4">Équipements</h2>
             <div className="flex flex-wrap gap-2">
               {features.map((feature: string, index: number) => (
                 <Badge key={index} variant="secondary">

@@ -11,7 +11,7 @@ const TopBar = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={carflexLogo} alt="CarFlex Logo" className="h-12 w-auto" />
+            <img src={carflexLogo} alt="CarFlex Logo" className="h-12 w-auto object-contain" />
           </Link>
 
           <div className="flex items-center gap-2">
