@@ -11,9 +11,9 @@ const PrivacyPolicy = () => {
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Button variant="ghost" asChild className="mb-6">
-          <Link to="/">
+          <Link to="/profile">
             <ChevronLeft className="mr-2 h-4 w-4" />
-            Retour à l'accueil
+            Retour au profil
           </Link>
         </Button>
 
