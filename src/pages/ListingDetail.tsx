@@ -167,9 +167,9 @@ const ListingDetail = () => {
         </div>
 
         {/* Title and Actions */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
               <h1 className="text-xl md:text-2xl font-bold">
                 {listing.brand} {listing.model}
               </h1>
@@ -180,7 +180,7 @@ const ListingDetail = () => {
               <span>{listing.city}, {listing.country}</span>
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-2 sm:gap-1 justify-end sm:justify-start">
             <ReportContentDialog 
               contentType="sale_listing" 
               contentId={id!}
