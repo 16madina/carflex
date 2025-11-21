@@ -66,7 +66,7 @@ const AvatarWithBadge = ({ src, alt, fallback, className, userId }: AvatarWithBa
   return (
     <div className="relative inline-block">
       <Avatar className={cn("h-10 w-10", className)}>
-        <AvatarImage src={src || undefined} alt={alt} />
+        <AvatarImage src={src || undefined} alt={alt} className="object-cover" />
         <AvatarFallback className="bg-primary text-primary-foreground">
           {fallback}
         </AvatarFallback>
