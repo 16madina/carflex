@@ -18,6 +18,15 @@ import { fr } from "date-fns/locale";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { ProfileSkeleton } from "@/components/ProfileSkeleton";
 import { ImagePicker } from "@/components/ImagePicker";
+import { Capacitor } from "@capacitor/core";
+import { storeKitService } from "@/services/storekit";
+
+// Mapping des packages vers les Product IDs iOS
+const IOS_PRODUCT_IDS: { [key: number]: string } = {
+  3: "com.missdee.carflextest.premium.3jours",
+  7: "com.missdee.carflextest.premium.7days",
+  15: "com.missdee.carflextest.premium.15days",
+};
 
 interface PremiumPackage {
   id: string;
@@ -81,6 +90,16 @@ const Profile = () => {
       }
 
       setUser(user);
+
+      // Initialiser StoreKit sur iOS
+      if (Capacitor.getPlatform() === 'ios') {
+        try {
+          await storeKitService.initialize();
+          console.log('[Profile] StoreKit initialized');
+        } catch (error) {
+          console.error('[Profile] StoreKit init error:', error);
+        }
+      }
 
       // Paralléliser toutes les requêtes pour améliorer les performances
       const [profileData, roles] = await Promise.all([
@@ -310,6 +329,100 @@ const Profile = () => {
     console.log('Modal de paiement devrait s\'ouvrir');
   };
 
+  const handleIOSPremiumPurchase = async () => {
+    const listing = userListings.find(l => l.id === selectedListing);
+    const pkg = packages.find(p => p.id === selectedPackage);
+    
+    if (!listing || !pkg) {
+      toast.error("Informations manquantes");
+      return;
+    }
+
+    const productId = IOS_PRODUCT_IDS[pkg.duration_days];
+    if (!productId) {
+      toast.error("Pack non disponible sur iOS");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      if (!storeKitService.isAvailable()) {
+        toast.error("Service indisponible", {
+          description: "StoreKit n'est pas disponible. Veuillez tester sur un appareil iOS réel.",
+        });
+        throw new Error("StoreKit non disponible");
+      }
+      
+      toast.info("Traitement en cours...", {
+        description: "Ouverture du système de paiement Apple",
+      });
+
+      // Acheter le produit via StoreKit natif
+      const purchaseResult = await storeKitService.purchase(productId);
+      
+      console.log('[StoreKit Purchase] Success:', purchaseResult);
+
+      toast.info("Validation en cours...", {
+        description: "Vérification de votre achat avec le serveur",
+      });
+
+      // Vérifier et activer le premium via notre backend
+      const { data: sessionData } = await supabase.auth.getSession();
+      const verifyResponse = await supabase.functions.invoke('verify-ios-purchase', {
+        body: {
+          purchase_type: 'premium_listing',
+          package_id: selectedPackage,
+          listing_id: selectedListing,
+          listing_type: listing.type,
+          product_id: productId,
+          transaction_id: purchaseResult.transactionId,
+          purchase_date: purchaseResult.purchaseDate.toISOString(),
+          original_transaction_id: purchaseResult.originalTransactionId
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
+
+      if (verifyResponse.error) {
+        throw verifyResponse.error;
+      }
+
+      toast.success("✅ Pack Premium activé !", {
+        description: `Votre annonce est maintenant promue pour ${pkg.duration_days} jours.`,
+      });
+
+      // Recharger les annonces
+      await fetchUserListings(user.id);
+      setShowPaymentSelector(false);
+
+    } catch (error: any) {
+      console.error('[StoreKit Purchase] Error:', error);
+      
+      if (error.message === 'CANCELLED') {
+        toast.info("Achat annulé", {
+          description: "Vous pouvez réessayer quand vous voulez",
+        });
+      } else if (error.message?.includes('Méthode de paiement invalide')) {
+        toast.error("Paiement invalide", {
+          description: "Veuillez vérifier votre méthode de paiement dans les réglages iOS",
+        });
+      } else if (error.message?.includes('Erreur réseau')) {
+        toast.error("Problème de connexion", {
+          description: "Vérifiez votre connexion internet et réessayez",
+        });
+      } else {
+        toast.error("Erreur d'achat", {
+          description: error.message || "Impossible de finaliser l'achat",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+      setShowPaymentSelector(false);
+    }
+  };
+
   const handlePaymentMethod = async (method: 'stripe' | 'wave' | 'paypal') => {
     console.log('handlePaymentMethod appelé avec:', method);
     console.log('selectedListing:', selectedListing);
@@ -319,6 +432,12 @@ const Profile = () => {
     if (!listing) {
       console.error('Listing non trouvé');
       toast.error("Annonce non trouvée");
+      return;
+    }
+
+    // Sur iOS, utiliser IAP natif au lieu de Stripe
+    if (Capacitor.getPlatform() === 'ios') {
+      await handleIOSPremiumPurchase();
       return;
     }
 
