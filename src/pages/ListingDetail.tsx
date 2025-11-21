@@ -185,18 +185,21 @@ const ListingDetail = () => {
               contentType="sale_listing" 
               contentId={id!}
               triggerVariant="outline"
+              triggerSize="icon"
             />
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={handleShare}
+              className="h-9 w-9"
             >
               <Share2 className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={handleFavorite}
+              className="h-9 w-9"
             >
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
             </Button>
