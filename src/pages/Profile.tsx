@@ -1102,7 +1102,7 @@ const Profile = () => {
                   <Button 
                     variant="ghost" 
                     className="w-full justify-start" 
-                    onClick={() => toast.info('Fonctionnalité à venir')}
+                    onClick={() => navigate('/profile/social-links')}
                   >
                     <Share2 className="mr-2 h-4 w-4" />
                     Liens vers les médias sociaux
@@ -1127,7 +1127,7 @@ const Profile = () => {
                   <Button 
                     variant="ghost" 
                     className="w-full justify-start" 
-                    onClick={() => toast.info('Fonctionnalité à venir')}
+                    onClick={() => navigate('/profile/notification-preferences')}
                   >
                     <Bell className="mr-2 h-4 w-4" />
                     Préférences de notifications
