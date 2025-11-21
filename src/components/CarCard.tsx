@@ -9,6 +9,7 @@ import { useCountry } from "@/contexts/CountryContext";
 import { useFavorites } from "@/hooks/useFavorites";
 import DealRatingBadge from "./DealRatingBadge";
 import ImageCarousel from "./ImageCarousel";
+import { motion } from "framer-motion";
 
 interface CarCardProps {
   id: string;
@@ -75,10 +76,17 @@ const CarCard = ({
   };
 
   return (
-    <Card 
-      className="group overflow-hidden hover:shadow-material-xl transition-all duration-300 cursor-pointer animate-spring"
-      onClick={handleCardClick}
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      whileHover={{ y: -8, scale: 1.02 }}
     >
+      <Card 
+        className="group overflow-hidden shadow-material hover:shadow-material-xl transition-shadow duration-300 cursor-pointer"
+        onClick={handleCardClick}
+      >
       <div className="relative h-48 overflow-hidden bg-muted">
         {displayImages.length > 0 ? (
           <ImageCarousel 
@@ -167,6 +175,7 @@ const CarCard = ({
         </div>
       </CardContent>
     </Card>
+    </motion.div>
   );
 };
 
