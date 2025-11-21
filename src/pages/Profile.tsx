@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2 } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle } from "lucide-react";
 import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -542,7 +542,7 @@ const Profile = () => {
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="profile" className="w-full">
             <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border mb-6">
-              <TabsList className="grid w-full grid-cols-3 mt-4">
+              <TabsList className="grid w-full grid-cols-4 mt-4">
                 <TabsTrigger value="profile">Mon Profil</TabsTrigger>
                 <TabsTrigger value="listings">Mes Annonces</TabsTrigger>
                 <TabsTrigger value="bookings">
@@ -553,6 +553,7 @@ const Profile = () => {
                     </Badge>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="settings">Paramètres</TabsTrigger>
               </TabsList>
             </div>
 
@@ -1048,6 +1049,130 @@ const Profile = () => {
                   )}
                 </TabsContent>
               </Tabs>
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              {/* Liens rapides */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Liens rapides</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate(`/profile/${user?.id}`)}
+                  >
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Ma page publique
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate('/favorites')}
+                  >
+                    <Heart className="mr-2 h-4 w-4" />
+                    Favoris
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => toast.info('Fonctionnalité à venir')}
+                  >
+                    <Star className="mr-2 h-4 w-4" />
+                    Mes avis
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Détails du profil */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Détails du profil</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate('/profile/edit')}
+                  >
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Détails personnels
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => toast.info('Fonctionnalité à venir')}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Liens vers les médias sociaux
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Paramètres du compte */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Paramètres du compte</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => toast.info('Fonctionnalité à venir')}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Gérer le compte
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => toast.info('Fonctionnalité à venir')}
+                  >
+                    <Bell className="mr-2 h-4 w-4" />
+                    Préférences de notifications
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Informations générales */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Informations générales</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start flex-col items-start h-auto py-3" 
+                    onClick={() => navigate('/privacy-policy')}
+                  >
+                    <span className="font-semibold">Politique de confidentialité</span>
+                    <span className="text-xs text-muted-foreground text-left">
+                      Comment nous collectons et utilisons vos données
+                    </span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start flex-col items-start h-auto py-3" 
+                    onClick={() => navigate('/terms-of-service')}
+                  >
+                    <span className="font-semibold">Conditions d'utilisation</span>
+                    <span className="text-xs text-muted-foreground text-left">
+                      Les règles d'utilisation de notre plateforme
+                    </span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start flex-col items-start h-auto py-3" 
+                    onClick={() => navigate('/data-protection')}
+                  >
+                    <span className="font-semibold">Protection des données</span>
+                    <span className="text-xs text-muted-foreground text-left">
+                      Vos droits et notre engagement RGPD
+                    </span>
+                  </Button>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
