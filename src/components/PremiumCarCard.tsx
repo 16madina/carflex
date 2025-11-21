@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import ImageCarousel from "@/components/ImageCarousel";
 import DealRatingBadge from "@/components/DealRatingBadge";
+import { motion } from "framer-motion";
 
 interface PremiumCarCardProps {
   id: string;
@@ -74,10 +75,17 @@ const PremiumCarCard = ({
   };
 
   return (
-    <Card 
-      className="overflow-hidden hover:shadow-material-xl transition-all duration-300 hover:-translate-y-1 animate-spring cursor-pointer"
-      onClick={() => navigate(`/listing/${id}`)}
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      whileHover={{ y: -8, scale: 1.02 }}
     >
+      <Card 
+        className="overflow-hidden shadow-material hover:shadow-material-xl transition-shadow duration-300 cursor-pointer"
+        onClick={() => navigate(`/listing/${id}`)}
+      >
       <div className="relative h-48 bg-muted">
         {images.length > 0 ? (
           <ImageCarousel 
@@ -158,6 +166,7 @@ const PremiumCarCard = ({
         </Button>
       </CardContent>
     </Card>
+    </motion.div>
   );
 };
 
