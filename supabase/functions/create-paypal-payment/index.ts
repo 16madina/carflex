@@ -7,9 +7,13 @@ const corsHeaders = {
 };
 
 // Helper function to get PayPal access token
-async function getPayPalAccessToken(clientId: string, secret: string) {
+async function getPayPalAccessToken(clientId: string, secret: string, mode: string) {
+  const baseUrl = mode === 'sandbox' 
+    ? 'https://api-m.sandbox.paypal.com' 
+    : 'https://api-m.paypal.com';
+  
   const auth = btoa(`${clientId}:${secret}`);
-  const response = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
+  const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${auth}`,
@@ -62,13 +66,20 @@ serve(async (req) => {
 
     const paypalClientId = Deno.env.get("PAYPAL_CLIENT_ID");
     const paypalSecret = Deno.env.get("PAYPAL_SECRET");
+    const paypalMode = Deno.env.get("PAYPAL_MODE") || "production";
 
     if (!paypalClientId || !paypalSecret) {
       throw new Error('PayPal credentials not configured');
     }
 
+    console.log('PayPal mode:', paypalMode);
+
     // Get PayPal access token
-    const accessToken = await getPayPalAccessToken(paypalClientId, paypalSecret);
+    const accessToken = await getPayPalAccessToken(paypalClientId, paypalSecret, paypalMode);
+    
+    const baseUrl = paypalMode === 'sandbox' 
+      ? 'https://api-m.sandbox.paypal.com' 
+      : 'https://api-m.paypal.com';
 
     // Convert XOF to USD (approximately 1 USD = 600 XOF)
     const priceInUsd = (pkg.price / 600).toFixed(2);
@@ -80,7 +91,7 @@ serve(async (req) => {
 
     // Create PayPal order
     const origin = req.headers.get("origin") || "http://localhost:3000";
-    const orderResponse = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
+    const orderResponse = await fetch(`${baseUrl}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,

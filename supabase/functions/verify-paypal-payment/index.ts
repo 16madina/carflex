@@ -7,9 +7,13 @@ const corsHeaders = {
 };
 
 // Helper function to get PayPal access token
-async function getPayPalAccessToken(clientId: string, secret: string) {
+async function getPayPalAccessToken(clientId: string, secret: string, mode: string) {
+  const baseUrl = mode === 'sandbox' 
+    ? 'https://api-m.sandbox.paypal.com' 
+    : 'https://api-m.paypal.com';
+  
   const auth = btoa(`${clientId}:${secret}`);
-  const response = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
+  const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${auth}`,
@@ -53,16 +57,23 @@ serve(async (req) => {
 
     const paypalClientId = Deno.env.get("PAYPAL_CLIENT_ID");
     const paypalSecret = Deno.env.get("PAYPAL_SECRET");
+    const paypalMode = Deno.env.get("PAYPAL_MODE") || "production";
 
     if (!paypalClientId || !paypalSecret) {
       throw new Error('PayPal credentials not configured');
     }
 
+    console.log('PayPal mode:', paypalMode);
+
     // Get PayPal access token
-    const accessToken = await getPayPalAccessToken(paypalClientId, paypalSecret);
+    const accessToken = await getPayPalAccessToken(paypalClientId, paypalSecret, paypalMode);
+    
+    const baseUrl = paypalMode === 'sandbox' 
+      ? 'https://api-m.sandbox.paypal.com' 
+      : 'https://api-m.paypal.com';
 
     // Get order details from PayPal
-    const orderResponse = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${order_id}`, {
+    const orderResponse = await fetch(`${baseUrl}/v2/checkout/orders/${order_id}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
@@ -82,7 +93,7 @@ serve(async (req) => {
 
     // Capture the payment if it's only approved
     if (orderData.status === 'APPROVED') {
-      const captureResponse = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${order_id}/capture`, {
+      const captureResponse = await fetch(`${baseUrl}/v2/checkout/orders/${order_id}/capture`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
