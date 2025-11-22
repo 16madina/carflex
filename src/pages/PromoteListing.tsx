@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { CheckCircle2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ArrowLeft, RefreshCw, Loader2 } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { useCountry } from "@/contexts/CountryContext";
@@ -54,8 +54,12 @@ const PromoteListing = () => {
   const [showPromoInput, setShowPromoInput] = useState(false);
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
   const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    const platform = Capacitor.getPlatform();
+    setIsIOS(platform === 'ios');
     checkUser();
     initializeStoreKit();
   }, []);
@@ -332,6 +336,105 @@ const PromoteListing = () => {
     }
   };
 
+  const handleRestorePurchases = async () => {
+    if (!isIOS) return;
+    
+    setRestoring(true);
+    
+    try {
+      console.log('[StoreKit] Démarrage de la restauration (PromoteListing)...');
+      
+      if (!storeKitService.isAvailable()) {
+        toast({
+          title: "Service indisponible",
+          description: "StoreKit n'est pas disponible. Veuillez tester sur un appareil iOS réel.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "Restauration en cours...",
+        description: "Recherche de vos achats précédents",
+      });
+      
+      const restoredPurchases = await storeKitService.restorePurchases();
+      
+      console.log('[StoreKit] Achats restaurés:', restoredPurchases.length);
+      
+      if (restoredPurchases.length === 0) {
+        toast({
+          title: "Aucun achat trouvé",
+          description: "Aucun package premium n'a été trouvé pour ce compte Apple",
+        });
+        return;
+      }
+      
+      // Vérifier chaque achat restauré avec le backend
+      toast({
+        title: "Validation en cours...",
+        description: `Vérification de ${restoredPurchases.length} achat(s)`,
+      });
+      
+      let successCount = 0;
+      for (const purchase of restoredPurchases) {
+        try {
+          // Synchroniser avec le backend
+          const { error } = await supabase.functions.invoke('verify-ios-purchase', {
+            body: {
+              transaction_id: purchase.transactionId,
+              product_id: purchase.productId,
+              purchase_type: 'premium_listing',
+              // Note: listing_id et package_id seront déduits du product_id
+            }
+          });
+
+          if (!error) {
+            successCount++;
+          }
+        } catch (error) {
+          console.error('[StoreKit] Erreur sync achat restauré:', error);
+        }
+      }
+      
+      if (successCount > 0) {
+        toast({
+          title: "✅ Achats restaurés avec succès !",
+          description: `${successCount} package(s) premium restauré(s).`,
+        });
+        
+        // Rafraîchir la page après 2 secondes pour afficher les mises à jour
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toast({
+          title: "Erreur de restauration",
+          description: "Impossible de vérifier les achats restaurés. Contactez le support.",
+          variant: "destructive"
+        });
+      }
+      
+    } catch (error: any) {
+      console.error('[StoreKit] Erreur restauration:', error);
+      
+      if (error.message?.includes('CANCELLED') || error.message?.includes('cancelled')) {
+        toast({
+          title: "Restauration annulée",
+          description: "Vous pouvez réessayer quand vous voulez",
+        });
+      } else {
+        toast({
+          title: "Erreur de restauration",
+          description: error.message || "Impossible de restaurer les achats. Veuillez réessayer.",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -482,12 +585,33 @@ const PromoteListing = () => {
 
                     <Button
                       onClick={handlePromote}
-                      disabled={!selectedListing || submitting}
+                      disabled={!selectedListing || submitting || restoring}
                       className="w-full"
                       size="lg"
                     >
                       Continuer vers le paiement
                     </Button>
+                    
+                    {isIOS && (
+                      <Button
+                        onClick={handleRestorePurchases}
+                        disabled={submitting || restoring}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        {restoring ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Restauration...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Restaurer mes achats premium
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </>
                 )}
             </CardContent>
