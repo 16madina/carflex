@@ -164,17 +164,28 @@ export const ImagePicker = ({
     );
   }
 
-  // Web version: use standard file input
+  // Web version: use standard file input with hidden input
   return (
     <div className={className}>
       <Input
+        id="file-input"
         type="file"
         accept={accept}
         multiple={multiple}
         onChange={handleWebImagePick}
         disabled={disabled}
-        className="cursor-pointer"
+        className="hidden"
       />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => document.getElementById('file-input')?.click()}
+        disabled={disabled}
+        className="h-8 w-8"
+      >
+        <CameraIcon className="h-5 w-5" />
+      </Button>
     </div>
   );
 };
