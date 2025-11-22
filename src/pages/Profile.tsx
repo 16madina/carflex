@@ -707,9 +707,9 @@ const Profile = () => {
                         disabled={uploadingAvatar}
                       />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h2 className="text-2xl font-bold">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h2 className="text-xl font-bold truncate">
                           {profile?.first_name} {profile?.last_name}
                         </h2>
                         {profile?.user_type === "buyer" && (
@@ -738,7 +738,7 @@ const Profile = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-muted-foreground">{profile?.email}</p>
+                        <p className="text-sm text-muted-foreground break-all max-w-full">{profile?.email}</p>
                         {profile?.email_verified ? (
                           <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
                             <CheckCircle2 className="h-3 w-3" />
