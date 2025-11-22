@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePushNotifications = () => {
   const isInitialized = useRef(false);
@@ -52,9 +53,36 @@ export const usePushNotifications = () => {
         }
 
         // Listener: notification reçue
-        await PushNotifications.addListener('registration', (token) => {
+        await PushNotifications.addListener('registration', async (token) => {
           console.log('Push registration success, token: ' + token.value);
-          // TODO: Envoyer le token à votre backend
+          
+          // Enregistrer le token dans la base de données
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+              const platform = Capacitor.getPlatform() as 'ios' | 'android' | 'web';
+              
+              await supabase
+                .from('push_notification_tokens')
+                .upsert({
+                  user_id: user.id,
+                  token: token.value,
+                  platform: platform,
+                  device_info: {
+                    platform: platform,
+                    capacitor_version: Capacitor.getPlatform(),
+                  },
+                  last_used_at: new Date().toISOString(),
+                }, {
+                  onConflict: 'user_id,token',
+                });
+              
+              console.log('Token enregistré avec succès dans la DB');
+            }
+          } catch (error) {
+            console.error('Erreur lors de l\'enregistrement du token:', error);
+          }
         });
 
         // Listener: erreur d'enregistrement
