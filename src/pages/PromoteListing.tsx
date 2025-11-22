@@ -136,7 +136,14 @@ const PromoteListing = () => {
     if (!pkg) return;
 
     setSelectedPackageData(pkg);
-    setShowPaymentSelector(true);
+    
+    // Sur iOS, appeler directement l'achat natif (règles App Store)
+    if (isIOS) {
+      await handleIOSPremiumPurchase();
+    } else {
+      // Sur web/Android, afficher le sélecteur de paiement
+      setShowPaymentSelector(true);
+    }
   };
 
   const handleIOSPremiumPurchase = async () => {
@@ -589,7 +596,16 @@ const PromoteListing = () => {
                       className="w-full"
                       size="lg"
                     >
-                      Continuer vers le paiement
+                      {submitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Traitement...
+                        </>
+                      ) : isIOS ? (
+                        "Acheter via l'App Store"
+                      ) : (
+                        "Continuer vers le paiement"
+                      )}
                     </Button>
                     
                     {isIOS && (
@@ -619,13 +635,16 @@ const PromoteListing = () => {
         )}
       </div>
 
-      <PaymentMethodSelector
-        open={showPaymentSelector}
-        onOpenChange={setShowPaymentSelector}
-        onSelectMethod={handlePaymentMethod}
-        amount={selectedPackageData?.price || 0}
-        formatPrice={formatPrice}
-      />
+      {/* PaymentMethodSelector uniquement sur Web/Android (règles App Store) */}
+      {!isIOS && (
+        <PaymentMethodSelector
+          open={showPaymentSelector}
+          onOpenChange={setShowPaymentSelector}
+          onSelectMethod={handlePaymentMethod}
+          amount={selectedPackageData?.price || 0}
+          formatPrice={formatPrice}
+        />
+      )}
 
       <BottomNav />
     </div>
