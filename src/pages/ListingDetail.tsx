@@ -10,6 +10,7 @@ import AddReview from "@/components/AddReview";
 import DealRatingBadge from "@/components/DealRatingBadge";
 import ReviewsSection from "@/components/ReviewsSection";
 import ReportContentDialog from "@/components/ReportContentDialog";
+import { TestDriveRequestDialog } from "@/components/TestDriveRequestDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -45,6 +46,7 @@ const ListingDetail = () => {
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
+  const [testDriveDialogOpen, setTestDriveDialogOpen] = useState(false);
   const [reviewsKey, setReviewsKey] = useState(0);
   const { isFavorite, toggleFavorite } = useFavorites(id, "sale");
   const { conversationId, loading: convLoading } = useConversation(
@@ -108,6 +110,23 @@ const ListingDetail = () => {
     navigate("/messages");
   };
 
+  const handleTestDrive = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("Vous devez être connecté pour demander un essai");
+      navigate("/auth");
+      return;
+    }
+
+    if (listing?.seller_id === user.id) {
+      toast.error("Vous ne pouvez pas demander un essai pour votre propre véhicule");
+      return;
+    }
+
+    setTestDriveDialogOpen(true);
+  };
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Lien copié dans le presse-papier");
@@ -167,10 +186,10 @@ const ListingDetail = () => {
         </div>
 
         {/* Title and Actions */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <h1 className="text-xl md:text-2xl font-bold">
                 {listing.brand} {listing.model}
               </h1>
               <DealRatingBadge listingId={id!} listingType="sale" />
@@ -180,16 +199,18 @@ const ListingDetail = () => {
               <span>{listing.city}, {listing.country}</span>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:gap-1 justify-end sm:justify-start">
             <ReportContentDialog 
               contentType="sale_listing" 
               contentId={id!}
               triggerVariant="outline"
+              triggerSize="icon"
             />
             <Button
               variant="outline"
               size="icon"
               onClick={handleShare}
+              className="h-9 w-9"
             >
               <Share2 className="h-4 w-4" />
             </Button>
@@ -197,6 +218,7 @@ const ListingDetail = () => {
               variant="outline"
               size="icon"
               onClick={handleFavorite}
+              className="h-9 w-9"
             >
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
             </Button>
@@ -206,7 +228,7 @@ const ListingDetail = () => {
         {/* Price */}
         <div className="bg-gradient-card rounded-lg p-6 mb-6">
           <p className="text-sm text-muted-foreground mb-1">Prix</p>
-          <p className="text-2xl font-bold text-accent">
+          <p className="text-xl md:text-2xl font-bold text-accent">
             {formatPrice(listing.price)}
           </p>
         </div>
@@ -217,10 +239,10 @@ const ListingDetail = () => {
             <CardContent className="p-6">
               <h2 className="text-lg font-bold mb-4">À propos du vendeur</h2>
               <div className="flex items-start gap-4 mb-4">
-                <Avatar className="h-16 w-16 cursor-pointer" onClick={() => navigate(`/profile/${listing.seller_id}`)}>
-                  <AvatarImage src={listing.profiles.avatar_url} />
+                <Avatar className="h-14 w-14 cursor-pointer" onClick={() => navigate(`/profile/${listing.seller_id}`)}>
+                  <AvatarImage src={listing.profiles.avatar_url} className="object-cover" />
                   <AvatarFallback>
-                    <UserIcon className="h-8 w-8" />
+                    <UserIcon className="h-6 w-6" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
@@ -256,7 +278,7 @@ const ListingDetail = () => {
 
         {/* Specifications */}
         <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-          <h2 className="text-xl font-bold mb-4">Caractéristiques principales</h2>
+          <h2 className="text-lg font-bold mb-4">Caractéristiques principales</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-primary" />
@@ -291,7 +313,7 @@ const ListingDetail = () => {
 
         {/* Detailed Specifications */}
         <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-          <h2 className="text-xl font-bold mb-4">Détails complets</h2>
+          <h2 className="text-lg font-bold mb-4">Détails complets</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Exterior & Interior */}
             {(listing.exterior_color || listing.interior_color) && (
@@ -421,7 +443,7 @@ const ListingDetail = () => {
         {/* Description */}
         {listing.description && (
           <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-            <h2 className="text-xl font-bold mb-4">Description</h2>
+            <h2 className="text-lg font-bold mb-4">Description</h2>
             <p className="text-muted-foreground leading-relaxed">
               {listing.description}
             </p>
@@ -431,7 +453,7 @@ const ListingDetail = () => {
         {/* Features */}
         {features.length > 0 && (
           <div className="bg-card rounded-lg p-6 mb-6 shadow-card">
-            <h2 className="text-xl font-bold mb-4">Équipements</h2>
+            <h2 className="text-lg font-bold mb-4">Équipements</h2>
             <div className="flex flex-wrap gap-2">
               {features.map((feature: string, index: number) => (
                 <Badge key={index} variant="secondary">
@@ -474,7 +496,13 @@ const ListingDetail = () => {
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Contacter le vendeur
               </Button>
-              <Button size="lg" variant="outline" className="w-full">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="w-full"
+                onClick={handleTestDrive}
+                disabled={convLoading}
+              >
                 Demander un essai
               </Button>
             </div>
@@ -491,6 +519,16 @@ const ListingDetail = () => {
           onClose={() => setChatOpen(false)}
         />
       )}
+
+      {/* Test Drive Request Dialog */}
+      <TestDriveRequestDialog
+        open={testDriveDialogOpen}
+        onOpenChange={setTestDriveDialogOpen}
+        listingId={id || ""}
+        listingType="sale"
+        sellerId={listing?.seller_id || ""}
+        vehicleName={`${listing?.brand || ""} ${listing?.model || ""}`}
+      />
     </div>
   );
 };

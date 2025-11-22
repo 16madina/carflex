@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
+import { TestDriveRequestsList } from "@/components/TestDriveRequestsList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -233,7 +234,7 @@ const Bookings = () => {
         <h1 className="text-3xl font-bold mb-6">Mes réservations</h1>
 
         <Tabs defaultValue={receivedBookings.filter(b => b.status === 'pending').length > 0 ? "received" : "my-bookings"} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="my-bookings">
               Mes locations
               {myBookings.length > 0 && (
@@ -247,6 +248,9 @@ const Bookings = () => {
                   {receivedBookings.filter(b => b.status === 'pending').length}
                 </Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="test-drives">
+              Essais
             </TabsTrigger>
           </TabsList>
 
@@ -285,6 +289,10 @@ const Bookings = () => {
                 <BookingCard key={booking.id} booking={booking} isOwner={true} />
               ))
             )}
+          </TabsContent>
+
+          <TabsContent value="test-drives" className="space-y-4 mt-6">
+            <TestDriveRequestsList />
           </TabsContent>
         </Tabs>
       </main>

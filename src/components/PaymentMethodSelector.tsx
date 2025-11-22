@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { CreditCard, Smartphone, Loader2, Apple } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Capacitor } from "@capacitor/core";
+import waveLogo from "@/assets/wave-logo.png";
 
 interface PaymentMethodSelectorProps {
   open: boolean;
@@ -20,6 +22,7 @@ export const PaymentMethodSelector = ({
   formatPrice
 }: PaymentMethodSelectorProps) => {
   const [loading, setLoading] = useState<string | null>(null);
+  const platform = Capacitor.getPlatform();
 
   const handleMethodClick = async (method: 'stripe' | 'apple-pay' | 'wave' | 'paypal') => {
     setLoading(method);
@@ -30,40 +33,33 @@ export const PaymentMethodSelector = ({
     }
   };
 
-  const paymentMethods = [
+  // Méthodes de paiement disponibles selon la plateforme
+  const allPaymentMethods = [
     {
       id: 'stripe' as const,
       name: 'Carte bancaire',
-      description: 'Visa, Mastercard (incluant Wave Visa)',
+      description: 'Visa, Mastercard - inclus Wave (Visa)',
       icon: CreditCard,
       available: true,
-      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200'
-    },
-    {
-      id: 'apple-pay' as const,
-      name: 'Apple Pay',
-      description: 'Paiement rapide avec Apple Pay',
-      icon: Apple,
-      available: true,
-      color: 'bg-gray-50 hover:bg-gray-100 border-gray-200'
-    },
-    {
-      id: 'wave' as const,
-      name: 'Wave',
-      description: 'Paiement mobile Money (Orange, MTN, Moov)',
-      icon: Smartphone,
-      available: false,
-      color: 'bg-green-50 hover:bg-green-100 border-green-200'
+      platforms: ['web', 'android'],
+      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200',
+      showWaveLogo: true
     },
     {
       id: 'paypal' as const,
       name: 'PayPal',
       description: 'Paiement via compte PayPal',
       icon: CreditCard,
-      available: false,
+      available: true,
+      platforms: ['web', 'android'],
       color: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'
     }
   ];
+
+  // Filtrer les méthodes selon la plateforme
+  const paymentMethods = allPaymentMethods.filter(method => 
+    method.platforms.includes(platform)
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -98,8 +94,14 @@ export const PaymentMethodSelector = ({
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold">{method.name}</h3>
+                        {method.showWaveLogo && (
+                          <div className="flex items-center gap-1.5 bg-white rounded-md px-2 py-1 border border-gray-200">
+                            <img src={waveLogo} alt="Wave" className="h-4 w-4 object-contain" />
+                            <span className="text-xs font-medium text-gray-700">Wave</span>
+                          </div>
+                        )}
                         {!method.available && (
                           <span className="text-xs bg-gray-200 px-2 py-0.5 rounded">
                             Bientôt disponible

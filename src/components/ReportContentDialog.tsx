@@ -26,13 +26,15 @@ interface ReportContentDialogProps {
   contentId: string;
   triggerText?: string;
   triggerVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  triggerSize?: "default" | "sm" | "lg" | "icon";
 }
 
 const ReportContentDialog = ({ 
   contentType, 
   contentId, 
   triggerText = "Signaler",
-  triggerVariant = "ghost"
+  triggerVariant = "ghost",
+  triggerSize = "sm"
 }: ReportContentDialogProps) => {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<string>("");
@@ -84,9 +86,9 @@ const ReportContentDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={triggerVariant} size="sm">
-          <Flag className="w-4 h-4 mr-2" />
-          {triggerText}
+        <Button variant={triggerVariant} size={triggerSize} className={triggerSize === "icon" ? "h-9 w-9" : ""}>
+          <Flag className="w-4 h-4" />
+          {triggerSize !== "icon" && <span className="ml-2">{triggerText}</span>}
         </Button>
       </DialogTrigger>
       <DialogContent>

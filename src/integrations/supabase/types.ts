@@ -231,6 +231,42 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          booking_enabled: boolean | null
+          created_at: string | null
+          email_enabled: boolean | null
+          id: string
+          message_enabled: boolean | null
+          push_enabled: boolean | null
+          test_drive_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_enabled?: boolean | null
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          message_enabled?: boolean | null
+          push_enabled?: boolean | null
+          test_drive_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_enabled?: boolean | null
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          message_enabled?: boolean | null
+          push_enabled?: boolean | null
+          test_drive_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -375,14 +411,20 @@ export type Database = {
           created_at: string
           email: string | null
           email_verified: boolean | null
+          facebook_url: string | null
           first_name: string | null
           id: string
+          instagram_url: string | null
           last_name: string | null
+          linkedin_url: string | null
           phone: string | null
+          tiktok_url: string | null
+          twitter_url: string | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
           verification_token: string | null
           verification_token_expires: string | null
+          youtube_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -395,14 +437,20 @@ export type Database = {
           created_at?: string
           email?: string | null
           email_verified?: boolean | null
+          facebook_url?: string | null
           first_name?: string | null
           id: string
+          instagram_url?: string | null
           last_name?: string | null
+          linkedin_url?: string | null
           phone?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verification_token?: string | null
           verification_token_expires?: string | null
+          youtube_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -415,14 +463,53 @@ export type Database = {
           created_at?: string
           email?: string | null
           email_verified?: boolean | null
+          facebook_url?: string | null
           first_name?: string | null
           id?: string
+          instagram_url?: string | null
           last_name?: string | null
+          linkedin_url?: string | null
           phone?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verification_token?: string | null
           verification_token_expires?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      push_notification_tokens: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          id: string
+          last_used_at: string | null
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          last_used_at?: string | null
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          last_used_at?: string | null
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -888,6 +975,48 @@ export type Database = {
         }
         Relationships: []
       }
+      test_drive_requests: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          listing_type: string
+          message: string | null
+          preferred_date: string
+          preferred_time: string
+          requester_id: string
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          listing_type: string
+          message?: string | null
+          preferred_date: string
+          preferred_time: string
+          requester_id: string
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          listing_type?: string
+          message?: string | null
+          preferred_date?: string
+          preferred_time?: string
+          requester_id?: string
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1089,6 +1218,10 @@ export type Database = {
       }
       is_user_blocked: {
         Args: { check_blocked_id: string; check_blocker_id: string }
+        Returns: boolean
+      }
+      should_notify: {
+        Args: { p_notification_type: string; p_user_id: string }
         Returns: boolean
       }
     }

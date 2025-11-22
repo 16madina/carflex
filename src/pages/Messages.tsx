@@ -261,7 +261,7 @@ const Messages = () => {
                       <div className="flex items-start gap-3">
                         <div className="relative">
                           <Avatar className="h-12 w-12">
-                            <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} />
+                            <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} className="object-cover" />
                             <AvatarFallback className="bg-primary text-primary-foreground">
                               <UserIcon className="h-6 w-6" />
                             </AvatarFallback>

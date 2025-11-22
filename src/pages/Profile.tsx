@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2 } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle, Loader2 } from "lucide-react";
 import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -18,6 +18,15 @@ import { fr } from "date-fns/locale";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { ProfileSkeleton } from "@/components/ProfileSkeleton";
 import { ImagePicker } from "@/components/ImagePicker";
+import { Capacitor } from "@capacitor/core";
+import { storeKitService } from "@/services/storekit";
+
+// Mapping des packages vers les Product IDs iOS
+const IOS_PRODUCT_IDS: { [key: number]: string } = {
+  3: "com.missdee.carflextest.premium.3jours",
+  7: "com.missdee.carflextest.premium.7days",
+  15: "com.missdee.carflextest.premium.15days",
+};
 
 interface PremiumPackage {
   id: string;
@@ -69,8 +78,12 @@ const Profile = () => {
   const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    const platform = Capacitor.getPlatform();
+    setIsIOS(platform === 'ios');
+    
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -81,6 +94,16 @@ const Profile = () => {
       }
 
       setUser(user);
+
+      // Initialiser StoreKit sur iOS
+      if (Capacitor.getPlatform() === 'ios') {
+        try {
+          await storeKitService.initialize();
+          console.log('[Profile] StoreKit initialized');
+        } catch (error) {
+          console.error('[Profile] StoreKit init error:', error);
+        }
+      }
 
       // Paralléliser toutes les requêtes pour améliorer les performances
       const [profileData, roles] = await Promise.all([
@@ -306,8 +329,109 @@ const Profile = () => {
     console.log('Package trouvé:', pkg);
     setSelectedPackageData(pkg);
     setDialogOpen(false);
-    setShowPaymentSelector(true);
-    console.log('Modal de paiement devrait s\'ouvrir');
+    
+    // Sur iOS, appeler directement l'achat natif (règles App Store)
+    if (isIOS) {
+      await handleIOSPremiumPurchase();
+    } else {
+      // Sur web/Android, afficher le sélecteur de paiement
+      setShowPaymentSelector(true);
+      console.log('Modal de paiement devrait s\'ouvrir');
+    }
+  };
+
+  const handleIOSPremiumPurchase = async () => {
+    const listing = userListings.find(l => l.id === selectedListing);
+    const pkg = packages.find(p => p.id === selectedPackage);
+    
+    if (!listing || !pkg) {
+      toast.error("Informations manquantes");
+      return;
+    }
+
+    const productId = IOS_PRODUCT_IDS[pkg.duration_days];
+    if (!productId) {
+      toast.error("Pack non disponible sur iOS");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      if (!storeKitService.isAvailable()) {
+        toast.error("Service indisponible", {
+          description: "StoreKit n'est pas disponible. Veuillez tester sur un appareil iOS réel.",
+        });
+        throw new Error("StoreKit non disponible");
+      }
+      
+      toast.info("Traitement en cours...", {
+        description: "Ouverture du système de paiement Apple",
+      });
+
+      // Acheter le produit via StoreKit natif
+      const purchaseResult = await storeKitService.purchase(productId);
+      
+      console.log('[StoreKit Purchase] Success:', purchaseResult);
+
+      toast.info("Validation en cours...", {
+        description: "Vérification de votre achat avec le serveur",
+      });
+
+      // Vérifier et activer le premium via notre backend
+      const { data: sessionData } = await supabase.auth.getSession();
+      const verifyResponse = await supabase.functions.invoke('verify-ios-purchase', {
+        body: {
+          purchase_type: 'premium_listing',
+          package_id: selectedPackage,
+          listing_id: selectedListing,
+          listing_type: listing.type,
+          product_id: productId,
+          transaction_id: purchaseResult.transactionId,
+          purchase_date: purchaseResult.purchaseDate.toISOString(),
+          original_transaction_id: purchaseResult.originalTransactionId
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
+
+      if (verifyResponse.error) {
+        throw verifyResponse.error;
+      }
+
+      toast.success("✅ Pack Premium activé !", {
+        description: `Votre annonce est maintenant promue pour ${pkg.duration_days} jours.`,
+      });
+
+      // Recharger les annonces
+      await fetchUserListings(user.id);
+      setShowPaymentSelector(false);
+
+    } catch (error: any) {
+      console.error('[StoreKit Purchase] Error:', error);
+      
+      if (error.message === 'CANCELLED') {
+        toast.info("Achat annulé", {
+          description: "Vous pouvez réessayer quand vous voulez",
+        });
+      } else if (error.message?.includes('Méthode de paiement invalide')) {
+        toast.error("Paiement invalide", {
+          description: "Veuillez vérifier votre méthode de paiement dans les réglages iOS",
+        });
+      } else if (error.message?.includes('Erreur réseau')) {
+        toast.error("Problème de connexion", {
+          description: "Vérifiez votre connexion internet et réessayez",
+        });
+      } else {
+        toast.error("Erreur d'achat", {
+          description: error.message || "Impossible de finaliser l'achat",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+      setShowPaymentSelector(false);
+    }
   };
 
   const handlePaymentMethod = async (method: 'stripe' | 'wave' | 'paypal') => {
@@ -319,6 +443,12 @@ const Profile = () => {
     if (!listing) {
       console.error('Listing non trouvé');
       toast.error("Annonce non trouvée");
+      return;
+    }
+
+    // Sur iOS, utiliser IAP natif au lieu de Stripe
+    if (Capacitor.getPlatform() === 'ios') {
+      await handleIOSPremiumPurchase();
       return;
     }
 
@@ -542,7 +672,7 @@ const Profile = () => {
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="profile" className="w-full">
             <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border mb-6">
-              <TabsList className="grid w-full grid-cols-3 mt-4">
+              <TabsList className="grid w-full grid-cols-4 mt-4">
                 <TabsTrigger value="profile">Mon Profil</TabsTrigger>
                 <TabsTrigger value="listings">Mes Annonces</TabsTrigger>
                 <TabsTrigger value="bookings">
@@ -553,6 +683,7 @@ const Profile = () => {
                     </Badge>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="settings">Paramètres</TabsTrigger>
               </TabsList>
             </div>
 
@@ -576,9 +707,9 @@ const Profile = () => {
                         disabled={uploadingAvatar}
                       />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h2 className="text-2xl font-bold">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h2 className="text-xl font-bold truncate">
                           {profile?.first_name} {profile?.last_name}
                         </h2>
                         {profile?.user_type === "buyer" && (
@@ -607,7 +738,7 @@ const Profile = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-muted-foreground">{profile?.email}</p>
+                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">{profile?.email}</p>
                         {profile?.email_verified ? (
                           <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
                             <CheckCircle2 className="h-3 w-3" />
@@ -1049,6 +1180,130 @@ const Profile = () => {
                 </TabsContent>
               </Tabs>
             </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              {/* Liens rapides */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Liens rapides</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate(`/profile/${user?.id}`)}
+                  >
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Ma page publique
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate('/favorites')}
+                  >
+                    <Heart className="mr-2 h-4 w-4" />
+                    Favoris
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => toast.info('Fonctionnalité à venir')}
+                  >
+                    <Star className="mr-2 h-4 w-4" />
+                    Mes avis
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Détails du profil */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Détails du profil</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate('/profile/edit')}
+                  >
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Détails personnels
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate('/profile/social-links')}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Liens vers les médias sociaux
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Paramètres du compte */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Paramètres du compte</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => toast.info('Fonctionnalité à venir')}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Gérer le compte
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate('/profile/notification-preferences')}
+                  >
+                    <Bell className="mr-2 h-4 w-4" />
+                    Préférences de notifications
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Informations générales */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Informations générales</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start flex-col items-start h-auto py-3" 
+                    onClick={() => navigate('/privacy-policy')}
+                  >
+                    <span className="font-semibold">Politique de confidentialité</span>
+                    <span className="text-xs text-muted-foreground text-left">
+                      Comment nous collectons et utilisons vos données
+                    </span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start flex-col items-start h-auto py-3" 
+                    onClick={() => navigate('/terms-of-service')}
+                  >
+                    <span className="font-semibold">Conditions d'utilisation</span>
+                    <span className="text-xs text-muted-foreground text-left">
+                      Les règles d'utilisation de notre plateforme
+                    </span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start flex-col items-start h-auto py-3" 
+                    onClick={() => navigate('/data-protection')}
+                  >
+                    <span className="font-semibold">Protection des données</span>
+                    <span className="text-xs text-muted-foreground text-left">
+                      Vos droits et notre engagement RGPD
+                    </span>
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
       </main>
@@ -1156,21 +1411,33 @@ const Profile = () => {
             <Button
               className="flex-1"
               onClick={confirmPromote}
-              disabled={!selectedPackage}
+              disabled={!selectedPackage || submitting}
             >
-              Continuer vers le paiement
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Traitement...
+                </>
+              ) : isIOS ? (
+                "Acheter via l'App Store"
+              ) : (
+                "Continuer vers le paiement"
+              )}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <PaymentMethodSelector
-        open={showPaymentSelector}
-        onOpenChange={setShowPaymentSelector}
-        onSelectMethod={handlePaymentMethod}
-        amount={selectedPackageData?.price || 0}
-        formatPrice={formatPrice}
-      />
+      {/* PaymentMethodSelector uniquement sur Web/Android (règles App Store) */}
+      {!isIOS && (
+        <PaymentMethodSelector
+          open={showPaymentSelector}
+          onOpenChange={setShowPaymentSelector}
+          onSelectMethod={handlePaymentMethod}
+          amount={selectedPackageData?.price || 0}
+          formatPrice={formatPrice}
+        />
+      )}
 
       {/* Booking Details Dialog */}
       <Dialog open={bookingDetailOpen} onOpenChange={setBookingDetailOpen}>

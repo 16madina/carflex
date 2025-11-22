@@ -13,11 +13,13 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const listingId = searchParams.get("listing_id");
   const sessionId = searchParams.get("session_id");
+  const paypalOrderId = searchParams.get("token"); // PayPal returns 'token' parameter
   const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!sessionId) {
+      // Si ni session_id ni token PayPal, c'est un succès simple
+      if (!sessionId && !paypalOrderId) {
         setProcessing(false);
         toast({
           title: "Paiement réussi !",
@@ -33,29 +35,58 @@ const PaymentSuccess = () => {
           throw new Error("Non authentifié");
         }
 
-        // Appeler la fonction de vérification
-        const { data, error } = await supabase.functions.invoke("verify-stripe-payment", {
-          body: { session_id: sessionId },
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+        // Vérifier si c'est un paiement PayPal ou Stripe
+        if (paypalOrderId) {
+          console.log("Vérification paiement PayPal:", paypalOrderId);
+          
+          // Appeler la fonction de vérification PayPal
+          const { data, error } = await supabase.functions.invoke("verify-paypal-payment", {
+            body: { order_id: paypalOrderId },
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
 
-        if (error) {
-          console.error("Erreur vérification:", error);
-          throw error;
+          if (error) {
+            console.error("Erreur vérification PayPal:", error);
+            throw error;
+          }
+
+          console.log("Vérification PayPal réussie:", data);
+          
+          setProcessing(false);
+          
+          toast({
+            title: "Paiement PayPal réussi !",
+            description: `Votre annonce est promue pour ${data.duration} jours.`,
+          });
+        } else if (sessionId) {
+          console.log("Vérification paiement Stripe:", sessionId);
+          
+          // Appeler la fonction de vérification Stripe
+          const { data, error } = await supabase.functions.invoke("verify-stripe-payment", {
+            body: { session_id: sessionId },
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+
+          if (error) {
+            console.error("Erreur vérification Stripe:", error);
+            throw error;
+          }
+
+          console.log("Vérification Stripe réussie:", data);
+          
+          setProcessing(false);
+          
+          toast({
+            title: "Paiement réussi !",
+            description: data.already_active 
+              ? "Votre annonce est déjà promue." 
+              : `Votre annonce est promue pour ${data.duration_days} jours.`,
+          });
         }
-
-        console.log("Vérification réussie:", data);
-        
-        setProcessing(false);
-        
-        toast({
-          title: "Paiement réussi !",
-          description: data.already_active 
-            ? "Votre annonce est déjà promue." 
-            : `Votre annonce est promue pour ${data.duration_days} jours.`,
-        });
       } catch (error) {
         console.error("Erreur:", error);
         setProcessing(false);
@@ -68,7 +99,7 @@ const PaymentSuccess = () => {
     };
 
     verifyPayment();
-  }, [sessionId]);
+  }, [sessionId, paypalOrderId]);
 
   if (processing) {
     return (

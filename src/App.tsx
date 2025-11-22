@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
+import { ThemeProvider } from "next-themes";
 import { useSplashScreen } from "./hooks/useSplashScreen";
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import { useAppTracking } from "./hooks/useAppTracking";
@@ -36,6 +37,8 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import DataProtection from "./pages/DataProtection";
+import SocialLinks from "./pages/SocialLinks";
+import NotificationPreferences from "./pages/NotificationPreferences";
 import NotFound from "./pages/NotFound";
 import AuthSync from "./components/AuthSync";
 
@@ -55,14 +58,15 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SubscriptionProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <SubscriptionProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
 
-          <BrowserRouter>
-            <AuthSync />
-            <Routes>
+            <BrowserRouter>
+              <AuthSync />
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/verify-email" element={<EmailVerification />} />
@@ -77,6 +81,8 @@ const App = () => {
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/edit" element={<ProfileEdit />} />
+              <Route path="/profile/social-links" element={<SocialLinks />} />
+              <Route path="/profile/notification-preferences" element={<NotificationPreferences />} />
               <Route path="/profile/:userId" element={<PublicProfile />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/admin" element={<AdminPanel />} />
@@ -95,6 +101,7 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </SubscriptionProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

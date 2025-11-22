@@ -45,6 +45,41 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --spring-timing: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
+
+  .dark {
+    --background: 220 15% 10%;
+    --foreground: 0 0% 95%;
+
+    --card: 220 15% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 220 15% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 220 70% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 220 15% 20%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 25 95% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 25%;
+    --input: 220 15% 25%;
+    --ring: 220 70% 50%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(220 70% 40%), hsl(220 70% 50%));
+    --gradient-card: linear-gradient(180deg, hsl(220 15% 12%), hsl(220 15% 15%));
+    --shadow-card: 0 4px 20px -2px hsl(220 70% 50% / 0.2);
+    --shadow-elevated: 0 10px 40px -10px hsl(220 70% 50% / 0.3);
+  }
 }
 
 @layer base {

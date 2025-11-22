@@ -1,20 +1,20 @@
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const PrivacyPolicy = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button variant="ghost" asChild className="mb-6">
-          <Link to="/">
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Retour à l'accueil
-          </Link>
+      <div className="container mx-auto px-4 pt-24 pb-8 max-w-4xl">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Retour
         </Button>
 
         <h1 className="text-4xl font-bold mb-4">Politique de Confidentialité</h1>
