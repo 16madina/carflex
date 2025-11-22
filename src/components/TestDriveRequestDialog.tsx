@@ -93,6 +93,23 @@ export const TestDriveRequestDialog = ({
         console.error("Error creating test drive request:", error);
         toast.error("Erreur lors de la création de la demande");
       } else {
+        // Call the email notification edge function (non-blocking)
+        supabase.functions
+          .invoke("notify-test-drive-request", {
+            body: {
+              record: {
+                listing_id: listingId,
+                listing_type: listingType,
+                requester_id: user.id,
+                seller_id: sellerId,
+                preferred_date: format(selectedDate, "yyyy-MM-dd"),
+                preferred_time: selectedTime,
+                message: message.trim() || null,
+              },
+            },
+          })
+          .catch((err) => console.error("Email notification error:", err));
+
         toast.success("Demande d'essai envoyée avec succès !");
         onOpenChange(false);
         
