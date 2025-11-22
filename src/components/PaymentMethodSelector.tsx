@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, Smartphone, Loader2, Apple } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Capacitor } from "@capacitor/core";
+import waveLogo from "@/assets/wave-logo.png";
 
 interface PaymentMethodSelectorProps {
   open: boolean;
@@ -37,11 +38,12 @@ export const PaymentMethodSelector = ({
     {
       id: 'stripe' as const,
       name: 'Carte bancaire',
-      description: 'Visa, Mastercard',
+      description: 'Visa, Mastercard - inclus Wave (Visa)',
       icon: CreditCard,
       available: true,
       platforms: ['web', 'android'],
-      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200'
+      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200',
+      showWaveLogo: true
     },
     {
       id: 'paypal' as const,
@@ -94,6 +96,9 @@ export const PaymentMethodSelector = ({
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold">{method.name}</h3>
+                        {method.showWaveLogo && (
+                          <img src={waveLogo} alt="Wave" className="h-5" />
+                        )}
                         {!method.available && (
                           <span className="text-xs bg-gray-200 px-2 py-0.5 rounded">
                             Bientôt disponible
