@@ -153,6 +153,102 @@ Les captures d'écran suivantes sont disponibles pour l'équipe de révision :
 
 ---
 
+## 💳 Achats In-App (StoreKit)
+
+### Vue d'Ensemble
+
+CarFlex propose deux types d'achats in-app natifs via StoreKit :
+
+1. **Abonnement Pro mensuel** : Accès aux fonctionnalités premium
+2. **Packages de promotion d'annonces** : Mise en avant temporaire des annonces
+
+### Produits IAP Configurés
+
+**Abonnement :**
+- Product ID : `com.missdee.carflextest.subscription.pro.monthly`
+- Type : Auto-Renewable Subscription
+- Durée : 1 mois
+- Prix : 29,99 € / mois
+
+**Packages Premium :**
+- Product IDs : `premium_package_[id]` (configurés selon les packages en base de données)
+- Type : Consumable
+- Durée : Variable (7, 14, 30 jours selon le package)
+
+### Fonctionnalités de l'Abonnement Pro
+
+- ✅ Annonces illimitées (vente et location)
+- ✅ Messagerie illimitée
+- ✅ Badge "PRO" sur le profil
+- ✅ Support prioritaire
+- ✅ Analyses avancées
+
+### Vérification Côté Serveur
+
+**Sécurité implémentée :**
+- Vérification automatique via App Store Server API
+- Validation des transactions avec JWT signé
+- Contrôle du Bundle ID et Product ID
+- Protection contre la fraude
+- Logs d'audit complets
+
+**Edge Function de vérification :** `verify-ios-purchase`
+- Vérifie chaque transaction avec les serveurs Apple
+- Active l'abonnement ou le premium uniquement après validation
+- Gère les erreurs et les cas limites
+
+### Test des Achats In-App
+
+**Pour tester l'abonnement Pro :**
+1. Connectez-vous avec un compte test
+2. Allez dans **Abonnement**
+3. Cliquez sur **"Passer à Pro"**
+4. Confirmez l'achat dans la popup StoreKit
+
+**Pour tester un package premium :**
+1. Créez une annonce de vente
+2. Allez dans **Promouvoir une annonce**
+3. Sélectionnez un package premium
+4. Sélectionnez votre annonce
+5. Choisissez **iOS/Apple Pay** comme méthode de paiement
+6. Confirmez l'achat
+
+### Configuration Technique
+
+**StoreKit Testing :**
+- Fichier `.storekit` configuré avec tous les produits
+- Tests locaux possibles dans le simulateur
+- Sandbox testers configurés pour tests sur appareil réel
+
+**Backend :**
+- Clé API App Store Connect configurée (secrets sécurisés)
+- Vérification obligatoire côté serveur pour tous les achats
+- Synchronisation automatique avec la base de données
+
+### Gestion des Abonnements
+
+**Annulation :**
+- Les utilisateurs peuvent annuler via les Réglages iOS
+- L'abonnement reste actif jusqu'à la fin de la période payée
+- Suppression automatique du statut Pro après expiration
+
+**Restauration :**
+- Bouton "Restaurer les achats" disponible
+- Synchronisation automatique des achats précédents
+- Support multi-appareils
+
+### Conformité Apple
+
+- ✅ StoreKit natif utilisé (pas de solution tierce)
+- ✅ Vérification serveur pour tous les achats
+- ✅ Bundle ID correct : `com.missdee.carflextest`
+- ✅ Prix clairement affichés avant l'achat
+- ✅ Fonctionnalités premium clairement décrites
+- ✅ Bouton de restauration des achats présent
+- ✅ Support de la suppression de compte (annule les abonnements actifs)
+
+---
+
 ## 🔗 URLs Importantes
 
 - **Privacy Policy :** https://[votre-domaine]/privacy-policy
@@ -182,6 +278,10 @@ En cas de questions sur ces fonctionnalités, l'équipe de révision peut nous c
 - [x] Privacy Policy et Terms of Service accessibles
 - [x] Conformité RGPD
 - [x] RLS et sécurité backend implémentés
+- [x] Achats in-app StoreKit natifs implémentés
+- [x] Vérification côté serveur pour tous les achats
+- [x] Restauration des achats disponible
+- [x] Prix clairement affichés
 
 ---
 
@@ -198,6 +298,8 @@ En cas de questions sur ces fonctionnalités, l'équipe de révision peut nous c
 - Notifications push
 - Système de modération complet
 - Suppression de compte conforme
+- Achats in-app (abonnement Pro et packages premium)
+- Vérification sécurisée des achats via App Store Server API
 
 ---
 
