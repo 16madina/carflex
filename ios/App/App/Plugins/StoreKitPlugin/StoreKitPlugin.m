@@ -1,14 +1,16 @@
-#import "StoreKitPlugin.h"
+//#import <Capacitor/Capacitor.h>
+//
+//CAP_PLUGIN(StoreKitPlugin, "StoreKitPlugin",
+//           CAP_PLUGIN_METHOD(echo, CAPPluginReturnPromise);
+//)
 
-@implementation StoreKitPlugin
+#import <Capacitor/Capacitor.h>
 
-- (void)echo:(CAPPluginCall *)call {
-    NSString *value = call.options[@"value"];
-    if (value == nil) {
-        value = @"No value";
-    }
-    [call resolve:@{@"value": value}];
-}
-
-@end
+// Register the StoreKit plugin with Capacitor
+CAP_PLUGIN(StoreKitPlugin, "StoreKitPlugin",
+           CAP_PLUGIN_METHOD(echo, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(getProducts, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(purchaseProduct, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(restorePurchases, CAPPluginReturnPromise);
+)
 
