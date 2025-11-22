@@ -37,36 +37,18 @@ export const PaymentMethodSelector = ({
     {
       id: 'stripe' as const,
       name: 'Carte bancaire',
-      description: 'Visa, Mastercard (incluant Wave Visa)',
+      description: 'Visa, Mastercard',
       icon: CreditCard,
       available: true,
-      platforms: ['web', 'android'], // Pas sur iOS (règles Apple)
-      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200'
-    },
-    {
-      id: 'apple-pay' as const,
-      name: 'Apple Pay',
-      description: 'Paiement rapide avec Apple Pay',
-      icon: Apple,
-      available: true,
-      platforms: ['web'], // Seulement sur web (pas IAP natif)
-      color: 'bg-gray-50 hover:bg-gray-100 border-gray-200'
-    },
-    {
-      id: 'wave' as const,
-      name: 'Wave',
-      description: 'Paiement mobile Money (Orange, MTN, Moov)',
-      icon: Smartphone,
-      available: false,
       platforms: ['web', 'android'],
-      color: 'bg-green-50 hover:bg-green-100 border-green-200'
+      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200'
     },
     {
       id: 'paypal' as const,
       name: 'PayPal',
       description: 'Paiement via compte PayPal',
       icon: CreditCard,
-      available: false,
+      available: true,
       platforms: ['web', 'android'],
       color: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'
     }
