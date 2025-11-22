@@ -375,14 +375,19 @@ export type Database = {
           created_at: string
           email: string | null
           email_verified: boolean | null
+          facebook_url: string | null
           first_name: string | null
           id: string
+          instagram_url: string | null
           last_name: string | null
+          linkedin_url: string | null
           phone: string | null
+          twitter_url: string | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
           verification_token: string | null
           verification_token_expires: string | null
+          youtube_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -395,14 +400,19 @@ export type Database = {
           created_at?: string
           email?: string | null
           email_verified?: boolean | null
+          facebook_url?: string | null
           first_name?: string | null
           id: string
+          instagram_url?: string | null
           last_name?: string | null
+          linkedin_url?: string | null
           phone?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verification_token?: string | null
           verification_token_expires?: string | null
+          youtube_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -415,14 +425,19 @@ export type Database = {
           created_at?: string
           email?: string | null
           email_verified?: boolean | null
+          facebook_url?: string | null
           first_name?: string | null
           id?: string
+          instagram_url?: string | null
           last_name?: string | null
+          linkedin_url?: string | null
           phone?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verification_token?: string | null
           verification_token_expires?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }

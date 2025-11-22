@@ -39,22 +39,20 @@ const SocialLinks = () => {
 
     setUser(user);
 
-    // Charger les liens sociaux depuis le profil (à adapter selon votre structure)
+    // Charger les liens sociaux depuis le profil
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("*")
+      .select("facebook_url, instagram_url, twitter_url, linkedin_url, youtube_url")
       .eq("id", user.id)
       .single();
 
     if (profileData) {
-      // Pour l'instant, on initialise avec des valeurs vides
-      // Vous pouvez ajouter des colonnes dans la table profiles pour stocker ces liens
       setSocialLinks({
-        facebook: "",
-        instagram: "",
-        twitter: "",
-        linkedin: "",
-        youtube: ""
+        facebook: profileData.facebook_url || "",
+        instagram: profileData.instagram_url || "",
+        twitter: profileData.twitter_url || "",
+        linkedin: profileData.linkedin_url || "",
+        youtube: profileData.youtube_url || ""
       });
     }
 
@@ -68,8 +66,19 @@ const SocialLinks = () => {
     setSaving(true);
 
     try {
-      // TODO: Ajouter les colonnes social_links dans la table profiles
-      // Pour l'instant, on simule juste la sauvegarde
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          facebook_url: socialLinks.facebook || null,
+          instagram_url: socialLinks.instagram || null,
+          twitter_url: socialLinks.twitter || null,
+          linkedin_url: socialLinks.linkedin || null,
+          youtube_url: socialLinks.youtube || null,
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
       toast.success("Liens sociaux mis à jour avec succès");
       navigate("/profile");
     } catch (error) {
