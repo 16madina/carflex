@@ -108,6 +108,25 @@ const ListingDetail = () => {
     navigate("/messages");
   };
 
+  const handleTestDrive = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("Vous devez être connecté pour demander un essai");
+      navigate("/auth");
+      return;
+    }
+
+    if (listing?.seller_id === user.id) {
+      toast.error("Vous ne pouvez pas demander un essai pour votre propre véhicule");
+      return;
+    }
+
+    // Redirect to Messages page with test drive context
+    navigate("/messages");
+    toast.success("Rendez-vous dans vos messages pour organiser l'essai");
+  };
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Lien copié dans le presse-papier");
@@ -477,7 +496,13 @@ const ListingDetail = () => {
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Contacter le vendeur
               </Button>
-              <Button size="lg" variant="outline" className="w-full">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="w-full"
+                onClick={handleTestDrive}
+                disabled={convLoading}
+              >
                 Demander un essai
               </Button>
             </div>
