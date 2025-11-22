@@ -382,6 +382,7 @@ export type Database = {
           last_name: string | null
           linkedin_url: string | null
           phone: string | null
+          tiktok_url: string | null
           twitter_url: string | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
@@ -407,6 +408,7 @@ export type Database = {
           last_name?: string | null
           linkedin_url?: string | null
           phone?: string | null
+          tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
@@ -432,6 +434,7 @@ export type Database = {
           last_name?: string | null
           linkedin_url?: string | null
           phone?: string | null
+          tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
