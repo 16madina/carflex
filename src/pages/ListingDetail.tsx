@@ -10,6 +10,7 @@ import AddReview from "@/components/AddReview";
 import DealRatingBadge from "@/components/DealRatingBadge";
 import ReviewsSection from "@/components/ReviewsSection";
 import ReportContentDialog from "@/components/ReportContentDialog";
+import { TestDriveRequestDialog } from "@/components/TestDriveRequestDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -45,6 +46,7 @@ const ListingDetail = () => {
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
+  const [testDriveDialogOpen, setTestDriveDialogOpen] = useState(false);
   const [reviewsKey, setReviewsKey] = useState(0);
   const { isFavorite, toggleFavorite } = useFavorites(id, "sale");
   const { conversationId, loading: convLoading } = useConversation(
@@ -122,9 +124,7 @@ const ListingDetail = () => {
       return;
     }
 
-    // Redirect to Messages page with test drive context
-    navigate("/messages");
-    toast.success("Rendez-vous dans vos messages pour organiser l'essai");
+    setTestDriveDialogOpen(true);
   };
 
   const handleShare = () => {
@@ -519,6 +519,16 @@ const ListingDetail = () => {
           onClose={() => setChatOpen(false)}
         />
       )}
+
+      {/* Test Drive Request Dialog */}
+      <TestDriveRequestDialog
+        open={testDriveDialogOpen}
+        onOpenChange={setTestDriveDialogOpen}
+        listingId={id || ""}
+        listingType="sale"
+        sellerId={listing?.seller_id || ""}
+        vehicleName={`${listing?.brand || ""} ${listing?.model || ""}`}
+      />
     </div>
   );
 };
