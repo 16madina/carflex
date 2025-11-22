@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Bell, MessageSquare, Star, Calendar, DollarSign } from "lucide-react";
+import { ArrowLeft, MessageSquare, Star, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -17,13 +17,11 @@ const NotificationPreferences = () => {
   const [user, setUser] = useState<any>(null);
   
   const [preferences, setPreferences] = useState({
-    messages: true,
-    bookings: true,
-    reviews: true,
-    payments: true,
-    promotions: false,
-    email_notifications: true,
-    push_notifications: true
+    test_drive_enabled: true,
+    message_enabled: true,
+    booking_enabled: true,
+    email_enabled: true,
+    push_enabled: true
   });
 
   useEffect(() => {
@@ -40,7 +38,34 @@ const NotificationPreferences = () => {
     }
 
     setUser(user);
+    await loadPreferences(user.id);
     setLoading(false);
+  };
+
+  const loadPreferences = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        throw error;
+      }
+
+      if (data) {
+        setPreferences({
+          test_drive_enabled: data.test_drive_enabled,
+          message_enabled: data.message_enabled,
+          booking_enabled: data.booking_enabled,
+          email_enabled: data.email_enabled,
+          push_enabled: data.push_enabled
+        });
+      }
+    } catch (error) {
+      console.error("Error loading preferences:", error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +75,19 @@ const NotificationPreferences = () => {
     setSaving(true);
 
     try {
-      // TODO: Sauvegarder les préférences dans une table dédiée
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: user.id,
+          test_drive_enabled: preferences.test_drive_enabled,
+          message_enabled: preferences.message_enabled,
+          booking_enabled: preferences.booking_enabled,
+          email_enabled: preferences.email_enabled,
+          push_enabled: preferences.push_enabled
+        });
+
+      if (error) throw error;
+
       toast.success("Préférences mises à jour avec succès");
       navigate("/profile");
     } catch (error) {
@@ -115,9 +152,9 @@ const NotificationPreferences = () => {
                     </div>
                     <Switch
                       id="messages"
-                      checked={preferences.messages}
+                      checked={preferences.message_enabled}
                       onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, messages: checked }))
+                        setPreferences(prev => ({ ...prev, message_enabled: checked }))
                       }
                     />
                   </div>
@@ -136,9 +173,9 @@ const NotificationPreferences = () => {
                     </div>
                     <Switch
                       id="bookings"
-                      checked={preferences.bookings}
+                      checked={preferences.booking_enabled}
                       onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, bookings: checked }))
+                        setPreferences(prev => ({ ...prev, booking_enabled: checked }))
                       }
                     />
                   </div>
@@ -147,61 +184,19 @@ const NotificationPreferences = () => {
                     <div className="flex items-center gap-3">
                       <Star className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <Label htmlFor="reviews" className="cursor-pointer">
-                          Avis
+                        <Label htmlFor="test_drive" className="cursor-pointer">
+                          Essais
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          Nouveaux avis sur vos annonces
+                          Demandes et confirmations d'essai
                         </p>
                       </div>
                     </div>
                     <Switch
-                      id="reviews"
-                      checked={preferences.reviews}
+                      id="test_drive"
+                      checked={preferences.test_drive_enabled}
                       onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, reviews: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <DollarSign className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <Label htmlFor="payments" className="cursor-pointer">
-                          Paiements
-                        </Label>
-                        <p className="text-xs text-muted-foreground">
-                          Confirmations et reçus de paiement
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      id="payments"
-                      checked={preferences.payments}
-                      onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, payments: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Bell className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <Label htmlFor="promotions" className="cursor-pointer">
-                          Promotions
-                        </Label>
-                        <p className="text-xs text-muted-foreground">
-                          Offres spéciales et nouveautés
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      id="promotions"
-                      checked={preferences.promotions}
-                      onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, promotions: checked }))
+                        setPreferences(prev => ({ ...prev, test_drive_enabled: checked }))
                       }
                     />
                   </div>
@@ -222,9 +217,9 @@ const NotificationPreferences = () => {
                     </div>
                     <Switch
                       id="email_notifications"
-                      checked={preferences.email_notifications}
+                      checked={preferences.email_enabled}
                       onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, email_notifications: checked }))
+                        setPreferences(prev => ({ ...prev, email_enabled: checked }))
                       }
                     />
                   </div>
@@ -240,9 +235,9 @@ const NotificationPreferences = () => {
                     </div>
                     <Switch
                       id="push_notifications"
-                      checked={preferences.push_notifications}
+                      checked={preferences.push_enabled}
                       onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, push_notifications: checked }))
+                        setPreferences(prev => ({ ...prev, push_enabled: checked }))
                       }
                     />
                   </div>
