@@ -21,7 +21,12 @@ import {
   ArrowLeft,
   MessageCircle,
   Phone,
-  Mail
+  Mail,
+  Facebook,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Youtube
 } from "lucide-react";
 import { toast } from "sonner";
 import ReviewsList from "@/components/ReviewsList";
@@ -63,7 +68,7 @@ const PublicProfile = () => {
     // Sélectionner uniquement les colonnes publiques (sans email et phone)
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, user_type, first_name, last_name, country, city, company_name, avatar_url, created_at")
+      .select("id, user_type, first_name, last_name, country, city, company_name, avatar_url, created_at, facebook_url, instagram_url, twitter_url, linkedin_url, youtube_url")
       .eq("id", userId)
       .single();
 
@@ -255,11 +260,42 @@ const PublicProfile = () => {
                       </p>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-col gap-2">
                       {(profile.city || profile.country) && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           <span>{profile.city}{profile.city && profile.country && ", "}{profile.country}</span>
+                        </div>
+                      )}
+                      
+                      {/* Social Links */}
+                      {(profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.linkedin_url || profile.youtube_url) && (
+                        <div className="flex items-center gap-2 mt-2">
+                          {profile.facebook_url && (
+                            <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-blue-600 transition-colors">
+                              <Facebook className="h-5 w-5" />
+                            </a>
+                          )}
+                          {profile.instagram_url && (
+                            <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-pink-600 transition-colors">
+                              <Instagram className="h-5 w-5" />
+                            </a>
+                          )}
+                          {profile.twitter_url && (
+                            <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-sky-500 transition-colors">
+                              <Twitter className="h-5 w-5" />
+                            </a>
+                          )}
+                          {profile.linkedin_url && (
+                            <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-blue-700 transition-colors">
+                              <Linkedin className="h-5 w-5" />
+                            </a>
+                          )}
+                          {profile.youtube_url && (
+                            <a href={profile.youtube_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-red-600 transition-colors">
+                              <Youtube className="h-5 w-5" />
+                            </a>
+                          )}
                         </div>
                       )}
                     </div>
