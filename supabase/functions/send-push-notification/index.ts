@@ -41,6 +41,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending push notification to user:", user_id);
 
+    // Check if user wants push notifications
+    const { data: preferences } = await supabase
+      .from('notification_preferences')
+      .select('push_enabled')
+      .eq('user_id', user_id)
+      .single();
+
+    // If user has disabled push notifications, skip sending
+    if (preferences && !preferences.push_enabled) {
+      console.log(`User ${user_id} has disabled push notifications`);
+      return new Response(
+        JSON.stringify({ success: true, message: "User has disabled push notifications" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
     // Fetch all tokens for this user
     const { data: tokens, error: tokensError } = await supabase
       .from("push_notification_tokens")
