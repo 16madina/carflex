@@ -9,6 +9,12 @@ verify_jwt = false
 [functions.create-premium-payment]
 verify_jwt = true
 
+[functions.create-paypal-payment]
+verify_jwt = true
+
+[functions.verify-paypal-payment]
+verify_jwt = true
+
 [functions.ai-price-evaluation]
 verify_jwt = false
 

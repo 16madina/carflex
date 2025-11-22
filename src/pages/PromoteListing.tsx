@@ -328,9 +328,57 @@ const PromoteListing = () => {
         });
       } else if (method === 'paypal') {
         toast({
-          title: "Bientôt disponible",
-          description: "Le paiement PayPal sera disponible prochainement",
+          title: "Préparation du paiement PayPal",
+          description: "Redirection vers PayPal...",
         });
+
+        const response = await supabase.functions.invoke('create-paypal-payment', {
+          body: {
+            package_id: selectedPackage,
+            listing_id: selectedListing,
+            listing_type: listing.type
+          },
+          headers: {
+            Authorization: `Bearer ${sessionData.session?.access_token}`
+          }
+        });
+
+        if (response.error) {
+          console.error('Erreur PayPal:', response.error);
+          throw response.error;
+        }
+
+        if (response.data?.url) {
+          console.log('Redirection vers PayPal:', response.data.url);
+          
+          toast({
+            title: "Redirection vers PayPal",
+            description: "Si la page ne s'ouvre pas, cliquez sur le lien ci-dessous",
+            duration: 10000,
+          });
+          
+          // Ouvrir dans un nouvel onglet
+          const newWindow = window.open(response.data.url, '_blank');
+          
+          // Fallback si le popup est bloqué
+          if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            const link = document.createElement('a');
+            link.href = response.data.url;
+            link.target = '_blank';
+            link.textContent = 'Cliquez ici pour continuer vers PayPal';
+            link.style.cssText = 'display: block; margin: 20px auto; padding: 15px; background: hsl(var(--primary)); color: white; text-align: center; border-radius: 8px; max-width: 400px; text-decoration: none; font-weight: 500;';
+            document.body.appendChild(link);
+            
+            toast({
+              title: "Action requise",
+              description: "Veuillez cliquer sur le lien qui vient d'apparaître pour continuer",
+              variant: "default",
+            });
+          }
+        } else {
+          console.error('Pas d\'URL PayPal dans la réponse:', response.data);
+          throw new Error("URL de paiement PayPal non reçue");
+        }
       }
 
     } catch (error) {
