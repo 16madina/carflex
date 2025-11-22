@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
       splashImmersive: false
     },
     Camera: {
-      permissions: ['camera', 'photos'],
+      permissions: ['camera'],
       quality: 90,
       allowEditing: true,
       resultType: 'uri'
