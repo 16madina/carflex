@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { CreditCard, Smartphone, Loader2, Apple } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Capacitor } from "@capacitor/core";
 
 interface PaymentMethodSelectorProps {
   open: boolean;
@@ -20,6 +21,7 @@ export const PaymentMethodSelector = ({
   formatPrice
 }: PaymentMethodSelectorProps) => {
   const [loading, setLoading] = useState<string | null>(null);
+  const platform = Capacitor.getPlatform();
 
   const handleMethodClick = async (method: 'stripe' | 'apple-pay' | 'wave' | 'paypal') => {
     setLoading(method);
@@ -30,13 +32,15 @@ export const PaymentMethodSelector = ({
     }
   };
 
-  const paymentMethods = [
+  // Méthodes de paiement disponibles selon la plateforme
+  const allPaymentMethods = [
     {
       id: 'stripe' as const,
       name: 'Carte bancaire',
       description: 'Visa, Mastercard (incluant Wave Visa)',
       icon: CreditCard,
       available: true,
+      platforms: ['web', 'android'], // Pas sur iOS (règles Apple)
       color: 'bg-blue-50 hover:bg-blue-100 border-blue-200'
     },
     {
@@ -45,6 +49,7 @@ export const PaymentMethodSelector = ({
       description: 'Paiement rapide avec Apple Pay',
       icon: Apple,
       available: true,
+      platforms: ['web'], // Seulement sur web (pas IAP natif)
       color: 'bg-gray-50 hover:bg-gray-100 border-gray-200'
     },
     {
@@ -53,6 +58,7 @@ export const PaymentMethodSelector = ({
       description: 'Paiement mobile Money (Orange, MTN, Moov)',
       icon: Smartphone,
       available: false,
+      platforms: ['web', 'android'],
       color: 'bg-green-50 hover:bg-green-100 border-green-200'
     },
     {
@@ -61,9 +67,15 @@ export const PaymentMethodSelector = ({
       description: 'Paiement via compte PayPal',
       icon: CreditCard,
       available: false,
+      platforms: ['web', 'android'],
       color: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'
     }
   ];
+
+  // Filtrer les méthodes selon la plateforme
+  const paymentMethods = allPaymentMethods.filter(method => 
+    method.platforms.includes(platform)
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

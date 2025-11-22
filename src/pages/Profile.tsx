@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle, Loader2 } from "lucide-react";
 import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -78,8 +78,12 @@ const Profile = () => {
   const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    const platform = Capacitor.getPlatform();
+    setIsIOS(platform === 'ios');
+    
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -325,8 +329,15 @@ const Profile = () => {
     console.log('Package trouvé:', pkg);
     setSelectedPackageData(pkg);
     setDialogOpen(false);
-    setShowPaymentSelector(true);
-    console.log('Modal de paiement devrait s\'ouvrir');
+    
+    // Sur iOS, appeler directement l'achat natif (règles App Store)
+    if (isIOS) {
+      await handleIOSPremiumPurchase();
+    } else {
+      // Sur web/Android, afficher le sélecteur de paiement
+      setShowPaymentSelector(true);
+      console.log('Modal de paiement devrait s\'ouvrir');
+    }
   };
 
   const handleIOSPremiumPurchase = async () => {
@@ -1400,21 +1411,33 @@ const Profile = () => {
             <Button
               className="flex-1"
               onClick={confirmPromote}
-              disabled={!selectedPackage}
+              disabled={!selectedPackage || submitting}
             >
-              Continuer vers le paiement
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Traitement...
+                </>
+              ) : isIOS ? (
+                "Acheter via l'App Store"
+              ) : (
+                "Continuer vers le paiement"
+              )}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <PaymentMethodSelector
-        open={showPaymentSelector}
-        onOpenChange={setShowPaymentSelector}
-        onSelectMethod={handlePaymentMethod}
-        amount={selectedPackageData?.price || 0}
-        formatPrice={formatPrice}
-      />
+      {/* PaymentMethodSelector uniquement sur Web/Android (règles App Store) */}
+      {!isIOS && (
+        <PaymentMethodSelector
+          open={showPaymentSelector}
+          onOpenChange={setShowPaymentSelector}
+          onSelectMethod={handlePaymentMethod}
+          amount={selectedPackageData?.price || 0}
+          formatPrice={formatPrice}
+        />
+      )}
 
       {/* Booking Details Dialog */}
       <Dialog open={bookingDetailOpen} onOpenChange={setBookingDetailOpen}>
