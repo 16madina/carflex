@@ -906,6 +906,48 @@ export type Database = {
         }
         Relationships: []
       }
+      test_drive_requests: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          listing_type: string
+          message: string | null
+          preferred_date: string
+          preferred_time: string
+          requester_id: string
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          listing_type: string
+          message?: string | null
+          preferred_date: string
+          preferred_time: string
+          requester_id: string
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          listing_type?: string
+          message?: string | null
+          preferred_date?: string
+          preferred_time?: string
+          requester_id?: string
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
