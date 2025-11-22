@@ -42,16 +42,9 @@
     <!-- 
     Permission Caméra : Utilisée pour prendre des photos de vos véhicules lors de la création d'annonces.
     Vous pouvez refuser cette permission et télécharger des photos depuis votre galerie.
+    Le sélecteur de photos Android est utilisé automatiquement sans permissions supplémentaires.
     -->
     <uses-permission android:name="android.permission.CAMERA" />
-    
-    <!-- 
-    Permissions Photos : Nécessaires pour ajouter des photos de vos véhicules à vos annonces.
-    Ces permissions permettent de sélectionner des images depuis votre galerie.
-    -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     
     <!-- 
     Permissions Localisation : Utilisées pour afficher les annonces près de chez vous et 
