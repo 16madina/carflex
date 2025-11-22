@@ -94,10 +94,13 @@ export const PaymentMethodSelector = ({
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold">{method.name}</h3>
                         {method.showWaveLogo && (
-                          <img src={waveLogo} alt="Wave" className="h-5" />
+                          <div className="flex items-center gap-1.5 bg-white rounded-md px-2 py-1 border border-gray-200">
+                            <img src={waveLogo} alt="Wave" className="h-4 w-4 object-contain" />
+                            <span className="text-xs font-medium text-gray-700">Wave</span>
+                          </div>
                         )}
                         {!method.available && (
                           <span className="text-xs bg-gray-200 px-2 py-0.5 rounded">
