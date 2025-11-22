@@ -256,6 +256,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
             return
         }
 
+
         print("[StoreKitPlugin] purchaseProduct: preparing for \(productId)")
 
         // ✅ Save the callback immediately
@@ -313,6 +314,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     // MARK: - SKProductsRequestDelegate
     
     public func productsRequest(_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
+
         print("[StoreKitPlugin] productsRequest didReceive: \(response.products.count) products")
 
         // ✅ Check if we are handling a pending purchase
@@ -369,6 +371,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
 //    }
 
     public func request(_ request: SKRequest, didFailWithError error: Error) {
+
         if let id = productsCallbackId ?? purchaseCallbackId {
             bridge?.savedCall(withID: id)?.reject("StoreKit request failed: \(error.localizedDescription)")
         }
@@ -404,6 +407,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
 
     private func handleFailed(_ transaction: SKPaymentTransaction) {
+
         var message = "Purchase failed"
         var code = "E_PURCHASE_FAILED"
 
@@ -443,6 +447,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
 
     public func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
+
         if let id = purchaseCallbackId {
             let txs = queue.transactions.map {
                 [
@@ -457,9 +462,11 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
 
     public func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
+
         if let id = purchaseCallbackId {
             bridge?.savedCall(withID: id)?.reject("Restore failed: \(error.localizedDescription)")
         }
         cleanUpAfterPurchase()
     }
 }
+
