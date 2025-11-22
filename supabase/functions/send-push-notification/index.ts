@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
-const FCM_SERVER_KEY = Deno.env.get("FCM_SERVER_KEY");
-const FCM_SENDER_ID = Deno.env.get("FCM_SENDER_ID");
+const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,9 +24,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    if (!FCM_SERVER_KEY) {
-      throw new Error("FCM_SERVER_KEY not configured");
+    if (!FIREBASE_SERVICE_ACCOUNT) {
+      throw new Error("FIREBASE_SERVICE_ACCOUNT not configured");
     }
+
+    const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
+    
+    // Generate OAuth2 access token
+    const accessToken = await getAccessToken(serviceAccount);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -65,26 +70,39 @@ const handler = async (req: Request): Promise<Response> => {
     const results = await Promise.allSettled(
       tokens.map(async (tokenData) => {
         const fcmPayload = {
-          to: tokenData.token,
-          notification: {
-            title: title,
-            body: body,
-            sound: "default",
-            badge: "1",
+          message: {
+            token: tokenData.token,
+            notification: {
+              title: title,
+              body: body,
+            },
+            data: data || {},
+            android: {
+              priority: "high",
+            },
+            apns: {
+              payload: {
+                aps: {
+                  sound: "default",
+                  badge: 1,
+                  contentAvailable: true,
+                },
+              },
+            },
           },
-          data: data || {},
-          priority: "high",
-          content_available: true,
         };
 
-        const fcmResponse = await fetch("https://fcm.googleapis.com/fcm/send", {
-          method: "POST",
-          headers: {
-            "Authorization": `key=${FCM_SERVER_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(fcmPayload),
-        });
+        const fcmResponse = await fetch(
+          `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(fcmPayload),
+          }
+        );
 
         if (!fcmResponse.ok) {
           const errorData = await fcmResponse.text();
@@ -140,5 +158,41 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
+
+// Helper function to get OAuth2 access token
+async function getAccessToken(serviceAccount: any): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  
+  const jwt = await create(
+    { alg: "RS256", typ: "JWT" },
+    {
+      iss: serviceAccount.client_email,
+      sub: serviceAccount.client_email,
+      aud: "https://oauth2.googleapis.com/token",
+      iat: now,
+      exp: now + 3600,
+      scope: "https://www.googleapis.com/auth/firebase.messaging",
+    },
+    serviceAccount.private_key
+  );
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get access token: ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}
 
 serve(handler);
