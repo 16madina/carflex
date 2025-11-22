@@ -738,7 +738,7 @@ const Profile = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm text-muted-foreground break-all max-w-full">{profile?.email}</p>
+                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">{profile?.email}</p>
                         {profile?.email_verified ? (
                           <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
                             <CheckCircle2 className="h-3 w-3" />
