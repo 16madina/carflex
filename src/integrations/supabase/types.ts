@@ -231,6 +231,42 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          booking_enabled: boolean | null
+          created_at: string | null
+          email_enabled: boolean | null
+          id: string
+          message_enabled: boolean | null
+          push_enabled: boolean | null
+          test_drive_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_enabled?: boolean | null
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          message_enabled?: boolean | null
+          push_enabled?: boolean | null
+          test_drive_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_enabled?: boolean | null
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          message_enabled?: boolean | null
+          push_enabled?: boolean | null
+          test_drive_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1182,6 +1218,10 @@ export type Database = {
       }
       is_user_blocked: {
         Args: { check_blocked_id: string; check_blocker_id: string }
+        Returns: boolean
+      }
+      should_notify: {
+        Args: { p_notification_type: string; p_user_id: string }
         Returns: boolean
       }
     }
