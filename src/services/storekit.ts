@@ -1,14 +1,11 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import { StoreKitPlugin } from 'capacitor-storekit-plugin';
+// import { StoreKitPlugin } from 'capacitor-storekit-plugin';
 
 // Example usage
 // const result = await StoreKitPlugin.echo({ value: 'test' });
 // console.log(result);
 
 // console.log("[StoreKit] storekit.ts loaded ✅");
-
-// 2️⃣ Register the plugin with proper typing
-const StoreKit = registerPlugin<StoreKitPlugin>('StoreKitPlugin');
 
 // 3️⃣ Export the test function
 // export const testStoreKitPlugin = async () => {
@@ -69,6 +66,9 @@ interface StoreKitPlugin {
   purchaseProduct?(options: { productIdentifier: string }): Promise<any>;
   restorePurchases?(): Promise<{ transactions: any[] }>;
 }
+
+// 2️⃣ Register the plugin with proper typing
+const StoreKit = registerPlugin<StoreKitPlugin>('StoreKitPlugin');
 
 class StoreKitService {
   private isInitialized = false;

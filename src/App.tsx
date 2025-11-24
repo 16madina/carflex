@@ -1,7 +1,4 @@
-import "./services/storekit";
-import { testStoreKitPlugin } from "./services/storekit";
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -55,26 +52,6 @@ const App = () => {
   useSplashScreen();
   usePushNotifications();
   useAppTracking();
-
-  // ✅ Run StoreKit test once, after Capacitor & webview are ready
-  useEffect(() => {
-    const initializeStoreKit = async () => {
-      if (Capacitor.getPlatform() === "ios") {
-        console.log("[App Init] 🧩 StoreKit detected - testing plugin...");
-        try {
-          await testStoreKitPlugin();
-        } catch (error) {
-          console.error("[App Init] ❌ StoreKit test failed:", error);
-        }
-      } else {
-        console.log("[App Init] Skipping StoreKit test (not iOS)");
-      }
-    };
-
-    // Wait a tick to ensure the WebView bridge is fully ready
-    const timeout = setTimeout(initializeStoreKit, 1500);
-    return () => clearTimeout(timeout);
-  }, []);
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
