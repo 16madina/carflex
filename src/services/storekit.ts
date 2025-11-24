@@ -75,10 +75,32 @@ class StoreKitService {
   private storeKitPlugin: StoreKitPlugin | null = null;
 
   async initialize(): Promise<void> {
-    if (!this.isIOSPlatform()) return;
+    console.log('[StoreKit] Initializing service...');
+    console.log('[StoreKit] Platform:', Capacitor.getPlatform());
+    console.log('[StoreKit] Is Native:', Capacitor.isNativePlatform());
+    
+    if (!this.isIOSPlatform()) {
+      console.warn('[StoreKit] Not on iOS platform, skipping initialization');
+      return;
+    }
+    
     this.storeKitPlugin = StoreKit;
-    if (!this.storeKitPlugin) return;
+    if (!this.storeKitPlugin) {
+      console.error('[StoreKit] Plugin not available');
+      return;
+    }
+    
     this.isInitialized = true;
+    console.log('[StoreKit] Service initialized successfully ✅');
+    
+    try {
+      // Test if the plugin is responsive
+      console.log('[StoreKit] Testing plugin responsiveness...');
+      const testProducts = await this.getProducts(['test_product_id']);
+      console.log('[StoreKit] Plugin responsive, test result:', testProducts);
+    } catch (error) {
+      console.warn('[StoreKit] Plugin test failed (expected for test product):', error);
+    }
   }
 
   async getProducts(productIds: string[]): Promise<Product[]> {
@@ -104,13 +126,23 @@ class StoreKitService {
   }
 
   async purchase(productId: string): Promise<PurchaseResult> {
+    console.log('[StoreKit] Starting purchase for product:', productId);
+    
     if (!this.isInitialized || !this.storeKitPlugin) {
+      console.error('[StoreKit] Service not initialized or plugin unavailable');
       throw new Error('StoreKit not available. Test on a real iOS device.');
     }
 
     try {
+      console.log('[StoreKit] Calling native purchaseProduct...');
       const result = await this.storeKitPlugin.purchaseProduct!({ productIdentifier: productId });
-      if (!result?.transactionIdentifier) throw new Error('Invalid transaction');
+      console.log('[StoreKit] Purchase completed successfully:', result);
+      
+      if (!result?.transactionIdentifier) {
+        console.error('[StoreKit] Invalid transaction result:', result);
+        throw new Error('Invalid transaction');
+      }
+      
       return {
         transactionId: result.transactionIdentifier,
         productId: result.productIdentifier,
@@ -118,7 +150,9 @@ class StoreKitService {
         originalTransactionId: result.originalTransactionIdentifier
       };
     } catch (error: any) {
+      console.error('[StoreKit] Purchase error:', serializeError(error));
       const { code, message } = extractCapacitorError(error);
+      console.error('[StoreKit] Extracted error - Code:', code, 'Message:', message);
 
       if (code === 'E_USER_CANCELLED' || message.toLowerCase().includes('cancel')) throw new Error('CANCELLED');
       if (code === 'E_PAYMENT_INVALID') throw new Error('Invalid product identifier');
