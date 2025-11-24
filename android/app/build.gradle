@@ -8,10 +8,9 @@ android {
         applicationId "com.missdee.carflextest"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9
-        versionName "9.1"
+        versionCode 10
+        versionName "10.1"
 
- b803ec57e0e43e5fc7138c9ff19f83c6a053778e
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -56,4 +55,3 @@ apply from: 'capacitor.build.gradle'
 
 // LIGNE CRITIQUE POUR FIREBASE (à garder en dessous de tout le reste)
 apply plugin: 'com.google.gms.google-services'
-
