@@ -8,13 +8,29 @@ export const useAppTracking = () => {
   const [hasRequestedPermission, setHasRequestedPermission] = useState(true);
 
   useEffect(() => {
-    // Check if dialog has been shown before
-    const dialogShown = localStorage.getItem(ATT_DIALOG_SHOWN_KEY);
-    if (dialogShown === 'true') {
-      setHasRequestedPermission(true);
-    } else {
-      setHasRequestedPermission(false);
-    }
+    const checkAndRequestATT = async () => {
+      // Only on iOS native platform
+      if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'ios') {
+        return;
+      }
+
+      // Check if we've already shown the dialog
+      const dialogShown = localStorage.getItem(ATT_DIALOG_SHOWN_KEY);
+      
+      if (dialogShown === 'true') {
+        setHasRequestedPermission(true);
+      } else {
+        setHasRequestedPermission(false);
+        
+        // Wait for app to fully load, then show ATT
+        setTimeout(async () => {
+          console.log('[ATT] Requesting tracking permission automatically...');
+          await requestTrackingPermission();
+        }, 1500); // Show after 1.5 seconds
+      }
+    };
+
+    checkAndRequestATT();
   }, []);
 
   const requestTrackingPermission = async () => {

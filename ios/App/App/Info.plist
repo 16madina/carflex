@@ -45,5 +45,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Cette app souhaite vous suivre sur les apps et sites web d'autres sociétés afin de vous proposer de meilleures offres et publicités personnalisées.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>CarFlex a besoin d'accéder à votre caméra pour prendre des photos de vos véhicules.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CarFlex a besoin d'accéder à vos photos pour ajouter des images à vos annonces.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CarFlex souhaite enregistrer des photos dans votre bibliothèque.</string>
 </dict>
 </plist>
