@@ -142,9 +142,10 @@ const Subscription = () => {
 
   const handleIOSPurchase = async () => {
     try {
-      console.log('[StoreKit] Démarrage de l\'achat...');
+      console.log('[StoreKit] Démarrage de l\'achat pour:', IOS_PRODUCT_ID);
       
       if (!storeKitService.isAvailable()) {
+        console.error('[StoreKit] Service not available');
         toast({
           title: "Service indisponible",
           description: "StoreKit n'est pas disponible. Veuillez tester sur un appareil iOS réel.",
@@ -158,8 +159,17 @@ const Subscription = () => {
         description: "Ouverture du système de paiement Apple",
       });
       
-      // Effectuer l'achat via StoreKit natif
-      const purchaseResult = await storeKitService.purchase(IOS_PRODUCT_ID);
+      // Add timeout to prevent infinite loading (60 seconds)
+      const purchasePromise = storeKitService.purchase(IOS_PRODUCT_ID);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => {
+          console.error('[StoreKit] Purchase timeout after 60 seconds');
+          reject(new Error('Délai d\'attente dépassé - StoreKit ne répond pas. Veuillez réessayer.'));
+        }, 60000)
+      );
+      
+      // Race between purchase and timeout
+      const purchaseResult = await Promise.race([purchasePromise, timeoutPromise]);
       
       console.log('[StoreKit] Achat réussi:', purchaseResult);
 
@@ -514,7 +524,7 @@ const Subscription = () => {
                     {subscribing ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Chargement...
+                        {isIOS ? "Ouverture App Store..." : "Redirection vers Stripe..."}
                       </>
                     ) : (
                       <>
