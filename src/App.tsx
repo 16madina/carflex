@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +11,8 @@ import { useSplashScreen } from "./hooks/useSplashScreen";
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import { useAppTracking } from "./hooks/useAppTracking";
 import SplashScreen from "./components/SplashScreen";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import AuthSync from "./components/AuthSync";
+
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EmailVerification from "./pages/EmailVerification";
@@ -40,17 +42,16 @@ import DataProtection from "./pages/DataProtection";
 import SocialLinks from "./pages/SocialLinks";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import NotFound from "./pages/NotFound";
-import AuthSync from "./components/AuthSync";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
-  
-  // Initialise le splash screen natif et les push notifications
+
+  // Initialize core hooks
   useSplashScreen();
   usePushNotifications();
-  useAppTracking(); // Initialize but don't show dialog here
+  useAppTracking();
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
@@ -58,15 +59,18 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <SubscriptionProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
 
-            <BrowserRouter>
-              <AuthSync />
-              <Routes>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+
+
+      <SubscriptionProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthSync />
+            <Routes>
+
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/verify-email" element={<EmailVerification />} />
@@ -95,7 +99,6 @@ const App = () => {
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route path="/data-protection" element={<DataProtection />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
