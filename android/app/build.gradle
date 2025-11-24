@@ -9,11 +9,9 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 9
-<<<<<<< HEAD
         versionName "9.1"
-=======
-        versionName "9.0"
->>>>>>> b803ec57e0e43e5fc7138c9ff19f83c6a053778e
+
+ b803ec57e0e43e5fc7138c9ff19f83c6a053778e
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
