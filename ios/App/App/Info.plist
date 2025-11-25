@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>CarFlex</string>
+	<string>CarFlex</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,6 +22,18 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>CarFlex a besoin d'accéder à votre caméra pour prendre des photos de vos véhicules.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>CarFlex utilise votre position pour vous montrer les voitures disponibles</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>CarFlex utilise votre position pour trouver des voitures près de vous</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CarFlex a besoin du microphone pour enregistrer des vidéos</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CarFlex souhaite enregistrer des photos dans votre bibliothèque.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Cette app souhaite vous suivre sur les apps et sites web d'autres sociétés afin de vous proposer de meilleures offres et publicités personnalisées.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -45,13 +57,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>Cette app souhaite vous suivre sur les apps et sites web d'autres sociétés afin de vous proposer de meilleures offres et publicités personnalisées.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>CarFlex a besoin d'accéder à votre caméra pour prendre des photos de vos véhicules.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>CarFlex a besoin d'accéder à vos photos pour ajouter des images à vos annonces.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>CarFlex souhaite enregistrer des photos dans votre bibliothèque.</string>
 </dict>
 </plist>
