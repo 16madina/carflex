@@ -15,8 +15,7 @@ export const useDealRating = (listingId: string, listingType: 'sale' | 'rental')
       try {
         setLoading(true);
         
-        // ⚠️ Évaluation IA désactivée - crédits insuffisants
-        // Utiliser directement le calcul de base
+        // Calcul automatique du rating basé sur les prix du marché
         const { data, error } = await supabase.functions.invoke('calculate-deal-rating', {
           body: { listingId, listingType }
         });

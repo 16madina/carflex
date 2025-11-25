@@ -40,10 +40,7 @@ const DealRatingBadge = ({
 
   const fetchDealRating = async () => {
     try {
-      // ⚠️ Évaluation IA désactivée - crédits insuffisants
-      // Pour réactiver: ajoutez des crédits dans Settings → Workspace → Usage
-      
-      // Utiliser directement le calcul de base
+      // Calcul automatique du rating basé sur les prix du marché
       const { data, error } = await supabase.functions.invoke("calculate-deal-rating", {
         body: { listingId, listingType }
       });
