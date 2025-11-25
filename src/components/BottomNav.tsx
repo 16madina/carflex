@@ -84,10 +84,10 @@ const BottomNav = () => {
               <Link key={item.path} to={item.path} className="relative -top-6">
                 <Button
                   size="icon"
-                  className="h-16 w-16 rounded-full bg-gradient-hero shadow-material-xl hover:scale-110 active:scale-95 transition-all"
+                  className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-hero shadow-material-xl hover:scale-110 active:scale-95 transition-all"
                   aria-label={item.label}
                 >
-                  <Icon className="h-7 w-7" />
+                  <Icon className="h-7 w-7 md:h-9 md:w-9" />
                 </Button>
               </Link>
             );
@@ -110,8 +110,8 @@ const BottomNav = () => {
               aria-current={active ? "page" : undefined}
             >
               <div className="relative">
-                <div className={`p-2 rounded-xl ${active ? 'glass-morphism' : ''}`}>
-                  <Icon className="h-6 w-6" />
+                <div className={`p-2 md:p-3 rounded-xl ${active ? 'glass-morphism' : ''}`}>
+                  <Icon className="h-6 w-6 md:h-7 md:w-7" />
                 </div>
                 {item.showBadge && unreadCount > 0 && (
                   <Badge
@@ -125,7 +125,7 @@ const BottomNav = () => {
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
                 )}
               </div>
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-xs md:text-sm font-medium">{item.label}</span>
             </Link>
           );
         })}
