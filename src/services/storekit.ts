@@ -126,21 +126,28 @@ class StoreKitService {
   }
 
   async purchase(productId: string): Promise<PurchaseResult> {
-    console.log('[StoreKit] Starting purchase for product:', productId);
+    console.log('[StoreKit] ====== PURCHASE START ======');
+    console.log('[StoreKit] Product ID:', productId);
+    console.log('[StoreKit] Service initialized:', this.isInitialized);
+    console.log('[StoreKit] Plugin available:', !!this.storeKitPlugin);
     
     if (!this.isInitialized || !this.storeKitPlugin) {
-      console.error('[StoreKit] Service not initialized or plugin unavailable');
-      throw new Error('StoreKit not available. Test on a real iOS device.');
+      console.error('[StoreKit] Service not ready');
+      throw new Error('Les achats ne sont pas disponibles. Redémarrez l\'app.');
     }
 
     try {
       console.log('[StoreKit] Calling native purchaseProduct...');
+      console.log('[StoreKit] Timestamp:', new Date().toISOString());
+      
       const result = await this.storeKitPlugin.purchaseProduct!({ productIdentifier: productId });
-      console.log('[StoreKit] Purchase completed successfully:', result);
+      
+      console.log('[StoreKit] ====== PURCHASE SUCCESS ======');
+      console.log('[StoreKit] Result:', JSON.stringify(result, null, 2));
       
       if (!result?.transactionIdentifier) {
-        console.error('[StoreKit] Invalid transaction result:', result);
-        throw new Error('Invalid transaction');
+        console.error('[StoreKit] Missing transaction identifier in result:', result);
+        throw new Error('Transaction invalide - contactez le support');
       }
       
       return {
@@ -150,19 +157,26 @@ class StoreKitService {
         originalTransactionId: result.originalTransactionIdentifier
       };
     } catch (error: any) {
-      console.error('[StoreKit] Purchase error:', serializeError(error));
+      console.error('[StoreKit] ====== PURCHASE ERROR ======');
+      console.error('[StoreKit] Full error:', serializeError(error));
       const { code, message } = extractCapacitorError(error);
-      console.error('[StoreKit] Extracted error - Code:', code, 'Message:', message);
+      console.error('[StoreKit] Extracted - Code:', code, 'Message:', message);
 
-      if (code === 'E_USER_CANCELLED' || message.toLowerCase().includes('cancel')) throw new Error('CANCELLED');
-      if (code === 'E_PAYMENT_INVALID') throw new Error('Invalid product identifier');
-      if (code === 'E_PAYMENT_NOT_ALLOWED') throw new Error('Purchases not allowed on this device');
-      if (code === 'E_PRODUCT_NOT_AVAILABLE') throw new Error('Product not available in App Store');
-      if (code === 'E_NETWORK_ERROR') throw new Error('Network error. Check your connection');
-      if (code === 'E_PERMISSION_DENIED') throw new Error('iCloud access denied');
-      if (message.includes('not available') || message.includes('unavailable')) throw new Error('StoreKit not available on this device');
+      // Gestion des erreurs spécifiques
+      if (code === 'E_USER_CANCELLED' || message.toLowerCase().includes('cancel')) {
+        console.log('[StoreKit] User cancelled purchase');
+        throw new Error('CANCELLED');
+      }
+      if (code === 'E_PAYMENT_INVALID') throw new Error('Produit invalide - contactez le support');
+      if (code === 'E_PAYMENT_NOT_ALLOWED') throw new Error('Les achats ne sont pas autorisés sur cet appareil');
+      if (code === 'E_PRODUCT_NOT_AVAILABLE') throw new Error('Ce produit n\'est pas disponible dans l\'App Store');
+      if (code === 'E_NETWORK_ERROR') throw new Error('Erreur réseau - vérifiez votre connexion');
+      if (code === 'E_PERMISSION_DENIED') throw new Error('Accès iCloud refusé - vérifiez vos réglages');
+      if (message.includes('not available') || message.includes('unavailable')) {
+        throw new Error('StoreKit indisponible sur cet appareil');
+      }
 
-      throw new Error(message || 'Purchase failed');
+      throw new Error(message || 'Achat échoué - veuillez réessayer');
     }
   }
 

@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
+import { AppTrackingTransparency, AppTrackingStatus } from 'capacitor-plugin-app-tracking-transparency';
 
 const ATT_DIALOG_SHOWN_KEY = 'att_dialog_shown';
+
+// Fonction pour mapper le statut du plugin au format de notre state
+const mapStatus = (status: AppTrackingStatus): 'not-determined' | 'authorized' | 'denied' | 'restricted' => {
+  if (status === 'notDetermined') return 'not-determined';
+  return status as 'authorized' | 'denied' | 'restricted';
+};
 
 export const useAppTracking = () => {
   const [trackingStatus, setTrackingStatus] = useState<'not-determined' | 'authorized' | 'denied' | 'restricted'>('not-determined');
@@ -11,22 +18,32 @@ export const useAppTracking = () => {
     const checkAndRequestATT = async () => {
       // Only on iOS native platform
       if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'ios') {
+        console.log('[ATT] Not on iOS, skipping');
         return;
       }
 
-      // Check if we've already shown the dialog
-      const dialogShown = localStorage.getItem(ATT_DIALOG_SHOWN_KEY);
-      
-      if (dialogShown === 'true') {
-        setHasRequestedPermission(true);
-      } else {
-        setHasRequestedPermission(false);
-        
-        // Wait for app to fully load, then show ATT
-        setTimeout(async () => {
-          console.log('[ATT] Requesting tracking permission automatically...');
-          await requestTrackingPermission();
-        }, 1500); // Show after 1.5 seconds
+      try {
+        // Vérifier le statut actuel
+        const currentStatus = await AppTrackingTransparency.getStatus();
+        console.log('[ATT] Current status:', currentStatus);
+        setTrackingStatus(mapStatus(currentStatus.status));
+
+        // Si le statut est "notDetermined", on doit demander la permission
+        if (currentStatus.status === 'notDetermined') {
+          setHasRequestedPermission(false);
+          
+          // Attendre que l'app soit complètement chargée avant d'afficher le dialogue
+          console.log('[ATT] Status is notDetermined, will request permission in 1.5s');
+          setTimeout(async () => {
+            console.log('[ATT] Requesting tracking permission...');
+            await requestTrackingPermission();
+          }, 1500);
+        } else {
+          console.log('[ATT] Permission already determined:', currentStatus.status);
+          setHasRequestedPermission(true);
+        }
+      } catch (error) {
+        console.error('[ATT] Error checking status:', error);
       }
     };
 
@@ -34,25 +51,25 @@ export const useAppTracking = () => {
   }, []);
 
   const requestTrackingPermission = async () => {
-    // Mark dialog as shown first
-    localStorage.setItem(ATT_DIALOG_SHOWN_KEY, 'true');
-    setHasRequestedPermission(true);
-
     // Only on iOS native
     if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'ios') {
+      console.log('[ATT] Not on iOS, cannot request permission');
       return;
     }
 
     try {
-      // Try to use the plugin if available
-      const AppTrackingTransparency = (window as any).AppTrackingTransparency;
+      console.log('[ATT] Calling AppTrackingTransparency.requestPermission()...');
+      const result = await AppTrackingTransparency.requestPermission();
+      console.log('[ATT] Permission result:', result);
       
-      if (AppTrackingTransparency) {
-        const status = await AppTrackingTransparency.requestPermission();
-        setTrackingStatus(status.status);
-      }
+      setTrackingStatus(mapStatus(result.status));
+      setHasRequestedPermission(true);
+      localStorage.setItem(ATT_DIALOG_SHOWN_KEY, 'true');
+      
+      console.log('[ATT] Permission request completed, status:', result.status);
     } catch (error) {
-      console.error('Error requesting tracking permission:', error);
+      console.error('[ATT] Error requesting tracking permission:', error);
+      setHasRequestedPermission(true);
       // Continue app functionality even if tracking fails
     }
   };

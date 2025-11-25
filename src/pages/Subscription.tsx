@@ -155,20 +155,21 @@ const Subscription = () => {
       }
       
       toast({
-        title: "Traitement en cours...",
-        description: "Ouverture du système de paiement Apple",
+        title: "Ouverture App Store...",
+        description: "Préparation du paiement Apple",
       });
       
-      // Add timeout to prevent infinite loading (60 seconds)
+      // Timeout réduit à 30 secondes avec meilleur message
       const purchasePromise = storeKitService.purchase(IOS_PRODUCT_ID);
       const timeoutPromise = new Promise<never>((_, reject) => 
         setTimeout(() => {
-          console.error('[StoreKit] Purchase timeout after 60 seconds');
-          reject(new Error('Délai d\'attente dépassé - StoreKit ne répond pas. Veuillez réessayer.'));
-        }, 60000)
+          console.error('[StoreKit] Purchase timeout after 30 seconds');
+          reject(new Error('Le paiement n\'a pas répondu. Vérifiez vos achats dans Réglages > App Store et réessayez.'));
+        }, 30000) // Réduit à 30 secondes
       );
       
       // Race between purchase and timeout
+      console.log('[StoreKit] Waiting for purchase or timeout...');
       const purchaseResult = await Promise.race([purchasePromise, timeoutPromise]);
       
       console.log('[StoreKit] Achat réussi:', purchaseResult);
