@@ -42,8 +42,8 @@ serve(async (req) => {
       );
     }
 
-    // Get similar vehicles (same brand and model)
-    const { data: similarVehicles } = await supabase
+    // Try to get similar vehicles (same brand and model first)
+    let { data: similarVehicles } = await supabase
       .from(tableName)
       .select(priceField)
       .eq("brand", listing.brand)
@@ -51,12 +51,26 @@ serve(async (req) => {
       .neq("id", listingId)
       .limit(20);
 
+    // If not enough data with exact model, fallback to same brand
+    if (!similarVehicles || similarVehicles.length < 2) {
+      const { data: brandVehicles } = await supabase
+        .from(tableName)
+        .select(priceField)
+        .eq("brand", listing.brand)
+        .neq("id", listingId)
+        .limit(30);
+      
+      if (brandVehicles && brandVehicles.length >= 2) {
+        similarVehicles = brandVehicles;
+      }
+    }
+
     let dealRating: "excellent" | "good" | "fair" | "poor" = "fair";
     let savingsPercentage = 0;
     let marketAverage = 0;
     let explanation = "";
 
-    if (similarVehicles && similarVehicles.length >= 3) {
+    if (similarVehicles && similarVehicles.length >= 1) {
       // Calculate market average
       const prices = similarVehicles.map((v: any) => v[priceField] || 0);
       marketAverage = prices.reduce((sum: number, p: number) => sum + p, 0) / prices.length;
@@ -79,23 +93,37 @@ serve(async (req) => {
       savingsPercentage = Math.round((priceDiff / adjustedMarketAverage) * 100);
 
       // Determine deal rating with balanced thresholds
-      if (savingsPercentage >= 12) {
+      if (savingsPercentage >= 15) {
         dealRating = "excellent";
-        explanation = `Ce véhicule est ${savingsPercentage}% moins cher que le prix moyen du marché. Excellente affaire!`;
+        explanation = `Excellent prix : ${savingsPercentage}% moins cher que la moyenne du marché !`;
       } else if (savingsPercentage >= 5) {
         dealRating = "good";
-        explanation = `Ce véhicule est ${savingsPercentage}% moins cher que le prix moyen du marché. Bon prix!`;
-      } else if (savingsPercentage >= -3) {
+        explanation = `Bon prix : ${savingsPercentage}% moins cher que la moyenne du marché.`;
+      } else if (savingsPercentage >= -5) {
         dealRating = "fair";
         explanation = savingsPercentage > 2 
-          ? `Prix intéressant, ${savingsPercentage}% sous le marché. À négocier.`
+          ? `Prix intéressant, ${savingsPercentage}% sous le marché.`
           : `Prix dans la moyenne du marché.`;
       } else {
         dealRating = "poor";
-        explanation = `Ce véhicule est ${Math.abs(savingsPercentage)}% plus cher que le prix moyen du marché.`;
+        explanation = `Prix élevé : ${Math.abs(savingsPercentage)}% plus cher que la moyenne.`;
       }
     } else {
-      explanation = "Pas assez de données pour évaluer le prix du marché.";
+      // Even with no data, still provide basic guidance based on year and mileage
+      const currentYear = new Date().getFullYear();
+      const vehicleAge = currentYear - listing.year;
+      const avgPrice = listing[priceField];
+      
+      if (vehicleAge === 0 && listing.mileage < 10000) {
+        dealRating = "good";
+        explanation = "Véhicule neuf avec faible kilométrage.";
+      } else if (vehicleAge <= 2 && listing.mileage < 50000) {
+        dealRating = "fair";
+        explanation = "Véhicule récent en bon état.";
+      } else {
+        dealRating = "fair";
+        explanation = "Pas assez de données comparables pour une évaluation précise.";
+      }
     }
 
     return new Response(
