@@ -82,7 +82,19 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast.success("Connexion réussie !");
+      // Vérifier et annuler toute suppression planifiée
+      try {
+        const { data } = await supabase.functions.invoke('cancel-account-deletion');
+        if (data?.was_scheduled) {
+          toast.success("Votre suppression de compte a été annulée. Bienvenue de retour !", { duration: 5000 });
+        } else {
+          toast.success("Connexion réussie !");
+        }
+      } catch (cancelError) {
+        console.error("Erreur lors de l'annulation de la suppression:", cancelError);
+        toast.success("Connexion réussie !");
+      }
+
       navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la connexion");
