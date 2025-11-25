@@ -137,19 +137,30 @@ const ProfileEdit = () => {
     setDeleting(true);
 
     try {
-      // Appeler l'edge function pour supprimer le compte
-      const { error } = await supabase.functions.invoke('delete-account', {
+      // Appeler l'edge function pour planifier la suppression
+      const { data, error } = await supabase.functions.invoke('delete-account', {
         body: { userId: user.id }
       });
 
       if (error) throw error;
 
-      toast.success("Votre compte a été supprimé");
+      const deletionDate = new Date(data.deletion_date);
+      const formattedDate = deletionDate.toLocaleDateString('fr-FR', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      });
+
+      toast.success(
+        `Suppression planifiée pour le ${formattedDate}. Vous avez 30 jours pour annuler.`,
+        { duration: 8000 }
+      );
+      
       await supabase.auth.signOut();
       navigate("/");
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Erreur lors de la suppression du compte. Veuillez contacter le support.");
+      toast.error("Erreur lors de la planification de suppression. Veuillez contacter le support.");
     } finally {
       setDeleting(false);
     }
@@ -275,7 +286,7 @@ const ProfileEdit = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  La suppression de votre compte est irréversible. Toutes vos données, annonces et messages seront définitivement supprimés.
+                  La suppression de votre compte sera effective dans 30 jours. Vous recevrez un email de confirmation et pourrez annuler en vous reconnectant avant la date limite.
                 </p>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -286,10 +297,11 @@ const ProfileEdit = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Cette action est irréversible. Cela supprimera définitivement votre compte
-                        et toutes vos données de nos serveurs.
+                      <AlertDialogTitle>Planifier la suppression de votre compte ?</AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-2">
+                        <p>Votre compte sera supprimé dans 30 jours.</p>
+                        <p className="font-semibold">Vous pouvez annuler en vous reconnectant avant la date limite.</p>
+                        <p>Un email de confirmation vous sera envoyé avec tous les détails.</p>
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -298,7 +310,7 @@ const ProfileEdit = () => {
                         onClick={handleDeleteAccount}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Oui, supprimer mon compte
+                        Planifier la suppression
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
