@@ -409,6 +409,8 @@ export type Database = {
           company_name: string | null
           country: string | null
           created_at: string
+          deleted_at: string | null
+          deletion_scheduled_at: string | null
           email: string | null
           email_verified: boolean | null
           facebook_url: string | null
@@ -435,6 +437,8 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deletion_scheduled_at?: string | null
           email?: string | null
           email_verified?: boolean | null
           facebook_url?: string | null
@@ -461,6 +465,8 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deletion_scheduled_at?: string | null
           email?: string | null
           email_verified?: boolean | null
           facebook_url?: string | null
@@ -1205,6 +1211,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      delete_expired_accounts: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
