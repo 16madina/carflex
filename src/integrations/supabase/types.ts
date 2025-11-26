@@ -196,6 +196,45 @@ export type Database = {
           },
         ]
       }
+      ios_promo_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          current_uses: number | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          offer_identifier: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          current_uses?: number | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          offer_identifier: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          current_uses?: number | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          offer_identifier?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -1223,6 +1262,7 @@ export type Database = {
         Args: { banner_id: string }
         Returns: undefined
       }
+      increment_promo_code_usage: { Args: { p_code: string }; Returns: boolean }
       is_user_blocked: {
         Args: { check_blocked_id: string; check_blocker_id: string }
         Returns: boolean

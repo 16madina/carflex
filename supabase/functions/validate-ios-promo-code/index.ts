@@ -85,7 +85,8 @@ async function generateSignature(
     return signatureBase64;
   } catch (error) {
     console.error("Error generating signature:", error);
-    throw new Error(`Failed to generate signature: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to generate signature: ${errorMessage}`);
   }
 }
 
@@ -187,10 +188,11 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({
         isValid: false,
-        error: error.message,
+        error: errorMessage,
       } as PromoCodeValidation),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
