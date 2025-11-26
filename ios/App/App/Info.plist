@@ -32,6 +32,8 @@
 	<string>CarFlex a besoin du microphone pour enregistrer des vidéos</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>CarFlex souhaite enregistrer des photos dans votre bibliothèque.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CarFlex a besoin d'accéder à votre bibliothèque pour sélectionner des photos de vos véhicules.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Cette app souhaite vous suivre sur les apps et sites web d'autres sociétés afin de vous proposer de meilleures offres et publicités personnalisées.</string>
 	<key>UILaunchStoryboardName</key>
