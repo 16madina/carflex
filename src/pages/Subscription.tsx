@@ -496,25 +496,32 @@ const Subscription = () => {
             <CardFooter>
               {!isPro ? (
                 <div className="w-full space-y-3">
-                  <div className="space-y-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowPromoInput(!showPromoInput)}
-                      className="w-full"
-                    >
-                      <Tag className="mr-2 h-4 w-4" />
-                      {showPromoInput ? "Masquer" : "Ajouter"} un code promo
-                    </Button>
-                    
-                    {showPromoInput && (
-                      <Input
-                        placeholder="Code promo (optionnel)"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                      />
-                    )}
-                  </div>
+                  {!isIOS && (
+                    <div className="space-y-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowPromoInput(!showPromoInput)}
+                        className="w-full"
+                      >
+                        <Tag className="mr-2 h-4 w-4" />
+                        {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                      </Button>
+                      
+                      {showPromoInput && (
+                        <>
+                          <Input
+                            placeholder="Code promo (optionnel)"
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Les codes promo ne sont disponibles que pour les paiements web et Android
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )}
 
                   <Button 
                     onClick={handleSubscribe} 
