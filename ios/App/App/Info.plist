@@ -26,6 +26,8 @@
 	<string>CarFlex a besoin d'accéder à votre caméra pour prendre des photos de vos véhicules.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>CarFlex utilise votre position pour vous montrer les voitures disponibles</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>CarFlex a besoin d'accéder à votre position pour vous montrer les véhicules disponibles près de vous et faciliter vos locations.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>CarFlex utilise votre position pour trouver des voitures près de vous</string>
 	<key>NSMicrophoneUsageDescription</key>
