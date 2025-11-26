@@ -16,6 +16,11 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
         SKPaymentQueue.default().remove(self)
     }
     
+    @objc func echo(_ call: CAPPluginCall) {
+        let value = call.getString("value") ?? ""
+        call.resolve(["value": value])
+    }
+    
     @objc func getProducts(_ call: CAPPluginCall) {
         guard let productIds = call.getArray("productIdentifiers", String.self) else {
             call.reject("Invalid product identifiers")
