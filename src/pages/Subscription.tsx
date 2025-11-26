@@ -496,39 +496,33 @@ const Subscription = () => {
             <CardFooter>
               {!isPro ? (
                 <div className="w-full space-y-3">
-                  {/* Les codes promo ne sont disponibles que sur web/Android (via Stripe) */}
-                  {!isIOS && (
-                    <div className="space-y-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowPromoInput(!showPromoInput)}
-                        className="w-full"
-                      >
-                        <Tag className="mr-2 h-4 w-4" />
-                        {showPromoInput ? "Masquer" : "Ajouter"} un code promo
-                      </Button>
-                      
-                      {showPromoInput && (
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Code promo (optionnel)"
-                            value={promoCode}
-                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                          />
+                  {/* Codes promo disponibles sur toutes les plateformes */}
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowPromoInput(!showPromoInput)}
+                      className="w-full"
+                    >
+                      <Tag className="mr-2 h-4 w-4" />
+                      {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                    </Button>
+                    
+                    {showPromoInput && (
+                      <div className="space-y-2">
+                        <Input
+                          placeholder="Code promo (optionnel)"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        />
+                        {isIOS && (
                           <p className="text-xs text-muted-foreground">
-                            Les codes promo sont disponibles uniquement sur la version web et Android
+                            💡 Sur iOS, les codes promo Apple Promotional Offers sont pris en charge
                           </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {isIOS && (
-                    <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-                      ℹ️ Les codes promo ne sont pas disponibles pour les achats via l'App Store. Les prix affichés sont définis par Apple.
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   <Button 
                     onClick={handleSubscribe} 
