@@ -99,7 +99,7 @@ const Messages = () => {
           )
         `)
         .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
-        .order("messages.created_at", { referencedTable: "messages", ascending: false });
+        .order("created_at", { foreignTable: "messages", ascending: false });
 
       if (error) {
         console.error("Error fetching conversations:", error);
