@@ -12,24 +12,27 @@ CarFlex a mis en œuvre un système complet de modération du contenu généré 
 
 **Réponse à donner :**
 
-> Les codes promotionnels dans CarFlex sont utilisés pour offrir des **réductions en pourcentage** sur l'abonnement Pro Plan mensuel. Ils permettent aux utilisateurs de bénéficier de tarifs préférentiels lors de la souscription à l'abonnement premium de l'application.
+> Les codes promotionnels dans CarFlex sont utilisés UNIQUEMENT sur les plateformes Web et Android pour offrir des **réductions via Stripe** sur les abonnements et promotions d'annonces.
 >
-> **Exemples d'utilisation :**
-> - Code de lancement : 20% de réduction le premier mois
-> - Code partenaire : 15% de réduction permanente
-> - Code promotionnel saisonnier : 30% de réduction sur 3 mois
+> **Important pour iOS :** CarFlex ne propose PAS de système de saisie manuelle de codes promo dans l'application iOS. Les utilisateurs iOS peuvent uniquement utiliser les offres promotionnelles natives d'Apple en appliquant des codes directement dans l'App Store AVANT l'achat.
 >
-> Les codes promotionnels sont gérés via le système natif d'Apple (Promotional Offers) pour iOS, conformément aux guidelines Apple. Pour les utilisateurs web et Android, ils utilisent le système Stripe.
+> **Séparation des systèmes :**
+> - **iOS** : Utilise exclusivement le système d'offres promotionnelles natif d'Apple (App Store)
+> - **Web/Android** : Utilise le système de coupons Stripe avec saisie de code dans l'application
+>
+> Cette séparation est conforme aux guidelines 3.1.1 d'Apple qui interdisent les mécanismes de codes promo personnalisés dans les apps iOS.
 
 ### Question 2: Do they unlock app features?
 
 **Réponse à donner :**
 
-> **Non**, les codes promotionnels ne débloquent **PAS** directement des fonctionnalités de l'application. Ils offrent uniquement des réductions sur le prix de l'abonnement Pro Plan.
+> **Non**, les codes promotionnels ne débloquent PAS directement des fonctionnalités de l'application.
 >
-> **Important :** C'est l'**abonnement Pro Plan** lui-même qui débloque les fonctionnalités premium, pas les codes promotionnels. Les codes promo réduisent simplement le coût de cet abonnement.
+> **Sur iOS :** CarFlex n'utilise AUCUN mécanisme de saisie de codes promo dans l'application. Les utilisateurs iOS peuvent uniquement bénéficier d'offres promotionnelles via le système natif d'Apple en appliquant des codes directement dans l'App Store.
 >
-> **Fonctionnalités débloquées par le Pro Plan :**
+> **Sur Web/Android :** Les codes promo Stripe offrent uniquement des réductions sur le prix des abonnements et promotions. C'est l'**abonnement ou la promotion** elle-même qui débloque les fonctionnalités, pas le code promo.
+>
+> **Fonctionnalités débloquées par le Pro Plan (pas par les codes promo) :**
 > - ✅ Annonces illimitées (vente et location)
 > - ✅ Messagerie illimitée
 > - ✅ Badge "PRO" sur le profil
@@ -38,6 +41,56 @@ CarFlex a mis en œuvre un système complet de modération du contenu généré 
 > - ✅ Promotion d'annonces
 >
 > **Clarification :** Un code promo offrant 30% de réduction permet à l'utilisateur de payer 70% du prix normal pour accéder à toutes les fonctionnalités Pro. Sans abonnement Pro (même avec un code promo), les fonctionnalités premium restent verrouillées.
+
+
+---
+
+## 🛒 CONFORMITÉ GUIDELINE 3.1.1 - IN-APP PURCHASE
+
+### Implémentation Conforme sur iOS
+
+CarFlex respecte intégralement la Guideline 3.1.1 d'Apple concernant les achats in-app et les mécanismes de codes promotionnels :
+
+**✅ CONFORME : Achats In-App Natifs**
+- Tous les achats sur iOS utilisent exclusivement StoreKit (système natif Apple)
+- Abonnement Pro Plan : `com.missdee.carflextest.subscription.pro.monthly`
+- Promotions d'annonces : Produits in-app configurés dans App Store Connect
+
+**✅ CONFORME : Codes Promo iOS**
+- **AUCUN** champ de saisie de code promo dans l'application iOS
+- Les offres promotionnelles sont gérées via l'App Store Connect
+- Les utilisateurs appliquent les codes directement dans l'App Store (hors de l'app)
+- L'application reçoit simplement la confirmation de l'achat avec réduction appliquée
+
+**✅ CONFORME : Séparation Web/Android**
+- Les codes promo Stripe sont disponibles UNIQUEMENT sur Web et Android
+- L'interface de saisie de code promo est masquée automatiquement sur iOS
+- Aucun mécanisme alternatif d'achat n'est proposé aux utilisateurs iOS
+
+**Code de vérification :**
+```typescript
+// src/pages/Subscription.tsx - Lignes 491-522
+{/* Codes promo uniquement pour Web/Android (Stripe) */}
+{!isIOS && (
+  <div className="space-y-2">
+    <Button onClick={() => setShowPromoInput(!showPromoInput)}>
+      {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+    </Button>
+    {showPromoInput && (
+      <Input
+        placeholder="Code promo (optionnel)"
+        value={promoCode}
+        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+      />
+    )}
+  </div>
+)}
+```
+
+**Résultat :**
+- ✅ Sur iOS : Pas de champ de code promo visible
+- ✅ Sur Web/Android : Champ de code promo Stripe disponible
+- ✅ Conformité totale à la Guideline 3.1.1
 
 ### Question 3: Guideline 1.2 - User-Generated Content
 
