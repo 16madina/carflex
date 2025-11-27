@@ -50,8 +50,8 @@ const PromoteListing = () => {
   const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [promoCode, setPromoCode] = useState("");
-  const [showPromoInput, setShowPromoInput] = useState(false);
+  const [promoCode, setPromoCode] = useState(""); // Web/Android uniquement
+  const [showPromoInput, setShowPromoInput] = useState(false); // Web/Android uniquement
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
   const [selectedPackageData, setSelectedPackageData] = useState<PremiumPackage | null>(null);
   const [restoring, setRestoring] = useState(false);
@@ -619,24 +619,27 @@ const PromoteListing = () => {
                       </SelectContent>
                     </Select>
 
-                    <div className="space-y-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowPromoInput(!showPromoInput)}
-                        className="w-full"
-                      >
-                        {showPromoInput ? "Masquer" : "Ajouter"} un code promo
-                      </Button>
-                      
-                      {showPromoInput && (
-                        <Input
-                          placeholder="Code promo (optionnel)"
-                          value={promoCode}
-                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                        />
-                      )}
-                    </div>
+                    {/* Codes promo uniquement pour Web/Android (Stripe) */}
+                    {!isIOS && (
+                      <div className="space-y-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowPromoInput(!showPromoInput)}
+                          className="w-full"
+                        >
+                          {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                        </Button>
+                        
+                        {showPromoInput && (
+                          <Input
+                            placeholder="Code promo (optionnel)"
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                          />
+                        )}
+                      </div>
+                    )}
 
                     <Button
                       onClick={handlePromote}

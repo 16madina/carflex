@@ -38,8 +38,8 @@ const Subscription = () => {
   const { subscribed, productId, subscriptionEnd, loading, refreshSubscription } = useSubscription();
   const [subscribing, setSubscribing] = useState(false);
   const [managing, setManaging] = useState(false);
-  const [promoCode, setPromoCode] = useState("");
-  const [showPromoInput, setShowPromoInput] = useState(false);
+  const [promoCode, setPromoCode] = useState(""); // Web/Android uniquement
+  const [showPromoInput, setShowPromoInput] = useState(false); // Web/Android uniquement
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [isIOS, setIsIOS] = useState(false);
@@ -154,142 +154,47 @@ const Subscription = () => {
         throw new Error("StoreKit non disponible");
       }
 
-      // Si un code promo est entré, valider et utiliser l'offre promotionnelle
-      if (promoCode && promoCode.trim() !== '') {
-        console.log('[StoreKit] Code promo détecté:', promoCode);
-        
-        toast({
-          title: "Validation du code promo...",
-          description: "Vérification du code promotionnel",
-        });
+      // Achat natif iOS via StoreKit
+      // Note: Les codes promo doivent être appliqués via l'App Store, pas dans l'app
+      toast({
+        title: "Ouverture App Store...",
+        description: "Préparation du paiement Apple",
+      });
+      
+      const purchasePromise = storeKitService.purchase(IOS_PRODUCT_ID);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => {
+          console.error('[StoreKit] Purchase timeout after 30 seconds');
+          reject(new Error('Le paiement n\'a pas répondu. Vérifiez vos achats dans Réglages > App Store et réessayez.'));
+        }, 30000)
+      );
+      
+      console.log('[StoreKit] Waiting for purchase or timeout...');
+      const purchaseResult = await Promise.race([purchasePromise, timeoutPromise]);
+      
+      console.log('[StoreKit] Achat réussi:', purchaseResult);
 
-        // Obtenir l'ID utilisateur pour la signature
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Utilisateur non authentifié");
+      toast({
+        title: "Validation en cours...",
+        description: "Vérification de votre achat avec le serveur",
+      });
 
-        // Valider le code promo et obtenir la signature
-        const { data: promoValidation, error: promoError } = await supabase.functions.invoke(
-          'validate-ios-promo-code',
-          {
-            body: {
-              promoCode: promoCode.toUpperCase(),
-              productId: IOS_PRODUCT_ID,
-              applicationUsername: user.id,
-            },
-          }
-        );
+      await syncIOSPurchase(purchaseResult);
+      await refreshSubscription();
 
-        if (promoError) {
-          console.error('[StoreKit] Erreur validation code promo:', promoError);
-          throw new Error(promoError.message || 'Erreur lors de la validation du code promo');
-        }
-
-        if (!promoValidation.isValid) {
-          toast({
-            title: "Code promo invalide",
-            description: promoValidation.error || "Ce code promo n'est pas valide.",
-            variant: "destructive",
-          });
-          throw new Error("INVALID_PROMO");
-        }
-
-        // Achat avec offre promotionnelle
-        console.log('[StoreKit] Achat avec offre promotionnelle:', promoValidation.offerIdentifier);
-        
-        toast({
-          title: "Ouverture App Store...",
-          description: "Préparation du paiement avec réduction",
-        });
-
-        const purchasePromise = storeKitService.purchaseWithPromo(
-          IOS_PRODUCT_ID,
-          promoValidation.offerIdentifier,
-          promoValidation.keyIdentifier,
-          promoValidation.nonce,
-          promoValidation.signature,
-          promoValidation.timestamp,
-          user.id
-        );
-
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => {
-            console.error('[StoreKit] Promotional purchase timeout after 30 seconds');
-            reject(new Error('Le paiement n\'a pas répondu. Vérifiez vos achats dans Réglages > App Store et réessayez.'));
-          }, 30000)
-        );
-
-        const purchaseResult = await Promise.race([purchasePromise, timeoutPromise]);
-        
-        console.log('[StoreKit] Achat promotionnel réussi:', purchaseResult);
-
-        toast({
-          title: "Validation en cours...",
-          description: "Vérification de votre achat avec le serveur",
-        });
-
-        await syncIOSPurchase(purchaseResult);
-        await refreshSubscription();
-
-        toast({
-          title: "🎉 Abonnement activé avec réduction !",
-          description: "Votre plan Pro est maintenant actif avec la promotion appliquée !",
-        });
-
-      } else {
-        // Achat standard sans code promo
-        toast({
-          title: "Ouverture App Store...",
-          description: "Préparation du paiement Apple",
-        });
-        
-        const purchasePromise = storeKitService.purchase(IOS_PRODUCT_ID);
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => {
-            console.error('[StoreKit] Purchase timeout after 30 seconds');
-            reject(new Error('Le paiement n\'a pas répondu. Vérifiez vos achats dans Réglages > App Store et réessayez.'));
-          }, 30000)
-        );
-        
-        console.log('[StoreKit] Waiting for purchase or timeout...');
-        const purchaseResult = await Promise.race([purchasePromise, timeoutPromise]);
-        
-        console.log('[StoreKit] Achat réussi:', purchaseResult);
-
-        toast({
-          title: "Validation en cours...",
-          description: "Vérification de votre achat avec le serveur",
-        });
-
-        await syncIOSPurchase(purchaseResult);
-        await refreshSubscription();
-
-        toast({
-          title: "🎉 Abonnement activé !",
-          description: "Votre plan Pro est maintenant actif. Profitez de tous les avantages premium !",
-        });
-      }
+      toast({
+        title: "🎉 Abonnement activé !",
+        description: "Votre plan Pro est maintenant actif. Profitez de tous les avantages premium !",
+      });
 
     } catch (error: any) {
-      // Ne pas afficher de toast pour l'annulation ou code promo invalide
+      // Gestion des erreurs d'achat
       if (error.message === 'CANCELLED') {
         toast({
           title: "Achat annulé",
           description: "Vous pouvez réessayer quand vous voulez",
         });
         throw new Error("CANCELLED");
-      }
-      
-      if (error.message === 'INVALID_PROMO') {
-        throw new Error("INVALID_PROMO");
-      }
-
-      if (error.message === 'INVALID_OFFER') {
-        toast({
-          title: "Offre promotionnelle invalide",
-          description: "Ce code promo ne peut pas être appliqué à cet achat. Veuillez vérifier le code.",
-          variant: "destructive"
-        });
-        throw error;
       }
       
       // Pour les autres erreurs, afficher un message spécifique
@@ -329,7 +234,7 @@ const Subscription = () => {
           description: "L'achat a réussi mais la synchronisation a échoué. Contactez le support.",
           variant: "destructive"
         });
-      } else if (!error.message?.includes('INVALID_PROMO') && !error.message?.includes('CANCELLED')) {
+      } else if (!error.message?.includes('CANCELLED')) {
         // Erreur générique avec le message d'erreur
         toast({
           title: "Erreur d'achat",
@@ -586,35 +491,30 @@ const Subscription = () => {
             <CardFooter>
               {!isPro ? (
                 <div className="w-full space-y-3">
-                  {/* Codes promo disponibles sur toutes les plateformes */}
-                  <div className="space-y-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowPromoInput(!showPromoInput)}
-                      className="w-full"
-                    >
-                      <Tag className="mr-2 h-4 w-4" />
-                      {showPromoInput ? "Masquer" : "Ajouter"} un code promo
-                    </Button>
-                    
-                    {showPromoInput && (
-                      <div className="space-y-2">
+                  {/* Codes promo uniquement pour Web/Android (Stripe) */}
+                  {!isIOS && (
+                    <div className="space-y-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowPromoInput(!showPromoInput)}
+                        className="w-full"
+                      >
+                        <Tag className="mr-2 h-4 w-4" />
+                        {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                      </Button>
+                      
+                      {showPromoInput && (
                         <Input
                           placeholder="Code promo (optionnel)"
                           value={promoCode}
                           onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                         />
-                        {isIOS && (
-                          <p className="text-xs text-muted-foreground">
-                            💡 Sur iOS, les codes promo Apple Promotional Offers sont pris en charge
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
 
-                  <Button 
+                  <Button
                     onClick={handleSubscribe} 
                     disabled={subscribing || restoring}
                     className="w-full"
