@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, X, User, ArrowLeft, ExternalLink } from "lucide-react";
+import { Send, X, User, ArrowLeft, ExternalLink, Flag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ReportContentDialog from "@/components/ReportContentDialog";
 
 interface ChatBoxProps {
   conversationId: string;
@@ -284,14 +285,23 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
                 </p>
               </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="hidden md:flex"
-              >
-                <X className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <ReportContentDialog
+                  contentType="conversation"
+                  contentId={conversationId}
+                  triggerVariant="ghost"
+                  triggerSize="icon"
+                  triggerIcon={<Flag className="h-4 w-4" />}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="hidden md:flex"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
             
             {/* Listing info link */}

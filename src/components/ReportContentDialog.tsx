@@ -22,11 +22,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface ReportContentDialogProps {
-  contentType: 'sale_listing' | 'rental_listing' | 'user' | 'message';
+  contentType: 'sale_listing' | 'rental_listing' | 'user' | 'message' | 'conversation';
   contentId: string;
   triggerText?: string;
   triggerVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   triggerSize?: "default" | "sm" | "lg" | "icon";
+  triggerIcon?: React.ReactNode;
 }
 
 const ReportContentDialog = ({ 
@@ -34,7 +35,8 @@ const ReportContentDialog = ({
   contentId, 
   triggerText = "Signaler",
   triggerVariant = "ghost",
-  triggerSize = "sm"
+  triggerSize = "sm",
+  triggerIcon
 }: ReportContentDialogProps) => {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<string>("");
@@ -87,8 +89,8 @@ const ReportContentDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant={triggerVariant} size={triggerSize} className={triggerSize === "icon" ? "h-9 w-9" : ""}>
-          <Flag className="w-4 h-4" />
-          {triggerSize !== "icon" && <span className="ml-2">{triggerText}</span>}
+          {triggerIcon || <Flag className="w-4 h-4" />}
+          {triggerSize !== "icon" && !triggerIcon && <span className="ml-2">{triggerText}</span>}
         </Button>
       </DialogTrigger>
       <DialogContent>

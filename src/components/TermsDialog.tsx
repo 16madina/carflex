@@ -70,20 +70,33 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
             <section>
               <h3 className="font-semibold text-base mb-2">4. Responsabilités des utilisateurs</h3>
               <h4 className="font-medium mt-3 mb-1">4.1 Publication d'annonces</h4>
-              <p className="text-muted-foreground mb-2">En publiant une annonce, vous vous engagez à :</p>
-              <ul className="list-disc pl-6 text-muted-foreground space-y-1">
+              <p className="text-muted-foreground text-sm mb-2">En publiant une annonce, vous vous engagez à :</p>
+              <ul className="list-disc pl-6 text-muted-foreground text-sm space-y-1">
                 <li>Fournir des informations exactes et complètes sur le véhicule</li>
                 <li>Être le propriétaire légitime du véhicule ou disposer de l'autorisation nécessaire</li>
                 <li>Ne pas publier de contenu frauduleux, trompeur ou illégal</li>
                 <li>Utiliser uniquement des photos authentiques du véhicule concerné</li>
               </ul>
               <h4 className="font-medium mt-3 mb-1">4.2 Comportement interdit</h4>
-              <ul className="list-disc pl-6 text-muted-foreground space-y-1">
+              <ul className="list-disc pl-6 text-muted-foreground text-sm space-y-1 mb-3">
                 <li>Usurper l'identité d'une autre personne</li>
                 <li>Harceler, menacer ou intimider d'autres utilisateurs</li>
                 <li>Publier du contenu offensant, diffamatoire ou discriminatoire</li>
                 <li>Utiliser la Plateforme à des fins frauduleuses ou illégales</li>
               </ul>
+              <h4 className="font-medium mb-1">4.3 Politique de Tolérance Zéro</h4>
+              <p className="text-muted-foreground text-sm mb-2">
+                <strong>CarFlex applique une politique de TOLÉRANCE ZÉRO envers :</strong>
+              </p>
+              <ul className="list-disc pl-6 text-muted-foreground text-sm space-y-1 mb-2">
+                <li>Les contenus inappropriés, offensants ou illégaux</li>
+                <li>Les utilisateurs abusifs ou harcelants</li>
+                <li>Les arnaques et comportements frauduleux</li>
+              </ul>
+              <p className="text-muted-foreground text-sm">
+                Tout contenu signalé sera examiné dans un délai de <strong>24 heures</strong>. 
+                Les utilisateurs en infraction seront bannis immédiatement.
+              </p>
             </section>
 
             <section>
