@@ -11,6 +11,7 @@ import FinanceCalculator from "@/components/FinanceCalculator";
 import DealRatingBadge from "@/components/DealRatingBadge";
 import ReviewsSection from "@/components/ReviewsSection";
 import BookingRequest from "@/components/BookingRequest";
+import ReportContentDialog from "@/components/ReportContentDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -187,6 +188,12 @@ const RentalDetail = () => {
             >
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
             </Button>
+            <ReportContentDialog
+              contentType="rental_listing"
+              contentId={id!}
+              triggerVariant="outline"
+              triggerSize="sm"
+            />
           </div>
         </div>
 

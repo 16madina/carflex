@@ -55,32 +55,52 @@ Si vous souhaitez tester la suppression de compte :
 
 ---
 
-## 🛡️ Système de Modération de Contenu
+## 🛡️ Système de Modération de Contenu (Guideline 1.2)
 
 ### Vue d'Ensemble
 
-CarFlex dispose d'un système de modération complet pour garantir la sécurité et la qualité du contenu publié sur la plateforme.
+CarFlex dispose d'un système de modération complet pour garantir la sécurité des utilisateurs et la qualité du contenu.
+
+### Politique de Tolérance Zéro
+
+**CarFlex applique une politique de TOLÉRANCE ZÉRO** envers :
+- Les contenus inappropriés, offensants, pornographiques ou illégaux
+- Les utilisateurs abusifs, harcelants ou menaçants
+- Les arnaques, fraudes et comportements frauduleux
+- Les contenus protégés par des droits d'auteur publiés sans autorisation
+- Les discours haineux, discriminatoires ou incitant à la violence
+
+**Engagement de modération :** Tout contenu signalé est examiné par notre équipe dans un délai de **24 heures maximum**. Les utilisateurs en infraction sont immédiatement bannis de la plateforme sans préavis ni possibilité de remboursement.
+
+Cette politique est clairement affichée dans nos **Conditions Générales d'Utilisation** que tous les utilisateurs doivent accepter lors de l'inscription.
 
 ### Fonctionnalités de Modération
 
 #### 1. Signalement de Contenu Utilisateur
 
-**Accès :** Disponible sur toutes les annonces via le bouton "🚩 Signaler"
+**Accès :** Bouton "🚩 Signaler" présent sur :
+- Toutes les annonces de vente (ListingDetail.tsx)
+- Toutes les annonces de location (RentalDetail.tsx)
+- Toutes les conversations de messagerie (ChatBox.tsx)
 
-**Types de signalements :**
-- 🚫 Contenu inapproprié ou offensant
-- 🎭 Fausse annonce / Fraude
-- 💰 Prix incorrect ou trompeur
-- 📸 Photos inappropriées
-- 📝 Description mensongère
-- ⚖️ Violation des conditions d'utilisation
-- 🔞 Contenu pour adultes
+**Raisons de signalement disponibles :**
+- Contenu inapproprié
+- Arnaque/fraude
+- Spam
+- Harcèlement
+- Fausses informations
+- Autre (avec description personnalisée)
 
 **Processus :**
-1. L'utilisateur sélectionne un type de signalement
-2. Ajoute un commentaire explicatif (optionnel)
-3. Le signalement est envoyé aux modérateurs
-4. L'utilisateur reçoit une confirmation
+1. L'utilisateur clique sur le bouton de signalement
+2. Sélectionne une raison dans le menu déroulant
+3. Ajoute une description optionnelle
+4. Le signalement est immédiatement enregistré
+5. Les administrateurs sont notifiés automatiquement
+6. Une confirmation est affichée à l'utilisateur
+
+**Composant :** `src/components/ReportContentDialog.tsx`
+**Backend :** Edge Function `report-content` qui enregistre les signalements et notifie les admins
 
 #### 2. Blocage d'Utilisateurs
 
