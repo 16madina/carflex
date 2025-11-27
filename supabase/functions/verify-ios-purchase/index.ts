@@ -8,7 +8,8 @@ const corsHeaders = {
 };
 
 // App Store Server API configuration
-const APP_STORE_API_BASE = "https://api.storekit.itunes.apple.com";
+const APP_STORE_API_PRODUCTION = "https://api.storekit.itunes.apple.com";
+const APP_STORE_API_SANDBOX = "https://api.storekit-sandbox.itunes.apple.com";
 const BUNDLE_ID = "app.lovable.c69889b6be82430184ff53e58a725869";
 
 // Fonction pour générer un JWT signé pour l'API App Store
@@ -67,13 +68,16 @@ async function generateAppStoreToken(): Promise<string> {
 }
 
 // Fonction pour vérifier une transaction avec l'API App Store
+// Implémente la stratégie recommandée par Apple : essayer d'abord la production, puis le sandbox si nécessaire
 async function verifyTransaction(transactionId: string): Promise<any> {
   const token = await generateAppStoreToken();
   
   console.log(`[App Store API] Vérification de la transaction: ${transactionId}`);
   
-  const response = await fetch(
-    `${APP_STORE_API_BASE}/inApps/v1/transactions/${transactionId}`,
+  // ÉTAPE 1: Essayer d'abord avec l'environnement de production
+  console.log('[App Store API] Tentative avec environnement PRODUCTION');
+  let response = await fetch(
+    `${APP_STORE_API_PRODUCTION}/inApps/v1/transactions/${transactionId}`,
     {
       method: 'GET',
       headers: {
@@ -83,15 +87,47 @@ async function verifyTransaction(transactionId: string): Promise<any> {
     }
   );
 
+  // ÉTAPE 2: Si erreur 21007/21008 (Sandbox receipt in production), réessayer avec Sandbox
   if (!response.ok) {
-    const error = await response.text();
-    console.error('[App Store API] Erreur:', error);
-    throw new Error(`App Store API error: ${response.status} - ${error}`);
+    const statusCode = response.status;
+    const errorText = await response.text();
+    console.log(`[App Store API] Erreur production (${statusCode}):`, errorText);
+    
+    // Codes d'erreur App Store indiquant un reçu Sandbox
+    // 21007 = This receipt is from the test environment
+    // 21008 = This receipt is from the production environment (but we're in sandbox)
+    // Status 4040003 = Transaction not found in production
+    if (statusCode === 404 || errorText.includes('21007') || errorText.includes('sandbox')) {
+      console.log('[App Store API] Reçu Sandbox détecté, nouvelle tentative avec environnement SANDBOX');
+      
+      // Réessayer avec l'environnement Sandbox
+      response = await fetch(
+        `${APP_STORE_API_SANDBOX}/inApps/v1/transactions/${transactionId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      if (!response.ok) {
+        const sandboxError = await response.text();
+        console.error('[App Store API] Erreur Sandbox:', sandboxError);
+        throw new Error(`App Store API Sandbox error: ${response.status} - ${sandboxError}`);
+      }
+      
+      console.log('[App Store API] ✅ Transaction vérifiée avec succès (Sandbox)');
+    } else {
+      console.error('[App Store API] Erreur non-Sandbox:', errorText);
+      throw new Error(`App Store API error: ${statusCode} - ${errorText}`);
+    }
+  } else {
+    console.log('[App Store API] ✅ Transaction vérifiée avec succès (Production)');
   }
 
   const data = await response.json();
-  console.log('[App Store API] Transaction vérifiée avec succès');
-  
   return data;
 }
 
