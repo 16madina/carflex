@@ -6,6 +6,78 @@ CarFlex a mis en œuvre un système complet de modération du contenu généré 
 
 ---
 
+## 📝 RÉPONSES À FOURNIR À L'ÉQUIPE DE RÉVISION APPLE
+
+### Question 1: What are the promo codes used for?
+
+**Réponse à donner :**
+
+> Les codes promotionnels dans CarFlex sont utilisés pour offrir des **réductions en pourcentage** sur l'abonnement Pro Plan mensuel. Ils permettent aux utilisateurs de bénéficier de tarifs préférentiels lors de la souscription à l'abonnement premium de l'application.
+>
+> **Exemples d'utilisation :**
+> - Code de lancement : 20% de réduction le premier mois
+> - Code partenaire : 15% de réduction permanente
+> - Code promotionnel saisonnier : 30% de réduction sur 3 mois
+>
+> Les codes promotionnels sont gérés via le système natif d'Apple (Promotional Offers) pour iOS, conformément aux guidelines Apple. Pour les utilisateurs web et Android, ils utilisent le système Stripe.
+
+### Question 2: Do they unlock app features?
+
+**Réponse à donner :**
+
+> **Non**, les codes promotionnels ne débloquent **PAS** directement des fonctionnalités de l'application. Ils offrent uniquement des réductions sur le prix de l'abonnement Pro Plan.
+>
+> **Important :** C'est l'**abonnement Pro Plan** lui-même qui débloque les fonctionnalités premium, pas les codes promotionnels. Les codes promo réduisent simplement le coût de cet abonnement.
+>
+> **Fonctionnalités débloquées par le Pro Plan :**
+> - ✅ Annonces illimitées (vente et location)
+> - ✅ Messagerie illimitée
+> - ✅ Badge "PRO" sur le profil
+> - ✅ Support prioritaire
+> - ✅ Analyses avancées
+> - ✅ Promotion d'annonces
+>
+> **Clarification :** Un code promo offrant 30% de réduction permet à l'utilisateur de payer 70% du prix normal pour accéder à toutes les fonctionnalités Pro. Sans abonnement Pro (même avec un code promo), les fonctionnalités premium restent verrouillées.
+
+### Question 3: Guideline 1.2 - User-Generated Content
+
+**Réponse à donner :**
+
+> CarFlex a implémenté un système complet de modération du contenu généré par les utilisateurs, conforme à toutes les exigences de la Guideline 1.2 :
+>
+> **1. Conditions d'Utilisation avec Politique de Tolérance Zéro ✅**
+> - Section 4.3 des CGU accessible dès l'inscription
+> - Acceptation obligatoire pour créer un compte
+> - Politique explicite : bannissement immédiat sans préavis pour tout contenu inapproprié
+>
+> **2. Méthode de Filtrage du Contenu ✅**
+> - Filtrage automatique par IA (Edge Function `moderate-content`)
+> - Modération manuelle via panel administrateur
+> - Détection : contenu inapproprié, arnaques, spam, harcèlement
+>
+> **3. Mécanisme de Signalement ✅**
+> - Bouton "🚩 Signaler" sur TOUTES les annonces (vente et location)
+> - Bouton "🚩 Signaler" dans TOUTES les conversations
+> - Signalements envoyés instantanément aux administrateurs
+>
+> **4. Blocage des Utilisateurs Abusifs ✅**
+> - Bouton "Bloquer l'utilisateur" sur tous les profils publics
+> - Effets immédiats : aucun message possible, annonces masquées
+> - Fonctionnalité réversible
+>
+> **5. Réponse sous 24 Heures ✅**
+> - Engagement contractuel dans les CGU
+> - Notifications push automatiques aux administrateurs
+> - Panel admin dédié pour traiter tous les signalements
+> - Actions possibles : avertissement, suppression, bannissement
+>
+> **Preuve de conformité :**
+> - Consultez les fichiers : `src/components/ReportContentDialog.tsx`, `src/components/BlockUserButton.tsx`
+> - Testez avec les comptes fournis (reviewer@carflex.test)
+> - Panel admin accessible avec admin@carflex.test
+
+---
+
 ## ✅ Exigences Apple - Checklist de Conformité
 
 - [x] **Conditions d'utilisation avec politique de tolérance zéro**
