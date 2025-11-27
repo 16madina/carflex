@@ -39,6 +39,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import DataProtection from "./pages/DataProtection";
+import FAQ from "./pages/FAQ";
 import SocialLinks from "./pages/SocialLinks";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import NotFound from "./pages/NotFound";
@@ -99,6 +100,7 @@ const App = () => {
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route path="/data-protection" element={<DataProtection />} />
+              <Route path="/faq" element={<FAQ />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

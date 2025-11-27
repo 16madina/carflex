@@ -199,6 +199,10 @@ const TermsOfService = () => {
               Tout contenu signalé sera examiné et supprimé dans un délai de 24 heures maximum. L'utilisateur 
               responsable du contenu inapproprié sera immédiatement banni de la plateforme.
             </p>
+            <p className="text-muted-foreground mb-4">
+              Pour en savoir plus sur notre politique de modération et le processus de signalement, 
+              consultez notre <Link to="/faq" className="text-primary hover:underline">page FAQ</Link>.
+            </p>
 
             <p className="text-muted-foreground mb-4">
               CarFlex se réserve le droit, à sa seule discrétion, de :
