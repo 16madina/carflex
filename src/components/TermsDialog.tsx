@@ -86,16 +86,13 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
               </ul>
               <h4 className="font-medium mb-1">4.3 Politique de Tolérance Zéro</h4>
               <p className="text-muted-foreground text-sm mb-2">
-                <strong>CarFlex applique une politique de TOLÉRANCE ZÉRO envers :</strong>
+                CarFlex applique une <strong>politique de TOLÉRANCE ZÉRO</strong> envers les contenus inappropriés, 
+                les comportements abusifs et toute violation des règles de la communauté.
               </p>
-              <ul className="list-disc pl-6 text-muted-foreground text-sm space-y-1 mb-2">
-                <li>Les contenus inappropriés, offensants ou illégaux</li>
-                <li>Les utilisateurs abusifs ou harcelants</li>
-                <li>Les arnaques et comportements frauduleux</li>
-              </ul>
               <p className="text-muted-foreground text-sm">
-                Tout contenu signalé sera examiné dans un délai de <strong>24 heures</strong>. 
-                Les utilisateurs en infraction seront bannis immédiatement.
+                Tout contenu signalé sera examiné dans un délai de <strong>24 heures maximum</strong>. 
+                Les utilisateurs en infraction seront bannis immédiatement. Pour plus de détails, 
+                consultez la section 8.1.
               </p>
             </section>
 
@@ -123,7 +120,22 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
 
             <section>
               <h3 className="font-semibold text-base mb-2">7. Modération et suspension</h3>
-              <p className="text-muted-foreground">
+              
+              <h4 className="font-medium mt-3 mb-1">7.1 Politique de tolérance zéro</h4>
+              <p className="text-muted-foreground text-sm mb-2">
+                CarFlex applique une politique de tolérance zéro concernant :
+              </p>
+              <ul className="list-disc pl-6 text-muted-foreground text-sm space-y-1 mb-2">
+                <li>Le contenu inapproprié, offensant ou illégal</li>
+                <li>Les comportements abusifs envers d'autres utilisateurs</li>
+                <li>Toute violation des règles de la communauté</li>
+              </ul>
+              <p className="text-muted-foreground text-sm mb-3">
+                Tout contenu signalé sera examiné et supprimé dans un délai de 24 heures maximum. 
+                L'utilisateur responsable du contenu inapproprié sera immédiatement banni de la plateforme.
+              </p>
+
+              <p className="text-muted-foreground text-sm">
                 CarFlex se réserve le droit de supprimer toute annonce non conforme aux présentes CGU, 
                 de suspendre ou résilier un compte en cas de violation des CGU.
               </p>
