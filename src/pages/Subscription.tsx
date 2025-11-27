@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -436,6 +436,28 @@ const Subscription = () => {
             Augmentez vos ventes avec un abonnement premium
           </p>
         </div>
+
+        {/* Informations requises par Apple pour les abonnements auto-renouvelables (Guideline 3.1.2) */}
+        {isIOS && (
+          <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border text-sm">
+            <p className="font-semibold mb-2">Abonnement CarFlex Pro</p>
+            <ul className="space-y-1 text-muted-foreground">
+              <li>• Durée : Mensuel (renouvellement automatique)</li>
+              <li>• Prix : 10 000 XOF/mois</li>
+              <li>• Le paiement sera débité sur votre compte iTunes à la confirmation de l'achat</li>
+              <li>• L'abonnement se renouvelle automatiquement sauf annulation au moins 24h avant la fin de la période en cours</li>
+              <li>• Gérez vos abonnements dans les Réglages de votre compte Apple</li>
+            </ul>
+            <div className="mt-3 pt-3 border-t border-border flex gap-4 text-xs">
+              <Link to="/privacy-policy" className="text-primary hover:underline">
+                Politique de confidentialité
+              </Link>
+              <Link to="/terms-of-service" className="text-primary hover:underline">
+                Conditions d'utilisation
+              </Link>
+            </div>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Plan Gratuit */}
