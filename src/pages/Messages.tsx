@@ -91,7 +91,7 @@ const Messages = () => {
         .from("conversations")
         .select(`
           *,
-          messages (
+          messages!inner (
             content,
             created_at,
             sender_id,
@@ -99,7 +99,7 @@ const Messages = () => {
           )
         `)
         .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
-        .order("updated_at", { ascending: false });
+        .order("messages.created_at", { referencedTable: "messages", ascending: false });
 
       if (error) {
         console.error("Error fetching conversations:", error);
@@ -166,7 +166,18 @@ const Messages = () => {
         };
       }) || [];
 
-      setConversations(conversationsWithProfiles as Conversation[]);
+      // Trier les conversations par date du dernier message (plus récent en premier)
+      const sortedConversations = conversationsWithProfiles.sort((a, b) => {
+        const aLastMessage = a.messages?.[0]; // Le premier car les messages sont triés DESC
+        const bLastMessage = b.messages?.[0];
+        
+        if (!aLastMessage) return 1;
+        if (!bLastMessage) return -1;
+        
+        return new Date(bLastMessage.created_at).getTime() - new Date(aLastMessage.created_at).getTime();
+      });
+
+      setConversations(sortedConversations as Conversation[]);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Une erreur est survenue");
@@ -232,7 +243,7 @@ const Messages = () => {
                     ? conv.participant2_profile 
                     : conv.participant1_profile;
                   
-                  const lastMessage = conv.messages?.[conv.messages.length - 1];
+                  const lastMessage = conv.messages?.[0]; // Les messages sont triés DESC, le plus récent est en premier
                   const hasUnreadMessages = conv.messages?.some(
                     msg => !msg.is_read && msg.sender_id !== currentUserId
                   );
