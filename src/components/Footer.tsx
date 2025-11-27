@@ -17,6 +17,10 @@ const Footer = () => {
             <Link to="/data-protection" className="hover:text-primary transition-colors">
               Protection des données
             </Link>
+            <span className="text-muted-foreground/50">•</span>
+            <Link to="/faq" className="hover:text-primary transition-colors">
+              FAQ
+            </Link>
           </div>
           <p className="text-center text-sm text-muted-foreground">
             © 2025 CarFlex. Tous droits réservés.
