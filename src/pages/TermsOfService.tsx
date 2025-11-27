@@ -95,23 +95,16 @@ const TermsOfService = () => {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.3 Politique de Tolérance Zéro</h3>
             <p className="text-muted-foreground mb-4">
-              <strong>CarFlex applique une politique de TOLÉRANCE ZÉRO envers :</strong>
-            </p>
-            <ul className="list-disc pl-6 text-muted-foreground mb-4 space-y-2">
-              <li>Les contenus inappropriés, offensants, pornographiques ou illégaux</li>
-              <li>Les utilisateurs abusifs, harcelants ou menaçants</li>
-              <li>Les arnaques, fraudes et comportements frauduleux</li>
-              <li>Les contenus protégés par des droits d'auteur publiés sans autorisation</li>
-              <li>Les discours haineux, discriminatoires ou incitant à la violence</li>
-            </ul>
-            <p className="text-muted-foreground mb-4">
-              <strong>Engagement de modération :</strong> Tout contenu signalé sera examiné par notre équipe 
-              de modération dans un délai de <strong>24 heures maximum</strong>. Les utilisateurs qui enfreignent 
-              ces règles seront immédiatement bannis de la plateforme sans préavis ni possibilité de remboursement.
+              CarFlex applique une <strong>politique de TOLÉRANCE ZÉRO</strong> envers les contenus inappropriés, 
+              les comportements abusifs et toute violation des règles de la communauté.
             </p>
             <p className="text-muted-foreground mb-4">
               Les utilisateurs disposent d'outils pour signaler les contenus inappropriés et bloquer les utilisateurs 
               abusifs directement dans l'application.
+            </p>
+            <p className="text-muted-foreground mb-4">
+              Pour plus de détails sur notre politique de modération et les conséquences des violations, 
+              veuillez consulter la <strong>section 8.1 - Politique de tolérance zéro</strong>.
             </p>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.4 Transactions</h3>
