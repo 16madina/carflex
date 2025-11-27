@@ -64,6 +64,15 @@ interface StoreKitPlugin {
   echo(options: { value: string }): Promise<{ value: string }>;
   getProducts?(options: { productIdentifiers: string[] }): Promise<{ products: any[] }>;
   purchaseProduct?(options: { productIdentifier: string }): Promise<any>;
+  purchaseProductWithOffer?(options: { 
+    productIdentifier: string;
+    offerIdentifier: string;
+    keyIdentifier: string;
+    nonce: string;
+    signature: string;
+    timestamp: number;
+    applicationUsername: string;
+  }): Promise<any>;
   restorePurchases?(): Promise<{ transactions: any[] }>;
 }
 
@@ -177,6 +186,81 @@ class StoreKitService {
       }
 
       throw new Error(message || 'Achat échoué - veuillez réessayer');
+    }
+  }
+
+  async purchaseWithPromo(
+    productId: string,
+    offerIdentifier: string,
+    keyIdentifier: string,
+    nonce: string,
+    signature: string,
+    timestamp: number,
+    applicationUsername: string
+  ): Promise<PurchaseResult> {
+    console.log('[StoreKit] ====== PROMOTIONAL PURCHASE START ======');
+    console.log('[StoreKit] Product ID:', productId);
+    console.log('[StoreKit] Offer ID:', offerIdentifier);
+    console.log('[StoreKit] Service initialized:', this.isInitialized);
+    console.log('[StoreKit] Plugin available:', !!this.storeKitPlugin);
+    
+    if (!this.isInitialized || !this.storeKitPlugin) {
+      console.error('[StoreKit] Service not ready');
+      throw new Error('Les achats ne sont pas disponibles. Redémarrez l\'app.');
+    }
+
+    try {
+      console.log('[StoreKit] Calling native purchaseProductWithOffer...');
+      console.log('[StoreKit] Timestamp:', new Date().toISOString());
+      
+      const result = await this.storeKitPlugin.purchaseProductWithOffer!({
+        productIdentifier: productId,
+        offerIdentifier,
+        keyIdentifier,
+        nonce,
+        signature,
+        timestamp,
+        applicationUsername
+      });
+      
+      console.log('[StoreKit] ====== PROMOTIONAL PURCHASE SUCCESS ======');
+      console.log('[StoreKit] Result:', JSON.stringify(result, null, 2));
+      
+      if (!result?.transactionIdentifier) {
+        console.error('[StoreKit] Missing transaction identifier in result:', result);
+        throw new Error('Transaction invalide - contactez le support');
+      }
+      
+      return {
+        transactionId: result.transactionIdentifier,
+        productId: result.productIdentifier,
+        purchaseDate: new Date(result.transactionDate),
+        originalTransactionId: result.originalTransactionIdentifier
+      };
+    } catch (error: any) {
+      console.error('[StoreKit] ====== PROMOTIONAL PURCHASE ERROR ======');
+      console.error('[StoreKit] Full error:', serializeError(error));
+      const { code, message } = extractCapacitorError(error);
+      console.error('[StoreKit] Extracted - Code:', code, 'Message:', message);
+
+      // Gestion des erreurs spécifiques
+      if (code === 'E_USER_CANCELLED' || message.toLowerCase().includes('cancel')) {
+        console.log('[StoreKit] User cancelled promotional purchase');
+        throw new Error('CANCELLED');
+      }
+      if (code === 'E_INVALID_OFFER' || message.toLowerCase().includes('offer') || message.toLowerCase().includes('promotional')) {
+        throw new Error('INVALID_OFFER');
+      }
+      if (code === 'E_PAYMENT_INVALID') throw new Error('Produit invalide - contactez le support');
+      if (code === 'E_PAYMENT_NOT_ALLOWED') throw new Error('Les achats ne sont pas autorisés sur cet appareil');
+      if (code === 'E_PRODUCT_NOT_AVAILABLE') throw new Error('Ce produit n\'est pas disponible dans l\'App Store');
+      if (code === 'E_NETWORK_ERROR') throw new Error('Erreur réseau - vérifiez votre connexion');
+      if (code === 'E_PERMISSION_DENIED') throw new Error('Accès iCloud refusé - vérifiez vos réglages');
+      if (message.includes('not available') || message.includes('unavailable')) {
+        throw new Error('StoreKit indisponible sur cet appareil');
+      }
+
+      throw new Error(message || 'Achat promotionnel échoué - veuillez réessayer');
     }
   }
 
