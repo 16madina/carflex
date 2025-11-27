@@ -193,6 +193,20 @@ const TermsOfService = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">8. Modération et suspension</h2>
             
+            <h3 className="text-xl font-semibold mb-3 mt-6">8.1 Politique de tolérance zéro</h3>
+            <p className="text-muted-foreground mb-4">
+              CarFlex applique une politique de tolérance zéro concernant :
+            </p>
+            <ul className="list-disc pl-6 text-muted-foreground mb-4 space-y-2">
+              <li>Le contenu inapproprié, offensant ou illégal</li>
+              <li>Les comportements abusifs envers d'autres utilisateurs</li>
+              <li>Toute violation des règles de la communauté</li>
+            </ul>
+            <p className="text-muted-foreground mb-4">
+              Tout contenu signalé sera examiné et supprimé dans un délai de 24 heures maximum. L'utilisateur 
+              responsable du contenu inapproprié sera immédiatement banni de la plateforme.
+            </p>
+
             <p className="text-muted-foreground mb-4">
               CarFlex se réserve le droit, à sa seule discrétion, de :
             </p>
