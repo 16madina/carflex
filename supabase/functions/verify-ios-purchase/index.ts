@@ -72,10 +72,11 @@ async function generateAppStoreToken(): Promise<string> {
 async function verifyTransaction(transactionId: string): Promise<any> {
   const token = await generateAppStoreToken();
   
-  console.log(`[App Store API] Vérification de la transaction: ${transactionId}`);
+  console.log('[App Store API] === VERIFICATION START ===');
+  console.log(`[App Store API] Transaction ID: ${transactionId}`);
   
   // ÉTAPE 1: Essayer d'abord avec l'environnement de production
-  console.log('[App Store API] Tentative avec environnement PRODUCTION');
+  console.log('[App Store API] Environment: PRODUCTION (attempt 1)');
   let response = await fetch(
     `${APP_STORE_API_PRODUCTION}/inApps/v1/transactions/${transactionId}`,
     {
@@ -87,18 +88,43 @@ async function verifyTransaction(transactionId: string): Promise<any> {
     }
   );
 
-  // ÉTAPE 2: Si erreur 21007/21008 (Sandbox receipt in production), réessayer avec Sandbox
+  // ÉTAPE 2: Si erreur indiquant une transaction Sandbox, réessayer avec Sandbox
   if (!response.ok) {
     const statusCode = response.status;
     const errorText = await response.text();
-    console.log(`[App Store API] Erreur production (${statusCode}):`, errorText);
+    console.log(`[App Store API] Production response status: ${statusCode}`);
+    console.log(`[App Store API] Production error (first 200 chars): ${errorText.substring(0, 200)}`);
     
-    // Codes d'erreur App Store indiquant un reçu Sandbox
-    // 21007 = This receipt is from the test environment
-    // 21008 = This receipt is from the production environment (but we're in sandbox)
-    // Status 4040003 = Transaction not found in production
-    if (statusCode === 404 || errorText.includes('21007') || errorText.includes('sandbox')) {
-      console.log('[App Store API] Reçu Sandbox détecté, nouvelle tentative avec environnement SANDBOX');
+    // Essayer de parser le JSON pour extraire le code d'erreur exact
+    let errorCode: number | null = null;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorCode = errorJson.errorCode;
+      console.log(`[App Store API] Parsed error code: ${errorCode}`);
+    } catch (e) {
+      // Si ce n'est pas du JSON valide, continuer avec le texte brut
+      console.log('[App Store API] Could not parse error as JSON, using text match');
+    }
+    
+    // Détecter si c'est une transaction Sandbox
+    // App Store Server API v2 error codes:
+    // 4040003 = Transaction id not found
+    // 4040004 = Transaction id not found for this app
+    // 4040005 = Original transaction id not found
+    // Legacy codes: 21007 = This receipt is from the test environment
+    const isSandboxTransaction = 
+      statusCode === 404 || 
+      errorCode === 4040003 || 
+      errorCode === 4040004 || 
+      errorCode === 4040005 ||
+      errorText.includes('21007') ||
+      errorText.toLowerCase().includes('sandbox') ||
+      errorText.toLowerCase().includes('not found');
+    
+    if (isSandboxTransaction) {
+      console.log('[App Store API] === FALLBACK TO SANDBOX ===');
+      console.log('[App Store API] Reason: Transaction not found in production or sandbox receipt detected');
+      console.log('[App Store API] Environment: SANDBOX (attempt 2)');
       
       // Réessayer avec l'environnement Sandbox
       response = await fetch(
@@ -114,17 +140,20 @@ async function verifyTransaction(transactionId: string): Promise<any> {
       
       if (!response.ok) {
         const sandboxError = await response.text();
-        console.error('[App Store API] Erreur Sandbox:', sandboxError);
+        console.error('[App Store API] Sandbox error:', sandboxError);
         throw new Error(`App Store API Sandbox error: ${response.status} - ${sandboxError}`);
       }
       
       console.log('[App Store API] ✅ Transaction vérifiée avec succès (Sandbox)');
+      console.log('[App Store API] === VERIFICATION END ===');
     } else {
-      console.error('[App Store API] Erreur non-Sandbox:', errorText);
+      console.error('[App Store API] Non-sandbox error, cannot fallback');
+      console.log('[App Store API] === VERIFICATION FAILED ===');
       throw new Error(`App Store API error: ${statusCode} - ${errorText}`);
     }
   } else {
     console.log('[App Store API] ✅ Transaction vérifiée avec succès (Production)');
+    console.log('[App Store API] === VERIFICATION END ===');
   }
 
   const data = await response.json();
@@ -407,19 +436,38 @@ serve(async (req) => {
     let errorCode = 'UNKNOWN_ERROR';
     let userMessage = errorMessage;
     
-    if (errorMessage.includes('21007') || errorMessage.includes('sandbox')) {
+    // Détecter les différents types d'erreurs avec des messages clairs
+    if (errorMessage.includes('4040003') || errorMessage.includes('4040004') || errorMessage.includes('4040005')) {
+      errorCode = 'TRANSACTION_NOT_FOUND';
+      userMessage = 'Transaction en cours de traitement. Patientez quelques instants et réessayez.';
+    } else if (errorMessage.includes('21007') || errorMessage.includes('sandbox')) {
       errorCode = 'SANDBOX_RECEIPT';
-      userMessage = 'Reçu de test détecté. Vérification en cours.';
+      userMessage = 'Validation en cours avec le serveur de test Apple.';
+    } else if (errorMessage.includes('not found') && errorMessage.includes('App Store')) {
+      errorCode = 'TRANSACTION_NOT_FOUND';
+      userMessage = 'Transaction introuvable. Réessayez ou restaurez vos achats.';
     } else if (errorMessage.includes('Bundle ID')) {
       errorCode = 'INVALID_BUNDLE';
-      userMessage = 'Erreur de configuration de l\'application.';
+      userMessage = 'Erreur de configuration de l\'application. Contactez le support.';
     } else if (errorMessage.includes('Non authentifié')) {
       errorCode = 'AUTH_ERROR';
-      userMessage = 'Session expirée. Reconnectez-vous.';
-    } else if (errorMessage.includes('Transaction ID')) {
+      userMessage = 'Session expirée. Reconnectez-vous et réessayez.';
+    } else if (errorMessage.includes('Transaction ID manquant')) {
       errorCode = 'MISSING_TRANSACTION';
-      userMessage = 'Transaction introuvable.';
+      userMessage = 'Données de transaction manquantes. Réessayez l\'achat.';
+    } else if (errorMessage.includes('App Store API')) {
+      errorCode = 'APP_STORE_ERROR';
+      userMessage = 'Erreur de communication avec l\'App Store. Réessayez dans quelques instants.';
+    } else {
+      // Message générique amélioré pour éviter "erreur non identifiée"
+      userMessage = 'Une erreur est survenue lors de la validation. Essayez de restaurer vos achats ou contactez le support.';
     }
+    
+    console.error('[verify-ios-purchase] Final error response:', {
+      errorCode,
+      userMessage,
+      originalError: errorMessage
+    });
     
     return new Response(
       JSON.stringify({ 
