@@ -7,6 +7,72 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Configuration du retry avec backoff exponentiel
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelayMs: 1000,  // 1 seconde
+  maxDelayMs: 10000,     // 10 secondes max
+  backoffMultiplier: 2,  // Double le délai à chaque retry
+};
+
+// Vérifier si une erreur mérite un retry
+const isRetryableError = (status: number, errorText: string): boolean => {
+  // Erreurs serveur temporaires (5xx)
+  if (status >= 500 && status < 600) return true;
+  // Rate limiting
+  if (status === 429) return true;
+  // Timeout ou erreur réseau
+  if (errorText.toLowerCase().includes('timeout')) return true;
+  if (errorText.toLowerCase().includes('network')) return true;
+  // Service temporairement indisponible
+  if (errorText.toLowerCase().includes('temporarily unavailable')) return true;
+  return false;
+};
+
+// Fonction de delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Fonction fetch avec retry automatique et backoff exponentiel
+async function fetchWithRetry(
+  url: string, 
+  options: RequestInit, 
+  retryCount = 0
+): Promise<Response> {
+  try {
+    console.log(`[Retry] Tentative ${retryCount + 1}/${RETRY_CONFIG.maxRetries + 1} pour ${url}`);
+    const response = await fetch(url, options);
+    
+    // Si c'est une erreur qui mérite un retry
+    if (!response.ok && retryCount < RETRY_CONFIG.maxRetries) {
+      const errorText = await response.clone().text();
+      
+      if (isRetryableError(response.status, errorText)) {
+        const delayMs = Math.min(
+          RETRY_CONFIG.initialDelayMs * Math.pow(RETRY_CONFIG.backoffMultiplier, retryCount),
+          RETRY_CONFIG.maxDelayMs
+        );
+        console.log(`[Retry] Erreur temporaire (${response.status}), attente de ${delayMs}ms avant retry...`);
+        await delay(delayMs);
+        return fetchWithRetry(url, options, retryCount + 1);
+      }
+    }
+    
+    return response;
+  } catch (error: any) {
+    // Erreurs réseau (fetch failed)
+    if (retryCount < RETRY_CONFIG.maxRetries) {
+      const delayMs = Math.min(
+        RETRY_CONFIG.initialDelayMs * Math.pow(RETRY_CONFIG.backoffMultiplier, retryCount),
+        RETRY_CONFIG.maxDelayMs
+      );
+      console.log(`[Retry] Erreur réseau, attente de ${delayMs}ms avant retry...`, error.message);
+      await delay(delayMs);
+      return fetchWithRetry(url, options, retryCount + 1);
+    }
+    throw error;
+  }
+}
+
 // App Store Server API configuration
 const APP_STORE_API_PRODUCTION = "https://api.storekit.itunes.apple.com";
 const APP_STORE_API_SANDBOX = "https://api.storekit-sandbox.itunes.apple.com";
@@ -72,12 +138,12 @@ async function generateAppStoreToken(): Promise<string> {
 async function verifyTransaction(transactionId: string): Promise<any> {
   const token = await generateAppStoreToken();
   
-  console.log('[App Store API] === VERIFICATION START ===');
+  console.log('[App Store API] === VERIFICATION START (with auto-retry) ===');
   console.log(`[App Store API] Transaction ID: ${transactionId}`);
   
-  // ÉTAPE 1: Essayer d'abord avec l'environnement de production
+  // ÉTAPE 1: Essayer d'abord avec l'environnement de production (avec retry automatique)
   console.log('[App Store API] Environment: PRODUCTION (attempt 1)');
-  let response = await fetch(
+  let response = await fetchWithRetry(
     `${APP_STORE_API_PRODUCTION}/inApps/v1/transactions/${transactionId}`,
     {
       method: 'GET',
@@ -126,8 +192,8 @@ async function verifyTransaction(transactionId: string): Promise<any> {
       console.log('[App Store API] Reason: Transaction not found in production or sandbox receipt detected');
       console.log('[App Store API] Environment: SANDBOX (attempt 2)');
       
-      // Réessayer avec l'environnement Sandbox
-      response = await fetch(
+      // Réessayer avec l'environnement Sandbox (avec retry automatique aussi)
+      response = await fetchWithRetry(
         `${APP_STORE_API_SANDBOX}/inApps/v1/transactions/${transactionId}`,
         {
           method: 'GET',

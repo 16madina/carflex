@@ -288,49 +288,108 @@ const Subscription = () => {
     }
   };
 
+  // Helper pour retry avec backoff exponentiel côté frontend
+  const retryWithBackoff = async <T,>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    initialDelay: number = 1000
+  ): Promise<T> => {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Ne pas retry certaines erreurs permanentes
+        const errorMsg = error.message?.toLowerCase() || '';
+        const isNotRetryable = 
+          errorMsg.includes('cancelled') ||
+          errorMsg.includes('annulé') ||
+          errorMsg.includes('session expirée') ||
+          errorMsg.includes('configuration') ||
+          errorMsg.includes('bundle');
+        
+        if (isNotRetryable || attempt === maxRetries) {
+          throw error;
+        }
+        
+        const delayMs = initialDelay * Math.pow(2, attempt);
+        console.log(`[Retry] Tentative ${attempt + 1}/${maxRetries} échouée, retry dans ${delayMs}ms...`);
+        
+        // Afficher un toast informatif lors des retries
+        if (attempt > 0) {
+          toast({
+            title: "Nouvelle tentative...",
+            description: `Tentative ${attempt + 1}/${maxRetries + 1} en cours`,
+          });
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+    
+    throw lastError;
+  };
+
   const syncIOSPurchase = async (purchaseResult: any) => {
     try {
-      // Envoyer le reçu au backend pour validation
-      const { data, error } = await supabase.functions.invoke('verify-ios-purchase', {
-        body: {
-          transaction_id: purchaseResult.transactionId,
-          product_id: purchaseResult.productId,
-          purchase_date: purchaseResult.purchaseDate.toISOString(),
-          original_transaction_id: purchaseResult.originalTransactionId
-        }
-      });
+      // Wrapper avec retry automatique
+      await retryWithBackoff(async () => {
+        // Envoyer le reçu au backend pour validation
+        const { data, error } = await supabase.functions.invoke('verify-ios-purchase', {
+          body: {
+            transaction_id: purchaseResult.transactionId,
+            product_id: purchaseResult.productId,
+            purchase_date: purchaseResult.purchaseDate.toISOString(),
+            original_transaction_id: purchaseResult.originalTransactionId
+          }
+        });
 
-      if (error) {
-        console.error('[StoreKit] Erreur sync:', error);
-        
-        // Messages d'erreur spécifiques en français
-        const errorMsg = error.message?.toLowerCase() || '';
-        
-        if (errorMsg.includes('21007') || errorMsg.includes('sandbox')) {
-          throw new Error('Erreur de validation : reçu de test détecté. Contactez le support si le problème persiste.');
+        if (error) {
+          console.error('[StoreKit] Erreur sync:', error);
+          
+          // Messages d'erreur spécifiques en français
+          const errorMsg = error.message?.toLowerCase() || '';
+          
+          if (errorMsg.includes('21007') || errorMsg.includes('sandbox')) {
+            throw new Error('Erreur de validation : reçu de test détecté. Contactez le support si le problème persiste.');
+          }
+          if (errorMsg.includes('bundle') || errorMsg.includes('invalid')) {
+            throw new Error('Erreur de configuration de l\'application. Contactez le support.');
+          }
+          if (errorMsg.includes('transaction') || errorMsg.includes('not found')) {
+            throw new Error('Transaction introuvable. Réessayez ou restaurez vos achats.');
+          }
+          if (errorMsg.includes('auth') || errorMsg.includes('non authentifié')) {
+            throw new Error('Session expirée. Reconnectez-vous et réessayez.');
+          }
+          
+          throw new Error('Erreur de synchronisation : ' + (error.message || 'Veuillez réessayer'));
         }
-        if (errorMsg.includes('bundle') || errorMsg.includes('invalid')) {
-          throw new Error('Erreur de configuration de l\'application. Contactez le support.');
+
+        // Vérifier aussi si data contient une erreur
+        if (data?.error) {
+          throw new Error(data.error);
         }
-        if (errorMsg.includes('transaction') || errorMsg.includes('not found')) {
-          throw new Error('Transaction introuvable. Réessayez ou restaurez vos achats.');
-        }
-        if (errorMsg.includes('auth') || errorMsg.includes('non authentifié')) {
-          throw new Error('Session expirée. Reconnectez-vous et réessayez.');
-        }
-        
-        throw new Error('Erreur de synchronisation : ' + (error.message || 'Veuillez réessayer'));
+
+        console.log('[StoreKit] Achat synchronisé avec succès');
+      }, 3, 1000); // 3 retries, délai initial de 1 seconde
+      
+    } catch (error: any) {
+      console.error('[StoreKit] Erreur finale après tous les retries:', error);
+      
+      // Message spécifique si on a atteint la limite de retries
+      if (error.message?.includes('retry')) {
+        toast({
+          title: "Serveurs Apple surchargés",
+          description: "Réessayez dans quelques minutes ou restaurez vos achats.",
+          variant: "destructive"
+        });
       }
-
-      // Vérifier aussi si data contient une erreur
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      console.log('[StoreKit] Achat synchronisé avec succès');
-    } catch (error) {
-      console.error('[StoreKit] Erreur lors de la synchronisation:', error);
-      throw error; // Propager l'erreur déjà formatée
+      
+      throw error; // Propager l'erreur
     }
   };
 
@@ -391,16 +450,16 @@ const Subscription = () => {
         return;
       }
       
-      // Vérifier chaque achat restauré avec le backend
+      // Vérifier chaque achat restauré avec le backend (avec retry automatique)
       toast({
         title: "Validation en cours...",
-        description: `Vérification de ${restoredPurchases.length} achat(s)`,
+        description: `Vérification de ${restoredPurchases.length} achat(s) avec retry automatique`,
       });
       
       let successCount = 0;
       for (const purchase of restoredPurchases) {
         try {
-          await syncIOSPurchase(purchase);
+          await syncIOSPurchase(purchase); // Utilise déjà le retry automatique
           successCount++;
         } catch (error) {
           console.error('[StoreKit] Erreur sync achat restauré:', error);
