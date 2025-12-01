@@ -402,9 +402,31 @@ serve(async (req) => {
   } catch (error) {
     console.error('[verify-ios-purchase] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+    
+    // Déterminer le code d'erreur et le message utilisateur
+    let errorCode = 'UNKNOWN_ERROR';
+    let userMessage = errorMessage;
+    
+    if (errorMessage.includes('21007') || errorMessage.includes('sandbox')) {
+      errorCode = 'SANDBOX_RECEIPT';
+      userMessage = 'Reçu de test détecté. Vérification en cours.';
+    } else if (errorMessage.includes('Bundle ID')) {
+      errorCode = 'INVALID_BUNDLE';
+      userMessage = 'Erreur de configuration de l\'application.';
+    } else if (errorMessage.includes('Non authentifié')) {
+      errorCode = 'AUTH_ERROR';
+      userMessage = 'Session expirée. Reconnectez-vous.';
+    } else if (errorMessage.includes('Transaction ID')) {
+      errorCode = 'MISSING_TRANSACTION';
+      userMessage = 'Transaction introuvable.';
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: errorMessage,
+        error_code: errorCode,
+        is_sandbox_error: errorMessage.includes('sandbox') || errorMessage.includes('21007'),
+        user_message: userMessage,
         details: error instanceof Error ? error.stack : undefined
       }),
       { 
