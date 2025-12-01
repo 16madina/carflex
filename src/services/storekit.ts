@@ -176,6 +176,16 @@ class StoreKitService {
         console.log('[StoreKit] User cancelled purchase');
         throw new Error('CANCELLED');
       }
+      // Erreurs de validation de reçu (backend)
+      if (code === 'E_RECEIPT_VALIDATION' || message.includes('receipt') || message.includes('reçu')) {
+        throw new Error('La validation du reçu a échoué. L\'équipe Apple utilise peut-être un compte Sandbox.');
+      }
+      if (code === 'E_SANDBOX_RECEIPT' || message.includes('21007') || message.includes('sandbox')) {
+        throw new Error('Reçu Sandbox détecté - vérification en cours avec l\'environnement de test Apple.');
+      }
+      if (message.includes('Bundle ID') || message.includes('bundle')) {
+        throw new Error('Erreur de configuration - contactez le support.');
+      }
       if (code === 'E_PAYMENT_INVALID') throw new Error('Produit invalide - contactez le support');
       if (code === 'E_PAYMENT_NOT_ALLOWED') throw new Error('Les achats ne sont pas autorisés sur cet appareil');
       if (code === 'E_PRODUCT_NOT_AVAILABLE') throw new Error('Ce produit n\'est pas disponible dans l\'App Store');
@@ -250,6 +260,16 @@ class StoreKitService {
       }
       if (code === 'E_INVALID_OFFER' || message.toLowerCase().includes('offer') || message.toLowerCase().includes('promotional')) {
         throw new Error('INVALID_OFFER');
+      }
+      // Erreurs de validation de reçu (backend)
+      if (code === 'E_RECEIPT_VALIDATION' || message.includes('receipt') || message.includes('reçu')) {
+        throw new Error('La validation du reçu a échoué. L\'équipe Apple utilise peut-être un compte Sandbox.');
+      }
+      if (code === 'E_SANDBOX_RECEIPT' || message.includes('21007') || message.includes('sandbox')) {
+        throw new Error('Reçu Sandbox détecté - vérification en cours avec l\'environnement de test Apple.');
+      }
+      if (message.includes('Bundle ID') || message.includes('bundle')) {
+        throw new Error('Erreur de configuration - contactez le support.');
       }
       if (code === 'E_PAYMENT_INVALID') throw new Error('Produit invalide - contactez le support');
       if (code === 'E_PAYMENT_NOT_ALLOWED') throw new Error('Les achats ne sont pas autorisés sur cet appareil');

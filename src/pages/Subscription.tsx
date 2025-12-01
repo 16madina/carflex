@@ -228,10 +228,16 @@ const Subscription = () => {
           description: "Veuillez autoriser l'accès aux informations iCloud dans les réglages iOS",
           variant: "destructive"
         });
-      } else if (error.message?.includes('sync')) {
+      } else if (error.message?.includes('synchronisation') || error.message?.includes('sync')) {
         toast({
-          title: "Erreur de synchronisation",
-          description: "L'achat a réussi mais la synchronisation a échoué. Contactez le support.",
+          title: "Erreur de vérification",
+          description: "L'achat a réussi mais la vérification a échoué. Essayez 'Restaurer les achats' ou contactez le support.",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('Sandbox') || error.message?.includes('test')) {
+        toast({
+          title: "Mode Test détecté",
+          description: "Compte de test Apple détecté. La validation est en cours de traitement.",
           variant: "destructive"
         });
       } else if (!error.message?.includes('CANCELLED')) {
@@ -285,7 +291,7 @@ const Subscription = () => {
   const syncIOSPurchase = async (purchaseResult: any) => {
     try {
       // Envoyer le reçu au backend pour validation
-      const { error } = await supabase.functions.invoke('verify-ios-purchase', {
+      const { data, error } = await supabase.functions.invoke('verify-ios-purchase', {
         body: {
           transaction_id: purchaseResult.transactionId,
           product_id: purchaseResult.productId,
@@ -296,13 +302,35 @@ const Subscription = () => {
 
       if (error) {
         console.error('[StoreKit] Erreur sync:', error);
-        throw new Error('Erreur de synchronisation: ' + error.message);
+        
+        // Messages d'erreur spécifiques en français
+        const errorMsg = error.message?.toLowerCase() || '';
+        
+        if (errorMsg.includes('21007') || errorMsg.includes('sandbox')) {
+          throw new Error('Erreur de validation : reçu de test détecté. Contactez le support si le problème persiste.');
+        }
+        if (errorMsg.includes('bundle') || errorMsg.includes('invalid')) {
+          throw new Error('Erreur de configuration de l\'application. Contactez le support.');
+        }
+        if (errorMsg.includes('transaction') || errorMsg.includes('not found')) {
+          throw new Error('Transaction introuvable. Réessayez ou restaurez vos achats.');
+        }
+        if (errorMsg.includes('auth') || errorMsg.includes('non authentifié')) {
+          throw new Error('Session expirée. Reconnectez-vous et réessayez.');
+        }
+        
+        throw new Error('Erreur de synchronisation : ' + (error.message || 'Veuillez réessayer'));
+      }
+
+      // Vérifier aussi si data contient une erreur
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       console.log('[StoreKit] Achat synchronisé avec succès');
     } catch (error) {
       console.error('[StoreKit] Erreur lors de la synchronisation:', error);
-      throw new Error('sync: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
+      throw error; // Propager l'erreur déjà formatée
     }
   };
 
