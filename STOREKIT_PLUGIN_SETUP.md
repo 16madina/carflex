@@ -3,7 +3,39 @@
 ## Problème
 L'erreur "StoreKitPlugin plugin is not implemented on ios" indique que le plugin personnalisé n'est pas correctement intégré dans le projet Xcode.
 
-## Solution : Ajouter le Plugin au Projet Xcode
+## ⚡ Solution Automatique (Recommandée)
+
+Utilisez le script de configuration automatique qui configure tout en une seule commande:
+
+```bash
+# Rendre le script exécutable (une seule fois)
+chmod +x setup-storekit-plugin.sh
+
+# Exécuter le script
+./setup-storekit-plugin.sh
+```
+
+Le script va automatiquement:
+- ✅ Vérifier la présence des fichiers du plugin
+- ✅ Créer un podspec local pour le plugin
+- ✅ Mettre à jour le Podfile
+- ✅ Configurer le bridging header
+- ✅ Installer les pods CocoaPods
+- ✅ Nettoyer le cache Xcode
+
+Une fois terminé, lancez simplement:
+```bash
+npx cap sync ios
+npx cap run ios
+```
+
+---
+
+## 📖 Solution Manuelle (Alternative)
+
+Si vous préférez configurer manuellement ou si le script automatique ne fonctionne pas:
+
+### Méthode 1 : Ajouter le Plugin au Projet Xcode
 
 ### Étape 1 : Ouvrir le Projet dans Xcode
 
@@ -85,9 +117,9 @@ npx cap run ios
 
 Si l'erreur persiste, vérifiez les logs dans la console Xcode.
 
-## Configuration Alternative : Convertir en CocoaPods Local Pod
+### Méthode 2 : Configuration via CocoaPods Local Pod (Utilisée par le script automatique)
 
-Si le problème persiste, vous pouvez créer un pod local:
+Cette méthode est celle utilisée par le script automatique `setup-storekit-plugin.sh`:
 
 ### 1. Créer un Podspec
 
