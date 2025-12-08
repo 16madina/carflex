@@ -1,5 +1,5 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
-// import { StoreKitPlugin } from 'capacitor-storekit-plugin';
+import { Capacitor } from '@capacitor/core';
+import { StoreKit as StoreKitPlugin } from 'storekit-plugin';
 
 // Example usage
 // const result = await StoreKitPlugin.echo({ value: 'test' });
@@ -60,28 +60,12 @@ export interface PurchaseResult {
   originalTransactionId?: string;
 }
 
-interface StoreKitPlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
-  getProducts?(options: { productIdentifiers: string[] }): Promise<{ products: any[] }>;
-  purchaseProduct?(options: { productIdentifier: string }): Promise<any>;
-  purchaseProductWithOffer?(options: { 
-    productIdentifier: string;
-    offerIdentifier: string;
-    keyIdentifier: string;
-    nonce: string;
-    signature: string;
-    timestamp: number;
-    applicationUsername: string;
-  }): Promise<any>;
-  restorePurchases?(): Promise<{ transactions: any[] }>;
-}
-
-// 2️⃣ Register the plugin with proper typing
-const StoreKit = registerPlugin<StoreKitPlugin>('StoreKitPlugin');
+// Interface already defined in the plugin package
+// Using the imported StoreKitPlugin type from 'storekit-plugin'
 
 class StoreKitService {
   private isInitialized = false;
-  private storeKitPlugin: StoreKitPlugin | null = null;
+  private storeKitPlugin = StoreKitPlugin;
 
   async initialize(): Promise<void> {
     console.log('[StoreKit] Initializing service...');
@@ -93,11 +77,7 @@ class StoreKitService {
       return;
     }
     
-    this.storeKitPlugin = StoreKit;
-    if (!this.storeKitPlugin) {
-      console.error('[StoreKit] Plugin not available');
-      return;
-    }
+    // Plugin is now imported directly from the package
     
     this.isInitialized = true;
     console.log('[StoreKit] Service initialized successfully ✅');

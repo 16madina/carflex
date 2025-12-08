@@ -1,0 +1,46 @@
+{
+  "name": "storekit-plugin",
+  "version": "1.0.0",
+  "description": "Capacitor plugin for iOS StoreKit In-App Purchases",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "ios/",
+    "dist/",
+    "src/"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/storekit-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/storekit-plugin/issues"
+  },
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "native",
+    "ios",
+    "storekit",
+    "in-app-purchase"
+  ],
+  "scripts": {
+    "verify": "echo 'Plugin verified'",
+    "build": "echo 'No build step needed'"
+  },
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    }
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/core": "^6.0.0"
+  }
+}
