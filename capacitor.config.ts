@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
   //   cleartext: true
   // },
   ios: {
-    scheme: 'carflex'
+    scheme: 'App'
   },
   android: {
     scheme: 'carflex'
