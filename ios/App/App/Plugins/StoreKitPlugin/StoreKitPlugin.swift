@@ -3,13 +3,24 @@ import Capacitor
 import StoreKit
 
 @objc(StoreKitPlugin)
-public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTransactionObserver {
+public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDelegate, SKPaymentTransactionObserver {
+    
+    public let identifier = "StoreKitPlugin"
+    public let jsName = "StoreKitPlugin"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "echo", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getProducts", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "purchaseProduct", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "restorePurchases", returnType: CAPPluginReturnPromise)
+    ]
+    
     private var productsRequest: SKProductsRequest?
     private var productsCallbackId: String?
     private var purchaseCallbackId: String?
     
     @objc override public func load() {
         SKPaymentQueue.default().add(self)
+        print("[StoreKitPlugin] Plugin loaded and payment observer added")
     }
     
     deinit {
@@ -18,6 +29,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     
     @objc func echo(_ call: CAPPluginCall) {
         let value = call.getString("value") ?? ""
+        print("[StoreKitPlugin] Echo called with: \(value)")
         call.resolve(["value": value])
     }
     
@@ -27,6 +39,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
             return
         }
         
+        print("[StoreKitPlugin] Getting products: \(productIds)")
         let productIdentifiers = Set(productIds)
         productsRequest = SKProductsRequest(productIdentifiers: productIdentifiers)
         productsRequest?.delegate = self
@@ -39,6 +52,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
             call.reject("Invalid product identifier")
             return
         }
+        
+        print("[StoreKitPlugin] Purchase requested for: \(productId)")
         
         // Vérifier si les achats sont autorisés
         guard SKPaymentQueue.canMakePayments() else {
@@ -56,6 +71,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
     
     @objc func restorePurchases(_ call: CAPPluginCall) {
+        print("[StoreKitPlugin] Restore purchases requested")
         purchaseCallbackId = call.callbackId
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
@@ -63,6 +79,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     // MARK: - SKProductsRequestDelegate
     
     public func productsRequest(_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
+        print("[StoreKitPlugin] Products received: \(response.products.count)")
+        
         let products = response.products.map { product -> [String: Any] in
             let formatter = NumberFormatter()
             formatter.numberStyle = .currency
@@ -86,12 +104,19 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
             productsCallbackId = nil
         } else if let callbackId = purchaseCallbackId, let product = response.products.first {
             // Lancer l'achat
+            print("[StoreKitPlugin] Starting payment for: \(product.productIdentifier)")
             let payment = SKPayment(product: product)
             SKPaymentQueue.default().add(payment)
+        } else if purchaseCallbackId != nil && response.products.isEmpty {
+            let call = bridge?.savedCall(withID: purchaseCallbackId!)
+            call?.reject("Product not found", "E_PRODUCT_NOT_FOUND")
+            purchaseCallbackId = nil
         }
     }
     
     public func request(_ request: SKRequest, didFailWithError error: Error) {
+        print("[StoreKitPlugin] Request failed: \(error.localizedDescription)")
+        
         if let callbackId = productsCallbackId ?? purchaseCallbackId {
             let call = bridge?.savedCall(withID: callbackId)
             
@@ -113,6 +138,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     
     public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         for transaction in transactions {
+            print("[StoreKitPlugin] Transaction state: \(transaction.transactionState.rawValue) for \(transaction.payment.productIdentifier)")
+            
             switch transaction.transactionState {
             case .purchased:
                 handlePurchased(transaction)
@@ -129,6 +156,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
     
     private func handlePurchased(_ transaction: SKPaymentTransaction) {
+        print("[StoreKitPlugin] Purchase successful: \(transaction.transactionIdentifier ?? "unknown")")
+        
         if let callbackId = purchaseCallbackId {
             let call = bridge?.savedCall(withID: callbackId)
             call?.resolve([
@@ -143,6 +172,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
     
     private func handleFailed(_ transaction: SKPaymentTransaction) {
+        print("[StoreKitPlugin] Purchase failed: \(transaction.error?.localizedDescription ?? "unknown")")
+        
         if let callbackId = purchaseCallbackId {
             let call = bridge?.savedCall(withID: callbackId)
             
@@ -179,8 +210,7 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
                     "message": errorMessage,
                     "underlyingError": error.localizedDescription,
                     "errorDomain": (error as NSError).domain,
-                                        "errorCode": (error as NSError).code
-
+                    "errorCode": (error as NSError).code
                 ])
             } else if let error = transaction.error {
                 call?.reject("Purchase failed: \(error.localizedDescription)", "E_UNKNOWN_ERROR", error, [
@@ -199,10 +229,13 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
     
     private func handleRestored(_ transaction: SKPaymentTransaction) {
+        print("[StoreKitPlugin] Transaction restored: \(transaction.transactionIdentifier ?? "unknown")")
         SKPaymentQueue.default().finishTransaction(transaction)
     }
     
     public func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
+        print("[StoreKitPlugin] Restore completed with \(queue.transactions.count) transactions")
+        
         if let callbackId = purchaseCallbackId {
             let call = bridge?.savedCall(withID: callbackId)
             
@@ -221,6 +254,8 @@ public class StoreKitPlugin: CAPPlugin, SKProductsRequestDelegate, SKPaymentTran
     }
     
     public func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
+        print("[StoreKitPlugin] Restore failed: \(error.localizedDescription)")
+        
         if let callbackId = purchaseCallbackId {
             let call = bridge?.savedCall(withID: callbackId)
             
