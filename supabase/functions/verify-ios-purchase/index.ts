@@ -305,13 +305,18 @@ serve(async (req) => {
       throw new Error(`Bundle ID invalide: ${payload.bundleId}`);
     }
 
-    // Vérifier que le produit correspond
-    const expectedProductId = purchase_type === 'premium_listing' 
-      ? `premium_package_${package_id}` 
-      : 'com.missdee.carflextest.subscription.pro.monthly';
+    // Vérifier que le produit correspond aux IDs configurés dans App Store Connect
+    // Pro subscription: com.missdee.carflextest.pro.monthly.v2
+    // Boost packages: com.missdee.carflextest.boost.3days, .7days, .15days
+    const validProductIds = [
+      'com.missdee.carflextest.pro.monthly.v2',
+      'com.missdee.carflextest.boost.3days',
+      'com.missdee.carflextest.boost.7days',
+      'com.missdee.carflextest.boost.15days',
+    ];
       
-    if (payload.productId !== expectedProductId && payload.productId !== product_id) {
-      console.warn(`[Warning] Product ID mismatch: expected ${expectedProductId}, got ${payload.productId}`);
+    if (!validProductIds.includes(payload.productId) && payload.productId !== product_id) {
+      console.warn(`[Warning] Product ID non reconnu: ${payload.productId}`);
     }
 
     // ÉTAPE 3: Traiter l'achat selon le type
