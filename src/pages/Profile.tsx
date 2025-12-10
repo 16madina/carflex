@@ -181,24 +181,7 @@ const Profile = () => {
   };
 
   const fetchPackages = async () => {
-    // Cache localStorage pour les packages (changent rarement)
-    const cacheKey = 'premium_packages_cache';
-    const cacheTimeKey = 'premium_packages_cache_time';
-    const cacheMaxAge = 60 * 60 * 1000; // 1 heure
-
-    try {
-      const cachedData = localStorage.getItem(cacheKey);
-      const cacheTime = localStorage.getItem(cacheTimeKey);
-      
-      if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < cacheMaxAge) {
-        setPackages(JSON.parse(cachedData));
-        return;
-      }
-    } catch (e) {
-      console.error('Cache error:', e);
-    }
-
-    // Sélectionner uniquement les colonnes nécessaires
+    // Pas de cache - les packages sont peu nombreux et doivent être à jour
     const { data, error } = await supabase
       .from("premium_packages")
       .select("id, name, description, price, duration_days, features, is_active")
@@ -207,12 +190,6 @@ const Profile = () => {
 
     if (!error && data) {
       setPackages(data as PremiumPackage[]);
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify(data));
-        localStorage.setItem(cacheTimeKey, Date.now().toString());
-      } catch (e) {
-        console.error('Cache save error:', e);
-      }
     }
   };
 
