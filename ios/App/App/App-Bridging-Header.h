@@ -2,4 +2,5 @@
 //  Use this file to import your target's public headers that you would like to expose to Swift.
 //
 
-#import <Capacitor/Capacitor.h>
+// Capacitor headers are available via the Pods module - no import needed here
+// Swift files can use: import Capacitor
