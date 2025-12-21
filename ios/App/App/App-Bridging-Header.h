@@ -4,3 +4,5 @@
 
 // Capacitor headers are available via the Pods module - no import needed here
 // Swift files can use: import Capacitor
+
+#import <Capacitor/Capacitor.h>
