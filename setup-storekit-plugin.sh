@@ -86,7 +86,8 @@ else
 " "$PODFILE"
     
     rm "$PODFILE.tmp"
-    echo -e "${GREEN}✅ Podfile mis à jour${NC}"
+    rm "$PODFILE.backup"
+    echo -e "${GREEN}✅ Podfile mis à jour et sauvegarde supprimée${NC}"
 fi
 
 echo ""
