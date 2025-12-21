@@ -1,19 +1,22 @@
 PODS:
-  - Capacitor (7.4.3):
+  - Capacitor (7.4.4):
     - CapacitorCordova
-  - CapacitorCamera (7.0.2):
+  - CapacitorCamera (7.0.3):
     - Capacitor
-  - CapacitorCordova (7.4.3)
-  - CapacitorGeolocation (7.1.5):
+  - CapacitorCordova (7.4.4)
+  - CapacitorGeolocation (7.1.7):
     - Capacitor
     - IONGeolocationLib (= 1.0.1)
   - CapacitorPluginAppTrackingTransparency (2.0.5):
     - Capacitor
-  - CapacitorPushNotifications (7.0.3):
+  - CapacitorPushNotifications (7.0.4):
     - Capacitor
-  - CapacitorSplashScreen (7.0.3):
+  - CapacitorSplashScreen (7.0.4):
     - Capacitor
   - IONGeolocationLib (1.0.1)
+  - StoreKitPlugin (1.0.0):
+    - Capacitor
+    - CapacitorCordova
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -23,6 +26,7 @@ DEPENDENCIES:
   - CapacitorPluginAppTrackingTransparency (from `../../node_modules/capacitor-plugin-app-tracking-transparency`)
   - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
+  - StoreKitPlugin (from `../`)
 
 SPEC REPOS:
   trunk:
@@ -43,17 +47,20 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorSplashScreen:
     :path: "../../node_modules/@capacitor/splash-screen"
+  StoreKitPlugin:
+    :path: "../"
 
 SPEC CHECKSUMS:
-  Capacitor: b4741ca7affb32c1b70debd03df92cbf522d8a80
-  CapacitorCamera: 6e18d54c8ab30d7dc7b8cd93d96f9b4f57e9202a
-  CapacitorCordova: 435121e81a2df4d0034f0fb11fcefab5104cfdb5
-  CapacitorGeolocation: b96474c3259dd4a294227ea8ec19140b1837cceb
+  Capacitor: 09d9ff8e9618e8c4b3cab2bbee34a17215dd2fef
+  CapacitorCamera: 6ef67fd287de230ebd8cda05f2a7ffd44a48e568
+  CapacitorCordova: bf648a636f3c153f652d312ae145fb508b6ffced
+  CapacitorGeolocation: bcd9412a99fd542b585561238b210bd2b162b8f6
   CapacitorPluginAppTrackingTransparency: 2a2792623a5a72795f2e8f9ab3f1147573732fd8
-  CapacitorPushNotifications: 729ade0d2791ec1969feaf931a15e28d929a6d70
-  CapacitorSplashScreen: d06ae8804808e9f649a08e7bb7f283c77b688084
+  CapacitorPushNotifications: 57b0df89c5084a19c939e2fbe3b77446fe55a35b
+  CapacitorSplashScreen: 03d04ffe57d5b619cfc162efc7415a965c92cc3f
   IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
+  StoreKitPlugin: 5994ed3bdae4937451cf2d786a74cedbfc8279b9
 
-PODFILE CHECKSUM: 6ca35663e94fd5893798811e04b12cdf4dc76afe
+PODFILE CHECKSUM: 973b0b7cec51552a494e9555786be768bebd6415
 
 COCOAPODS: 1.16.2

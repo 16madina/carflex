@@ -80,11 +80,9 @@ else
     cp "$PODFILE" "$PODFILE.backup"
     echo -e "${GREEN}✅ Sauvegarde créée: $PODFILE.backup${NC}"
     
-    # Ajouter le pod avant la ligne "target 'App' do"
-    sed -i.tmp "/platform :ios/a\\
-\\
-# Plugin StoreKit personnalisé\\
-pod 'StoreKitPlugin', :path => '../'\\
+    # Ajouter le pod dans le bloc "target 'App' do"
+    sed -i.tmp "/# Add your Pods here/a\\
+  pod 'StoreKitPlugin', :path => '../' # Ajouté par le script
 " "$PODFILE"
     
     rm "$PODFILE.tmp"
