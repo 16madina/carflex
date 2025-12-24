@@ -21,7 +21,7 @@ end
 target 'App' do
   capacitor_pods
   # Add your Pods here
-  pod 'StoreKitPlugin', :path => '../' # Ajouté par le script
+  # StoreKitPlugin is included directly in the App target, not as a pod
 end
 
 post_install do |installer|
