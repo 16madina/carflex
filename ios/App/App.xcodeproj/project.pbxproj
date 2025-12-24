@@ -14,8 +14,6 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
-		5634C3032EC216F4006C5106 /* StoreKitPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5634C3022EC216F4006C5106 /* StoreKitPlugin.swift */; };
-		5634C3062EC21BF5006C5106 /* StoreKitPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 5634C3052EC21BF5006C5106 /* StoreKitPlugin.m */; };
 		56FEE8B32EC3B09300084702 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56FEE8B22EC3B09300084702 /* StoreKit.framework */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 /* End PBXBuildFile section */
@@ -171,8 +169,6 @@
 				Base,
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
-			packageReferences = (
-			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -223,9 +219,28 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-App/Pods-App-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/Capacitor/Capacitor.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorCamera/CapacitorCamera.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorCordova/Cordova.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorGeolocation/CapacitorGeolocation.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorPluginAppTrackingTransparency/CapacitorPluginAppTrackingTransparency.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorPushNotifications/CapacitorPushNotifications.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorSplashScreen/CapacitorSplashScreen.framework",
+				"${BUILT_PRODUCTS_DIR}/StoreKitPlugin/StoreKitPlugin.framework",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/IONGeolocationLib/IONGeolocationLib.framework/IONGeolocationLib",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Capacitor.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorCamera.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Cordova.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorGeolocation.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorPluginAppTrackingTransparency.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorPushNotifications.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorSplashScreen.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/StoreKitPlugin.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/IONGeolocationLib.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -240,8 +255,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
-				5634C3032EC216F4006C5106 /* StoreKitPlugin.swift in Sources */,
-				5634C3062EC21BF5006C5106 /* StoreKitPlugin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
