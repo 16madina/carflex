@@ -98,17 +98,17 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
             ]
         }
         
-        if let currentProductsCallbackId = productsCallbackId {
-            let call = bridge?.savedCall(withID: currentProductsCallbackId)
+        if let callbackId = productsCallbackId {
+            let call = bridge?.savedCall(withID: callbackId)
             call?.resolve(["products": products])
             productsCallbackId = nil
-        } else if let _ = purchaseCallbackId, let product = response.products.first {
+        } else if let callbackId = purchaseCallbackId, let product = response.products.first {
             // Lancer l'achat
             print("[StoreKitPlugin] Starting payment for: \(product.productIdentifier)")
             let payment = SKPayment(product: product)
             SKPaymentQueue.default().add(payment)
-        } else if let currentPurchaseCallbackId = purchaseCallbackId, response.products.isEmpty {
-            let call = bridge?.savedCall(withID: currentPurchaseCallbackId)
+        } else if purchaseCallbackId != nil && response.products.isEmpty {
+            let call = bridge?.savedCall(withID: purchaseCallbackId!)
             call?.reject("Product not found", "E_PRODUCT_NOT_FOUND")
             purchaseCallbackId = nil
         }
@@ -117,9 +117,8 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
     public func request(_ request: SKRequest, didFailWithError error: Error) {
         print("[StoreKitPlugin] Request failed: \(error.localizedDescription)")
         
-        let currentCallbackId = productsCallbackId ?? purchaseCallbackId
-        if let callbackIdToUse = currentCallbackId {
-            let call = bridge?.savedCall(withID: callbackIdToUse)
+        if let callbackId = productsCallbackId ?? purchaseCallbackId {
+            let call = bridge?.savedCall(withID: callbackId)
             
             let errorCode = "E_REQUEST_FAILED"
             let errorMessage = "StoreKit request failed: \(error.localizedDescription)"
@@ -159,8 +158,8 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
     private func handlePurchased(_ transaction: SKPaymentTransaction) {
         print("[StoreKitPlugin] Purchase successful: \(transaction.transactionIdentifier ?? "unknown")")
         
-        if let currentCallbackId = purchaseCallbackId {
-            let call = bridge?.savedCall(withID: currentCallbackId)
+        if let callbackId = purchaseCallbackId {
+            let call = bridge?.savedCall(withID: callbackId)
             call?.resolve([
                 "transactionIdentifier": transaction.transactionIdentifier ?? "",
                 "productIdentifier": transaction.payment.productIdentifier,
@@ -175,8 +174,8 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
     private func handleFailed(_ transaction: SKPaymentTransaction) {
         print("[StoreKitPlugin] Purchase failed: \(transaction.error?.localizedDescription ?? "unknown")")
         
-        if let currentCallbackId = purchaseCallbackId {
-            let call = bridge?.savedCall(withID: currentCallbackId)
+        if let callbackId = purchaseCallbackId {
+            let call = bridge?.savedCall(withID: callbackId)
             
             if let error = transaction.error as? SKError {
                 let errorCode: String
@@ -237,8 +236,8 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
     public func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
         print("[StoreKitPlugin] Restore completed with \(queue.transactions.count) transactions")
         
-        if let currentCallbackId = purchaseCallbackId {
-            let call = bridge?.savedCall(withID: currentCallbackId)
+        if let callbackId = purchaseCallbackId {
+            let call = bridge?.savedCall(withID: callbackId)
             
             let transactions = queue.transactions.map { transaction -> [String: Any] in
                 return [
@@ -257,8 +256,8 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
     public func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
         print("[StoreKitPlugin] Restore failed: \(error.localizedDescription)")
         
-        if let currentCallbackId = purchaseCallbackId {
-            let call = bridge?.savedCall(withID: currentCallbackId)
+        if let callbackId = purchaseCallbackId {
+            let call = bridge?.savedCall(withID: callbackId)
             
             let errorCode: String
             let errorMessage: String

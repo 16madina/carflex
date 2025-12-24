@@ -4,11 +4,12 @@ const config: CapacitorConfig = {
   appId: 'com.missdee.carflextest',
   appName: 'CarFlex',
   webDir: 'dist',
-  // Mode développement avec hot-reload activé
-  server: {
-    url: 'https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // Pour la production, pas de server URL - l'app utilisera les fichiers locaux
+  // Pour le développement avec hot-reload, décommentez les lignes ci-dessous:
+  // server: {
+  //   url: 'https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   ios: {
     scheme: 'App'
   },
