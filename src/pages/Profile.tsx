@@ -137,13 +137,30 @@ const Profile = () => {
           setIsAdmin(true);
         }
 
-        // Paralléliser le chargement des données (avec gestion d'erreur)
-        await Promise.all([
-          fetchUserListings(user.id).catch(e => console.error('[Profile] fetchUserListings error:', e)),
-          fetchPackages().catch(e => console.error('[Profile] fetchPackages error:', e)),
-          fetchBookings(user.id).catch(e => console.error('[Profile] fetchBookings error:', e))
-        ]);
-        
+        // Charger le reste des données sans bloquer l'affichage (évite chargement infini sur iOS)
+        const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string) => {
+          let timeoutId: ReturnType<typeof setTimeout> | undefined;
+          const timeout = new Promise<never>((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error(`${label}_TIMEOUT`)), ms);
+          });
+
+          return Promise.race([promise, timeout]).finally(() => {
+            if (timeoutId) clearTimeout(timeoutId);
+          });
+        };
+
+        Promise.allSettled([
+          withTimeout(fetchUserListings(user.id), 8000, 'fetchUserListings'),
+          withTimeout(fetchPackages(), 8000, 'fetchPackages'),
+          withTimeout(fetchBookings(user.id), 8000, 'fetchBookings'),
+        ]).then((results) => {
+          results.forEach((r) => {
+            if (r.status === 'rejected') {
+              console.error('[Profile] Background fetch failed:', r.reason);
+            }
+          });
+        });
+
       } catch (error) {
         console.error('[Profile] checkAuth error:', error);
         toast.error("Erreur de chargement du profil");
