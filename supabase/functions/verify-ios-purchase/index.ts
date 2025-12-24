@@ -76,7 +76,7 @@ async function fetchWithRetry(
 // App Store Server API configuration
 const APP_STORE_API_PRODUCTION = "https://api.storekit.itunes.apple.com";
 const APP_STORE_API_SANDBOX = "https://api.storekit-sandbox.itunes.apple.com";
-const BUNDLE_ID = "app.lovable.c69889b6be82430184ff53e58a725869";
+const BUNDLE_ID = "com.missdee.carflextest";
 
 // Fonction pour générer un JWT signé pour l'API App Store
 async function generateAppStoreToken(): Promise<string> {
