@@ -388,9 +388,12 @@ const Profile = () => {
         }
       });
 
-      if (verifyResponse.error) {
-        throw verifyResponse.error;
-      }
+       if (verifyResponse.error) {
+         throw verifyResponse.error;
+       }
+       if (verifyResponse.data?.error) {
+         throw new Error(verifyResponse.data.user_message || verifyResponse.data.error);
+       }
 
       toast.success("✅ Pack Premium activé !", {
         description: `Votre annonce est maintenant promue pour ${pkg.duration_days} jours.`,

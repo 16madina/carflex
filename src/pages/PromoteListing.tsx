@@ -206,9 +206,12 @@ const PromoteListing = () => {
         }
       });
 
-      if (verifyResponse.error) {
-        throw verifyResponse.error;
-      }
+       if (verifyResponse.error) {
+         throw verifyResponse.error;
+       }
+       if (verifyResponse.data?.error) {
+         throw new Error(verifyResponse.data.user_message || verifyResponse.data.error);
+       }
 
       toast({
         title: "✅ Pack Premium activé !",
@@ -435,18 +438,18 @@ const PromoteListing = () => {
       for (const purchase of restoredPurchases) {
         try {
           // Synchroniser avec le backend
-          const { error } = await supabase.functions.invoke('verify-ios-purchase', {
-            body: {
-              transaction_id: purchase.transactionId,
-              product_id: purchase.productId,
-              purchase_type: 'premium_listing',
-              // Note: listing_id et package_id seront déduits du product_id
-            }
-          });
+           const { data, error } = await supabase.functions.invoke('verify-ios-purchase', {
+             body: {
+               transaction_id: purchase.transactionId,
+               product_id: purchase.productId,
+               purchase_type: 'premium_listing',
+               // Note: listing_id et package_id seront déduits du product_id
+             }
+           });
 
-          if (!error) {
-            successCount++;
-          }
+           if (!error && !data?.error) {
+             successCount++;
+           }
         } catch (error) {
           console.error('[StoreKit] Erreur sync achat restauré:', error);
         }
