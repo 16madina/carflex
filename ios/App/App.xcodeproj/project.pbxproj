@@ -169,8 +169,6 @@
 				Base,
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
-			packageReferences = (
-			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -221,9 +219,28 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-App/Pods-App-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/Capacitor/Capacitor.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorCamera/CapacitorCamera.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorCordova/Cordova.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorGeolocation/CapacitorGeolocation.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorPluginAppTrackingTransparency/CapacitorPluginAppTrackingTransparency.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorPushNotifications/CapacitorPushNotifications.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorSplashScreen/CapacitorSplashScreen.framework",
+				"${BUILT_PRODUCTS_DIR}/StoreKitPlugin/StoreKitPlugin.framework",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/IONGeolocationLib/IONGeolocationLib.framework/IONGeolocationLib",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Capacitor.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorCamera.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Cordova.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorGeolocation.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorPluginAppTrackingTransparency.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorPushNotifications.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorSplashScreen.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/StoreKitPlugin.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/IONGeolocationLib.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

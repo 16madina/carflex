@@ -14,6 +14,9 @@ PODS:
   - CapacitorSplashScreen (7.0.4):
     - Capacitor
   - IONGeolocationLib (1.0.1)
+  - StoreKitPlugin (1.0.0):
+    - Capacitor
+    - CapacitorCordova
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -23,6 +26,7 @@ DEPENDENCIES:
   - CapacitorPluginAppTrackingTransparency (from `../../node_modules/capacitor-plugin-app-tracking-transparency`)
   - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
+  - StoreKitPlugin (from `../`)
 
 SPEC REPOS:
   trunk:
@@ -43,6 +47,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorSplashScreen:
     :path: "../../node_modules/@capacitor/splash-screen"
+  StoreKitPlugin:
+    :path: "../"
 
 SPEC CHECKSUMS:
   Capacitor: 09d9ff8e9618e8c4b3cab2bbee34a17215dd2fef
@@ -53,7 +59,8 @@ SPEC CHECKSUMS:
   CapacitorPushNotifications: 57b0df89c5084a19c939e2fbe3b77446fe55a35b
   CapacitorSplashScreen: 03d04ffe57d5b619cfc162efc7415a965c92cc3f
   IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
+  StoreKitPlugin: 5994ed3bdae4937451cf2d786a74cedbfc8279b9
 
-PODFILE CHECKSUM: 6ca35663e94fd5893798811e04b12cdf4dc76afe
+PODFILE CHECKSUM: 7893a0ff863a862c4f7d0a8766618454f643d3db
 
 COCOAPODS: 1.16.2

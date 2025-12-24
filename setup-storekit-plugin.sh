@@ -43,52 +43,52 @@ fi
 
 echo -e "${GREEN}✅ Fichiers du plugin trouvés${NC}\n"
 
-# echo -e "${YELLOW}📋 Étape 2: Configuration via CocoaPods (méthode recommandée)${NC}"
+echo -e "${YELLOW}📋 Étape 2: Configuration via CocoaPods (méthode recommandée)${NC}"
 
-# # Créer le podspec local
-# PODSPEC_FILE="ios/StoreKitPlugin.podspec"
+# Créer le podspec local
+PODSPEC_FILE="ios/StoreKitPlugin.podspec"
 
-# cat > "$PODSPEC_FILE" << 'EOF'
-# Pod::Spec.new do |s|
-#   s.name             = 'StoreKitPlugin'
-#   s.version          = '1.0.0'
-#   s.summary          = 'Custom StoreKit Plugin for Capacitor'
-#   s.description      = 'A custom Capacitor plugin for iOS in-app purchases using StoreKit'
-#   s.homepage         = 'https://github.com/capacitor-community/storekit-plugin'
-#   s.license          = { :type => 'MIT' }
-#   s.author           = { 'Capacitor Community' => 'hello@capacitorjs.com' }
-#   s.source           = { :git => '', :tag => s.version.to_s }
-#   s.source_files     = 'App/App/Plugins/StoreKitPlugin/**/*.{swift,h,m}'
-#   s.ios.deployment_target = '14.0'
-#   s.swift_versions   = '5.0'
-#   s.dependency 'Capacitor'
-#   s.dependency 'CapacitorCordova'
-# end
-# EOF
+cat > "$PODSPEC_FILE" << 'EOF'
+Pod::Spec.new do |s|
+  s.name             = 'StoreKitPlugin'
+  s.version          = '1.0.0'
+  s.summary          = 'Custom StoreKit Plugin for Capacitor'
+  s.description      = 'A custom Capacitor plugin for iOS in-app purchases using StoreKit'
+  s.homepage         = 'https://github.com/capacitor-community/storekit-plugin'
+  s.license          = { :type => 'MIT' }
+  s.author           = { 'Capacitor Community' => 'hello@capacitorjs.com' }
+  s.source           = { :git => '', :tag => s.version.to_s }
+  s.source_files     = 'App/App/Plugins/StoreKitPlugin/**/*.{swift,h,m}'
+  s.ios.deployment_target = '14.0'
+  s.swift_versions   = '5.0'
+  s.dependency 'Capacitor'
+  s.dependency 'CapacitorCordova'
+end
+EOF
 
-# echo -e "${GREEN}✅ Podspec créé: $PODSPEC_FILE${NC}\n"
+echo -e "${GREEN}✅ Podspec créé: $PODSPEC_FILE${NC}\n"
 
-# echo -e "${YELLOW}📋 Étape 3: Mise à jour du Podfile${NC}"
+echo -e "${YELLOW}📋 Étape 3: Mise à jour du Podfile${NC}"
 
-# PODFILE="ios/App/Podfile"
+PODFILE="ios/App/Podfile"
 
-# # Vérifier si le plugin est déjà dans le Podfile
-# if grep -q "pod 'StoreKitPlugin'" "$PODFILE"; then
-#     echo -e "${BLUE}ℹ️  Le plugin est déjà référencé dans le Podfile${NC}"
-# else
-#     # Créer une sauvegarde
-#     cp "$PODFILE" "$PODFILE.backup"
-#     echo -e "${GREEN}✅ Sauvegarde créée: $PODFILE.backup${NC}"
+# Vérifier si le plugin est déjà dans le Podfile
+if grep -q "pod 'StoreKitPlugin'" "$PODFILE"; then
+    echo -e "${BLUE}ℹ️  Le plugin est déjà référencé dans le Podfile${NC}"
+else
+    # Créer une sauvegarde
+    cp "$PODFILE" "$PODFILE.backup"
+    echo -e "${GREEN}✅ Sauvegarde créée: $PODFILE.backup${NC}"
     
-#     # Ajouter le pod dans le bloc "target 'App' do"
-#     sed -i.tmp "/# Add your Pods here/a\\
-#   pod 'StoreKitPlugin', :path => '../' # Ajouté par le script
-# " "$PODFILE"
+    # Ajouter le pod dans le bloc "target 'App' do"
+    sed -i.tmp "/# Add your Pods here/a\\
+  pod 'StoreKitPlugin', :path => '../' # Ajouté par le script
+" "$PODFILE"
     
-#     rm "$PODFILE.tmp"
-#     rm "$PODFILE.backup"
-#     echo -e "${GREEN}✅ Podfile mis à jour et sauvegarde supprimée${NC}"
-# fi
+    rm "$PODFILE.tmp"
+    rm "$PODFILE.backup"
+    echo -e "${GREEN}✅ Podfile mis à jour et sauvegarde supprimée${NC}"
+fi
 
 echo ""
 echo -e "${YELLOW}📋 Étape 4: Vérification du Bridging Header${NC}"
