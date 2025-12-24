@@ -1,0 +1,11 @@
+import UIKit
+import Capacitor
+
+class MyViewController: CAPBridgeViewController {
+    
+    override open func capacitorDidLoad() {
+        // Register the StoreKit plugin manually
+        bridge?.registerPluginInstance(StoreKitPlugin())
+        print("[MyViewController] StoreKitPlugin registered successfully ✅")
+    }
+}
