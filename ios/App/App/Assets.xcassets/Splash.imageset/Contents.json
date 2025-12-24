@@ -2,8 +2,7 @@
   "images" : [
     {
       "filename" : "1024.png",
-      "idiom" : "universal",
-      "scale" : "1x"
+      "idiom" : "universal"
     },
     {
       "filename" : "1024 1.png",
@@ -21,3 +20,4 @@
     "version" : 1
   }
 }
+

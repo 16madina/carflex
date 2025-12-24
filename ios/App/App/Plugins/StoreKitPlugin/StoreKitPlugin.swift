@@ -102,13 +102,13 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
             let call = bridge?.savedCall(withID: callbackId)
             call?.resolve(["products": products])
             productsCallbackId = nil
-        } else if let callbackId = purchaseCallbackId, let product = response.products.first {
+        } else if purchaseCallbackId != nil, let product = response.products.first {
             // Lancer l'achat
             print("[StoreKitPlugin] Starting payment for: \(product.productIdentifier)")
             let payment = SKPayment(product: product)
             SKPaymentQueue.default().add(payment)
-        } else if purchaseCallbackId != nil && response.products.isEmpty {
-            let call = bridge?.savedCall(withID: purchaseCallbackId!)
+        } else if let callbackId = purchaseCallbackId, response.products.isEmpty {
+            let call = bridge?.savedCall(withID: callbackId)
             call?.reject("Product not found", "E_PRODUCT_NOT_FOUND")
             purchaseCallbackId = nil
         }
