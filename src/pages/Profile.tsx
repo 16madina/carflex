@@ -156,113 +156,127 @@ const Profile = () => {
   }, [navigate]);
 
   const fetchUserListings = async (userId: string) => {
-    // Optimisation : requête unique avec JOIN pour fusionner sale + rental + premium
-    const [saleResult, rentalResult, premiumResult] = await Promise.all([
-      supabase
-        .from("sale_listings")
-        .select("id, brand, model, year, price, images")
-        .eq("seller_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(10), // Pagination : limiter à 10 initialement
-      supabase
-        .from("rental_listings")
-        .select("id, brand, model, year, price_per_day, images")
-        .eq("owner_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(10), // Pagination : limiter à 10 initialement
-      supabase
-        .from("premium_listings")
-        .select("listing_id, end_date")
-        .eq("is_active", true)
-        .gte("end_date", new Date().toISOString())
-    ]);
+    try {
+      // Optimisation : requête unique avec JOIN pour fusionner sale + rental + premium
+      const [saleResult, rentalResult, premiumResult] = await Promise.all([
+        supabase
+          .from("sale_listings")
+          .select("id, brand, model, year, price, images")
+          .eq("seller_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(10),
+        supabase
+          .from("rental_listings")
+          .select("id, brand, model, year, price_per_day, images")
+          .eq("owner_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(10),
+        supabase
+          .from("premium_listings")
+          .select("listing_id, end_date")
+          .eq("is_active", true)
+          .gte("end_date", new Date().toISOString())
+      ]);
 
-    const sales = (saleResult.data || []).map(item => ({ ...item, type: 'sale' as const }));
-    const rentals = (rentalResult.data || []).map(item => ({ ...item, type: 'rental' as const }));
-    const allListings = [...sales, ...rentals];
+      const sales = (saleResult.data || []).map(item => ({ ...item, type: 'sale' as const }));
+      const rentals = (rentalResult.data || []).map(item => ({ ...item, type: 'rental' as const }));
+      const allListings = [...sales, ...rentals];
 
-    // Marquer les annonces premium
-    const premiumMap = new Map(
-      (premiumResult.data || []).map(p => [p.listing_id, p.end_date])
-    );
+      // Marquer les annonces premium
+      const premiumMap = new Map(
+        (premiumResult.data || []).map(p => [p.listing_id, p.end_date])
+      );
 
-    const listingsWithPremium = allListings.map(listing => ({
-      ...listing,
-      isPremium: premiumMap.has(listing.id),
-      premiumEndDate: premiumMap.get(listing.id)
-    }));
+      const listingsWithPremium = allListings.map(listing => ({
+        ...listing,
+        isPremium: premiumMap.has(listing.id),
+        premiumEndDate: premiumMap.get(listing.id)
+      }));
 
-    setUserListings(listingsWithPremium);
+      setUserListings(listingsWithPremium);
+    } catch (error) {
+      console.error('[Profile] fetchUserListings error:', error);
+      setUserListings([]);
+    }
   };
 
   const fetchPackages = async () => {
-    // Pas de cache - les packages sont peu nombreux et doivent être à jour
-    const { data, error } = await supabase
-      .from("premium_packages")
-      .select("id, name, description, price, duration_days, features, is_active")
-      .eq("is_active", true)
-      .order("price", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("premium_packages")
+        .select("id, name, description, price, duration_days, features, is_active")
+        .eq("is_active", true)
+        .order("price", { ascending: true });
 
-    if (!error && data) {
-      setPackages(data as PremiumPackage[]);
+      if (!error && data) {
+        setPackages(data as PremiumPackage[]);
+      }
+    } catch (error) {
+      console.error('[Profile] fetchPackages error:', error);
     }
   };
 
   const fetchBookings = async (userId: string) => {
-    // Optimisation : fusion en une seule requête avec OR + colonnes nécessaires
-    const { data: allBookings } = await supabase
-      .from("rental_bookings")
-      .select(`
-        id,
-        status,
-        start_date,
-        end_date,
-        total_price,
-        total_days,
-        daily_rate,
-        notes,
-        payment_status,
-        renter_id,
-        owner_id,
-        created_at,
-        rental_listing_id,
-        rental_listings:rental_listing_id (
+    try {
+      // Optimisation : fusion en une seule requête avec OR + colonnes nécessaires
+      const { data: allBookings } = await supabase
+        .from("rental_bookings")
+        .select(`
           id,
-          brand,
-          model,
-          images,
-          price_per_day,
-          city,
-          country
-        ),
-        renter:renter_id (
-          first_name,
-          last_name,
-          phone
-        ),
-        owner:owner_id (
-          first_name,
-          last_name,
-          phone
-        )
-      `)
-      .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
-      .order("created_at", { ascending: false })
-      .limit(10); // Pagination : limiter à 10 initialement
+          status,
+          start_date,
+          end_date,
+          total_price,
+          total_days,
+          daily_rate,
+          notes,
+          payment_status,
+          renter_id,
+          owner_id,
+          created_at,
+          rental_listing_id,
+          rental_listings:rental_listing_id (
+            id,
+            brand,
+            model,
+            images,
+            price_per_day,
+            city,
+            country
+          ),
+          renter:renter_id (
+            first_name,
+            last_name,
+            phone
+          ),
+          owner:owner_id (
+            first_name,
+            last_name,
+            phone
+          )
+        `)
+        .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
+        .order("created_at", { ascending: false })
+        .limit(10);
 
-    // Séparer les réservations en ajoutant le champ profiles pour compatibilité
-    const myData = (allBookings || []).map(b => ({
-      ...b,
-      profiles: b.owner
-    }));
-    
-    const receivedData = (allBookings || []).map(b => ({
-      ...b,
-      profiles: b.renter
-    }));
+      // Séparer les réservations en ajoutant le champ profiles pour compatibilité
+      const myData = (allBookings || []).map(b => ({
+        ...b,
+        profiles: b.owner
+      }));
+      
+      const receivedData = (allBookings || []).map(b => ({
+        ...b,
+        profiles: b.renter
+      }));
 
-    setMyBookings(myData.filter(b => b.renter_id === userId));
-    setReceivedBookings(receivedData.filter(b => b.owner_id === userId));
+      setMyBookings(myData.filter(b => b.renter_id === userId));
+      setReceivedBookings(receivedData.filter(b => b.owner_id === userId));
+    } catch (error) {
+      console.error('[Profile] fetchBookings error:', error);
+      setMyBookings([]);
+      setReceivedBookings([]);
+    }
   };
 
   const handleUpdateBookingStatus = async (bookingId: string, newStatus: string) => {
