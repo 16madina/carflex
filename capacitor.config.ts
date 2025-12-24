@@ -4,10 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.missdee.carflextest',
   appName: 'CarFlex',
   webDir: 'dist',
-  server: {
-    url: 'https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // Hot-reload désactivé pour production
+  // server: {
+  //   url: 'https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   ios: {
     scheme: 'App'
   },
