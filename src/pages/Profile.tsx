@@ -85,56 +85,71 @@ const Profile = () => {
     setIsIOS(platform === 'ios');
     
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error("Vous devez être connecté");
-        navigate("/auth");
-        return;
-      }
-
-      setUser(user);
-
-      // Initialiser StoreKit sur iOS
-      if (Capacitor.getPlatform() === 'ios') {
-        try {
-          await storeKitService.initialize();
-          console.log('[Profile] StoreKit initialized');
-        } catch (error) {
-          console.error('[Profile] StoreKit init error:', error);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          toast.error("Vous devez être connecté");
+          navigate("/auth");
+          return;
         }
+
+        setUser(user);
+
+        // Initialiser StoreKit sur iOS (en background, non-bloquant)
+        if (Capacitor.getPlatform() === 'ios') {
+          storeKitService.initialize().then(() => {
+            console.log('[Profile] StoreKit initialized');
+          }).catch((error) => {
+            console.error('[Profile] StoreKit init error:', error);
+          });
+        }
+
+        // Paralléliser toutes les requêtes pour améliorer les performances
+        let profileData = null;
+        let roles = null;
+        
+        try {
+          const profileResult = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .single();
+          profileData = profileResult.data;
+        } catch (e) {
+          console.error('[Profile] Error fetching profile:', e);
+        }
+        
+        try {
+          const rolesResult = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .eq("role", "admin");
+          roles = rolesResult.data;
+        } catch (e) {
+          console.error('[Profile] Error fetching roles:', e);
+        }
+
+        setProfile(profileData);
+        
+        if (roles && roles.length > 0) {
+          setIsAdmin(true);
+        }
+
+        // Paralléliser le chargement des données (avec gestion d'erreur)
+        await Promise.all([
+          fetchUserListings(user.id).catch(e => console.error('[Profile] fetchUserListings error:', e)),
+          fetchPackages().catch(e => console.error('[Profile] fetchPackages error:', e)),
+          fetchBookings(user.id).catch(e => console.error('[Profile] fetchBookings error:', e))
+        ]);
+        
+      } catch (error) {
+        console.error('[Profile] checkAuth error:', error);
+        toast.error("Erreur de chargement du profil");
+      } finally {
+        setLoading(false);
       }
-
-      // Paralléliser toutes les requêtes pour améliorer les performances
-      const [profileData, roles] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single()
-          .then(res => res.data),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", "admin")
-          .then(res => res.data)
-      ]);
-
-      setProfile(profileData);
-      
-      if (roles && roles.length > 0) {
-        setIsAdmin(true);
-      }
-
-      // Paralléliser le chargement des données
-      await Promise.all([
-        fetchUserListings(user.id),
-        fetchPackages(),
-        fetchBookings(user.id)
-      ]);
-      
-      setLoading(false);
     };
 
     checkAuth();
