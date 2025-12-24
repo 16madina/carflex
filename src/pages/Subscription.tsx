@@ -371,7 +371,7 @@ const Subscription = () => {
 
         // Vérifier aussi si data contient une erreur
         if (data?.error) {
-          throw new Error(data.error);
+          throw new Error(data.user_message || data.error);
         }
 
         console.log('[StoreKit] Achat synchronisé avec succès');

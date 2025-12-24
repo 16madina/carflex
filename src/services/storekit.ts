@@ -159,10 +159,15 @@ class StoreKitService {
         throw new Error('Transaction invalide - contactez le support');
       }
       
+      const rawDate = result.transactionDate;
+      const dateMs = typeof rawDate === 'number'
+        ? (rawDate < 1e12 ? rawDate * 1000 : rawDate)
+        : Date.parse(rawDate);
+
       return {
         transactionId: result.transactionIdentifier,
         productId: result.productIdentifier,
-        purchaseDate: new Date(result.transactionDate),
+        purchaseDate: new Date(dateMs),
         originalTransactionId: result.originalTransactionIdentifier
       };
     } catch (error: any) {
@@ -241,10 +246,15 @@ class StoreKitService {
         throw new Error('Transaction invalide - contactez le support');
       }
       
+      const rawDate = result.transactionDate;
+      const dateMs = typeof rawDate === 'number'
+        ? (rawDate < 1e12 ? rawDate * 1000 : rawDate)
+        : Date.parse(rawDate);
+
       return {
         transactionId: result.transactionIdentifier,
         productId: result.productIdentifier,
-        purchaseDate: new Date(result.transactionDate),
+        purchaseDate: new Date(dateMs),
         originalTransactionId: result.originalTransactionIdentifier
       };
     } catch (error: any) {
@@ -290,12 +300,19 @@ class StoreKitService {
     try {
       const result = await this.storeKitPlugin.restorePurchases!();
       if (!result?.transactions) return [];
-      return result.transactions.map((t: any) => ({
-        transactionId: t.transactionIdentifier,
-        productId: t.productIdentifier,
-        purchaseDate: new Date(t.transactionDate),
-        originalTransactionId: t.originalTransactionIdentifier
-      }));
+       return result.transactions.map((t: any) => {
+         const rawDate = t.transactionDate;
+         const dateMs = typeof rawDate === 'number'
+           ? (rawDate < 1e12 ? rawDate * 1000 : rawDate)
+           : Date.parse(rawDate);
+
+         return {
+           transactionId: t.transactionIdentifier,
+           productId: t.productIdentifier,
+           purchaseDate: new Date(dateMs),
+           originalTransactionId: t.originalTransactionIdentifier
+         };
+       });
     } catch (error: any) {
       const { code, message } = extractCapacitorError(error);
       if (code === 'E_RESTORE_CANCELLED') throw new Error('Restore cancelled by user');
