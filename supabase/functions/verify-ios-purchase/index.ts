@@ -472,27 +472,30 @@ serve(async (req) => {
 
     console.log('[verify-ios-purchase] Pro plan found:', proPlan.id);
 
-    // Vérifier si l'abonnement existe déjà
+    // Vérifier si l'abonnement existe déjà (sans filtrer par product_id car user_id a une contrainte unique)
     const { data: existingSubscription } = await supabaseAdmin
       .from('user_subscriptions')
       .select('*')
       .eq('user_id', user.id)
-      .eq('product_id', proPlan.stripe_product_id)
-      .single();
+      .maybeSingle();
 
     // Calculer les dates d'abonnement
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1); // Abonnement mensuel
 
+    const subscriptionData = {
+      product_id: proPlan.stripe_product_id,
+      status: 'active',
+      current_period_end: endDate.toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
     if (existingSubscription) {
       // Mettre à jour l'abonnement existant
+      console.log('[verify-ios-purchase] Updating existing subscription:', existingSubscription.id);
       const { error: updateError } = await supabaseAdmin
         .from('user_subscriptions')
-        .update({
-          status: 'active',
-          current_period_end: endDate.toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .update(subscriptionData)
         .eq('id', existingSubscription.id);
 
       if (updateError) {
@@ -503,13 +506,12 @@ serve(async (req) => {
       console.log('[verify-ios-purchase] Subscription updated successfully');
     } else {
       // Créer un nouvel abonnement
+      console.log('[verify-ios-purchase] Creating new subscription for user:', user.id);
       const { error: insertError } = await supabaseAdmin
         .from('user_subscriptions')
         .insert({
           user_id: user.id,
-          product_id: proPlan.stripe_product_id,
-          status: 'active',
-          current_period_end: endDate.toISOString()
+          ...subscriptionData
         });
 
       if (insertError) {
