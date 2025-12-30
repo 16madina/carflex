@@ -938,15 +938,7 @@ const Profile = () => {
                                   </span>
                                 </div>
                                 <div className="flex gap-1.5 flex-wrap">
-                                  <Button 
-                                    onClick={() => handlePromote(listing.id, listing.type)}
-                                    size="sm"
-                                    className="bg-gradient-to-r from-primary to-primary/80 h-7 px-2 text-[10px]"
-                                    disabled={listing.isPremium}
-                                  >
-                                    <Crown className="mr-1 h-2.5 w-2.5" />
-                                    {listing.isPremium ? 'Sponsorisé' : 'Promouvoir'}
-                                  </Button>
+                                  {/* Bouton Promouvoir masqué temporairement - modèle gratuit */}
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <Button 
@@ -1365,105 +1357,8 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Choisir un pack premium</DialogTitle>
-            <DialogDescription>
-              Sélectionnez le pack qui correspond à vos besoins
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            {packages.map((pkg) => (
-              <Card
-                key={pkg.id}
-                className={`cursor-pointer transition-all ${
-                  selectedPackage === pkg.id
-                    ? "ring-2 ring-primary shadow-lg"
-                    : "hover:shadow-md"
-                }`}
-                onClick={() => setSelectedPackage(pkg.id)}
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{pkg.name}</CardTitle>
-                    {selectedPackage === pkg.id && (
-                      <CheckCircle2 className="h-6 w-6 text-primary" />
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{pkg.description}</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-2xl font-bold">{formatPrice(pkg.price)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        pour {pkg.duration_days} jours
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <p className="font-semibold text-sm">Avantages :</p>
-                      <ul className="space-y-1">
-                        {pkg.features.map((feature, index) => (
-                          <li key={index} className="text-sm flex items-start">
-                            <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-primary flex-shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {packages.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">
-                Aucun pack disponible pour le moment
-              </p>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setDialogOpen(false)}
-            >
-              Annuler
-            </Button>
-            <Button
-              className="flex-1"
-              onClick={confirmPromote}
-              disabled={!selectedPackage || submitting}
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Traitement...
-                </>
-              ) : isIOS ? (
-                "Acheter via l'App Store"
-              ) : (
-                "Continuer vers le paiement"
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* PaymentMethodSelector uniquement sur Web/Android (règles App Store) */}
-      {!isIOS && (
-        <PaymentMethodSelector
-          open={showPaymentSelector}
-          onOpenChange={setShowPaymentSelector}
-          onSelectMethod={handlePaymentMethod}
-          amount={selectedPackageData?.price || 0}
-          formatPrice={formatPrice}
-        />
-      )}
+      {/* Dialog Premium Pack masqué temporairement - modèle gratuit */}
+      {/* PaymentMethodSelector masqué temporairement - modèle gratuit */}
 
       {/* Booking Details Dialog */}
       <Dialog open={bookingDetailOpen} onOpenChange={setBookingDetailOpen}>
