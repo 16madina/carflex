@@ -695,182 +695,161 @@ const Profile = () => {
       <TopBar />
 
       <main className="container mx-auto px-4 pt-24 pb-6">
-        <div className="max-w-4xl mx-auto">
-          <Tabs defaultValue="profile" className="w-full">
-            <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border mb-6">
-              <TabsList className="grid w-full grid-cols-4 mt-4">
-                <TabsTrigger value="profile">Mon Profil</TabsTrigger>
-                <TabsTrigger value="listings">Mes Annonces</TabsTrigger>
-                <TabsTrigger value="bookings">
-                  Réservations
-                  {(myBookings.length > 0 || receivedBookings.filter(b => b.status === 'pending').length > 0) && (
-                    <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1">
-                      {myBookings.length + receivedBookings.filter(b => b.status === 'pending').length}
+        <div className="max-w-4xl mx-auto space-y-6">
+          
+          {/* Hero Profile Section */}
+          <Card className="shadow-elevated overflow-hidden">
+            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 pb-0">
+              <div className="flex flex-col items-center text-center">
+                {/* Large Avatar */}
+                <div className="relative mb-4">
+                  <AvatarWithBadge
+                    src={profile?.avatar_url}
+                    alt={`${profile?.first_name} ${profile?.last_name}`}
+                    fallback={<UserIcon className="h-16 w-16" />}
+                    className="h-28 w-28 border-4 border-background shadow-lg"
+                    userId={user?.id}
+                  />
+                  <div className="absolute -bottom-1 -right-1">
+                    <ImagePicker
+                      onImageSelect={handleAvatarChange}
+                      disabled={uploadingAvatar}
+                    />
+                  </div>
+                </div>
+                
+                {/* Name and Badges */}
+                <h1 className="text-2xl font-bold mb-2">
+                  {profile?.first_name} {profile?.last_name}
+                </h1>
+                
+                <div className="flex items-center gap-2 flex-wrap justify-center mb-4">
+                  {profile?.user_type === "buyer" && (
+                    <Badge className="flex items-center gap-1.5 px-3 py-1">
+                      <ShoppingCart className="h-3.5 w-3.5" />
+                      Acheteur
                     </Badge>
                   )}
-                </TabsTrigger>
-                <TabsTrigger value="settings">Paramètres</TabsTrigger>
-              </TabsList>
+                  {profile?.user_type === "seller" && (
+                    <Badge className="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">
+                      <Store className="h-3.5 w-3.5" />
+                      Vendeur
+                    </Badge>
+                  )}
+                  {profile?.user_type === "agent" && (
+                    <Badge className="flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400">
+                      <UserCheck className="h-3.5 w-3.5" />
+                      Agent
+                    </Badge>
+                  )}
+                  {profile?.user_type === "dealer" && (
+                    <Badge className="flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400">
+                      <Building2 className="h-3.5 w-3.5" />
+                      Concessionnaire
+                    </Badge>
+                  )}
+                  
+                  {profile?.email_verified && (
+                    <Badge className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Vérifié
+                    </Badge>
+                  )}
+                </div>
+                
+                {/* Email */}
+                <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                  <Mail className="h-4 w-4" />
+                  <span className="text-sm">{profile?.email}</span>
+                  {!profile?.email_verified && (
+                    <Button
+                      size="sm"
+                      variant="link"
+                      onClick={handleSendVerificationEmail}
+                      disabled={sendingVerification}
+                      className="h-auto p-0 text-primary text-xs"
+                    >
+                      {sendingVerification ? "Envoi..." : "Vérifier"}
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
-
-            <TabsContent value="profile" className="space-y-6">
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle>Informations personnelles</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-center gap-2">
-                      <AvatarWithBadge
-                        src={profile?.avatar_url}
-                        alt={`${profile?.first_name} ${profile?.last_name}`}
-                        fallback={<UserIcon className="h-10 w-10" />}
-                        className="h-20 w-20"
-                        userId={user?.id}
-                      />
-                      <ImagePicker
-                        onImageSelect={handleAvatarChange}
-                        disabled={uploadingAvatar}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h2 className="text-xl font-bold truncate">
-                          {profile?.first_name} {profile?.last_name}
-                        </h2>
-                        {profile?.user_type === "buyer" && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            <ShoppingCart className="h-3 w-3" />
-                            Acheteur
-                          </Badge>
-                        )}
-                        {profile?.user_type === "seller" && (
-                          <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
-                            <Store className="h-3 w-3" />
-                            Vendeur
-                          </Badge>
-                        )}
-                        {profile?.user_type === "agent" && (
-                          <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-800 hover:bg-blue-200">
-                            <UserCheck className="h-3 w-3" />
-                            Agent
-                          </Badge>
-                        )}
-                        {profile?.user_type === "dealer" && (
-                          <Badge variant="secondary" className="flex items-center gap-1 bg-purple-100 text-purple-800 hover:bg-purple-200">
-                            <Building2 className="h-3 w-3" />
-                            Concessionnaire
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">{profile?.email}</p>
-                        {profile?.email_verified ? (
-                          <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Vérifié
-                          </Badge>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleSendVerificationEmail}
-                            disabled={sendingVerification}
-                            className="h-7 px-2 text-xs"
-                          >
-                            {sendingVerification ? (
-                              <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin mr-1" />
-                            ) : (
-                              <Mail className="h-3 w-3 mr-1" />
-                            )}
-                            Vérifier mon email
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+            
+            {/* Info Grid */}
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Téléphone</p>
+                  <p className="font-medium text-sm truncate">{profile?.phone || "—"}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Ville</p>
+                  <p className="font-medium text-sm truncate">{profile?.city || "—"}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Pays</p>
+                  <p className="font-medium text-sm truncate">{profile?.country || "—"}</p>
+                </div>
+                {profile?.company_name && (
+                  <div className="text-center p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Entreprise</p>
+                    <p className="font-medium text-sm truncate">{profile.company_name}</p>
                   </div>
-
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Type:</span>
-                        <p className="font-medium capitalize">{profile?.user_type}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Téléphone:</span>
-                        <p className="font-medium">{profile?.phone || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Ville:</span>
-                        <p className="font-medium">{profile?.city || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Pays:</span>
-                        <p className="font-medium">{profile?.country || "Non renseigné"}</p>
-                      </div>
-                    </div>
-
-                    {profile?.company_name && (
-                      <div>
-                        <span className="text-muted-foreground">Entreprise:</span>
-                        <p className="font-medium">{profile.company_name}</p>
-                      </div>
-                    )}
+                )}
+                {!profile?.company_name && (
+                  <div className="text-center p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Annonces</p>
+                    <p className="font-medium text-sm">{userListings.length}</p>
                   </div>
+                )}
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="flex gap-2 mt-4 flex-wrap justify-center">
+                <Button variant="outline" size="sm" onClick={() => navigate("/profile/edit")}>
+                  Modifier le profil
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate("/favorites")}>
+                  <Heart className="mr-1.5 h-4 w-4" />
+                  Favoris
+                </Button>
+                {isAdmin && (
+                  <Button variant="outline" size="sm" className="bg-amber-50 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/20 dark:border-amber-700" onClick={() => navigate("/admin")}>
+                    <Crown className="mr-1.5 h-4 w-4 text-amber-500" />
+                    Admin
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-                  <div className="pt-4 space-y-3">
-                    <Button variant="outline" className="w-full" onClick={() => navigate("/profile/edit")}>
-                      Modifier le profil
-                    </Button>
-                    {isAdmin && (
-                      <Button variant="outline" className="w-full bg-amber-50 hover:bg-amber-100 border-amber-200" onClick={() => navigate("/admin")}>
-                        <Crown className="mr-2 h-4 w-4 text-amber-500" />
-                        Panneau Admin
-                      </Button>
-                    )}
-                    <Button variant="outline" className="w-full" onClick={() => navigate("/favorites")}>
-                      Mes favoris
-                    </Button>
-                    <Button variant="outline" className="w-full" onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Se déconnecter
-                    </Button>
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Supprimer mon compte
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action est irréversible. Cela supprimera définitivement votre compte,
-                            toutes vos annonces, vos messages et vos données personnelles de nos serveurs.
-                            <br /><br />
-                            Conformément au RGPD, toutes vos données seront effacées, à l'exception des
-                            données de transaction qui doivent être conservées pour des raisons légales.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={handleDeleteAccount}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Supprimer définitivement
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+          {/* Tabs Below Profile */}
+          <Tabs defaultValue="listings" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="listings" className="gap-1.5">
+                <Car className="h-4 w-4" />
+                <span className="hidden sm:inline">Mes Annonces</span>
+                <span className="sm:hidden">Annonces</span>
+              </TabsTrigger>
+              <TabsTrigger value="bookings" className="gap-1.5">
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Réservations</span>
+                <span className="sm:hidden">Réserv.</span>
+                {(myBookings.length > 0 || receivedBookings.filter(b => b.status === 'pending').length > 0) && (
+                  <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1 text-xs">
+                    {myBookings.length + receivedBookings.filter(b => b.status === 'pending').length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="gap-1.5">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Paramètres</span>
+                <span className="sm:hidden">Param.</span>
+              </TabsTrigger>
+            </TabsList>
 
-            <TabsContent value="listings" className="space-y-6">
+            <TabsContent value="listings" className="space-y-6 mt-6">
               <Card className="shadow-card">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Mes Annonces</CardTitle>
@@ -980,7 +959,7 @@ const Profile = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="bookings" className="space-y-6">
+            <TabsContent value="bookings" className="space-y-6 mt-6">
               <Tabs defaultValue={receivedBookings.filter(b => b.status === 'pending').length > 0 ? "received" : "my-bookings"} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="my-bookings">
@@ -1199,7 +1178,7 @@ const Profile = () => {
               </Tabs>
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-6">
+            <TabsContent value="settings" className="space-y-6 mt-6">
               {/* Liens rapides */}
               <Card className="shadow-card">
                 <CardHeader>
@@ -1267,14 +1246,6 @@ const Profile = () => {
                   <Button 
                     variant="ghost" 
                     className="w-full justify-start" 
-                    onClick={() => toast.info('Fonctionnalité à venir')}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Gérer le compte
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start" 
                     onClick={() => navigate('/profile/notification-preferences')}
                   >
                     <Bell className="mr-2 h-4 w-4" />
@@ -1319,6 +1290,53 @@ const Profile = () => {
                       Vos droits et notre engagement RGPD
                     </span>
                   </Button>
+                </CardContent>
+              </Card>
+
+              {/* Actions du compte */}
+              <Card className="shadow-card border-destructive/20">
+                <CardHeader>
+                  <CardTitle className="text-destructive">Zone de danger</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start" 
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Se déconnecter
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full justify-start">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Supprimer mon compte
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Cette action est irréversible. Cela supprimera définitivement votre compte,
+                          toutes vos annonces, vos messages et vos données personnelles de nos serveurs.
+                          <br /><br />
+                          Conformément au RGPD, toutes vos données seront effacées, à l'exception des
+                          données de transaction qui doivent être conservées pour des raisons légales.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Supprimer définitivement
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             </TabsContent>
