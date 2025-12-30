@@ -53,15 +53,8 @@ const AvatarWithBadge = ({ src, alt, fallback, className, userId }: AvatarWithBa
     checkUserSubscription();
   }, [userId, currentUser]);
 
-  // Déterminer si on affiche le badge PRO
-  const showProBadge = (() => {
-    // Si on affiche l'avatar de l'utilisateur connecté
-    if (!userId || userId === currentUser) {
-      return !contextLoading && subscribed && productId && productId !== 'free';
-    }
-    // Si on affiche l'avatar d'un autre utilisateur
-    return !loadingTargetUser && targetUserSubscribed;
-  })();
+  // Badge PRO désactivé temporairement - app gratuite
+  const showProBadge = false;
 
   return (
     <div className="relative inline-block">
@@ -71,7 +64,6 @@ const AvatarWithBadge = ({ src, alt, fallback, className, userId }: AvatarWithBa
           {fallback}
         </AvatarFallback>
       </Avatar>
-      {showProBadge && <ProBadge />}
     </div>
   );
 };

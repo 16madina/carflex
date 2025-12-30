@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import heroImage from "@/assets/hero-cars.jpg";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ProPlanPromo from "./ProPlanPromo";
 
 interface HeroProps {
   userFirstName?: string;
@@ -42,9 +41,6 @@ const Hero = ({ userFirstName }: HeroProps) => {
               <p className="text-xl font-medium">
                 Bonjour 👋🏼 {userFirstName}
               </p>
-              <div className="animate-bounce">
-                <ProPlanPromo inline />
-              </div>
             </div>
           )}
           <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight whitespace-nowrap">

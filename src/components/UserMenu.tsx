@@ -201,10 +201,7 @@ const UserMenu = () => {
             <UserCircle className="mr-2 h-4 w-4" />
             Mon profil
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/subscription")}>
-            <Crown className="mr-2 h-4 w-4 text-primary" />
-            Plan Pro
-          </DropdownMenuItem>
+          {/* Plan Pro temporairement masqué - app gratuite */}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setReportDialogOpen(true)}>
             <AlertCircle className="mr-2 h-4 w-4" />
