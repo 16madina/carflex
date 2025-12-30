@@ -17,6 +17,7 @@ import { useCountry } from "@/contexts/CountryContext";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { ModerationPanel } from "@/components/admin/ModerationPanel";
 import { ImagePicker } from "@/components/ImagePicker";
+import { ListingsLimitSettings } from "@/components/admin/ListingsLimitSettings";
 
 interface PremiumPackage {
   id: string;
@@ -610,6 +611,7 @@ const AdminPanel = () => {
             </TabsTrigger>
             <TabsTrigger value="pro-plan">Plan Pro</TabsTrigger>
             <TabsTrigger value="coupons">Codes Promo</TabsTrigger>
+            <TabsTrigger value="limits">Limites Annonces</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
@@ -1007,6 +1009,10 @@ const AdminPanel = () => {
 
           <TabsContent value="coupons">
             <CouponManagement />
+          </TabsContent>
+
+          <TabsContent value="limits">
+            <ListingsLimitSettings />
           </TabsContent>
 
           <TabsContent value="settings">
