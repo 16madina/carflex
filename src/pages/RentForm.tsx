@@ -18,7 +18,7 @@ import { CAR_BRANDS, BODY_TYPES, CAR_MODELS } from "@/constants/vehicles";
 import { validateImageFiles } from "@/lib/fileValidation";
 import { ImagePicker } from "@/components/ImagePicker";
 import { useListingLimit } from "@/hooks/useListingLimit";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ListingLimitIndicator } from "@/components/ListingLimitIndicator";
 
 const AVAILABLE_FEATURES = [
   "Climatisation", "GPS", "Bluetooth", "Sièges chauffants",
@@ -36,7 +36,7 @@ const RentForm = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   
   // Limite de 5 annonces gratuites par mois
-  const { canCreateListing, remainingListings, freeListingsLimit, loading: limitLoading } = useListingLimit(user?.id);
+  const { canCreateListing, listingsThisMonth, remainingListings, freeListingsLimit, loading: limitLoading } = useListingLimit(user?.id);
   
   const [formData, setFormData] = useState({
     brand: "",
@@ -270,11 +270,18 @@ const RentForm = () => {
         </Button>
 
         <Card className="max-w-2xl mx-auto shadow-elevated">
-          <CardHeader>
-            <CardTitle className="text-3xl">Louer mon véhicule</CardTitle>
-            <CardDescription>
-              Remplissez les informations de votre véhicule à louer
-            </CardDescription>
+          <CardHeader className="space-y-4">
+            <div>
+              <CardTitle className="text-3xl">Louer mon véhicule</CardTitle>
+              <CardDescription>
+                Remplissez les informations de votre véhicule à louer
+              </CardDescription>
+            </div>
+            <ListingLimitIndicator
+              listingsThisMonth={listingsThisMonth}
+              freeListingsLimit={freeListingsLimit}
+              loading={limitLoading}
+            />
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
