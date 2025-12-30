@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { CAR_BRANDS, BODY_TYPES, CAR_MODELS } from "@/constants/vehicles";
 import { validateImageFiles } from "@/lib/fileValidation";
 import { ImagePicker } from "@/components/ImagePicker";
-import { useListingLimit, FREE_LISTING_LIMIT } from "@/hooks/useListingLimit";
+import { useListingLimit } from "@/hooks/useListingLimit";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const AVAILABLE_FEATURES = [
@@ -36,7 +36,7 @@ const RentForm = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   
   // Limite de 5 annonces gratuites par mois
-  const { canCreateListing, remainingListings, loading: limitLoading } = useListingLimit(user?.id);
+  const { canCreateListing, remainingListings, freeListingsLimit, loading: limitLoading } = useListingLimit(user?.id);
   
   const [formData, setFormData] = useState({
     brand: "",
@@ -204,7 +204,7 @@ const RentForm = () => {
     }
 
     if (!canCreateListing) {
-      toast.error(`Vous avez atteint la limite de ${FREE_LISTING_LIMIT} annonces gratuites ce mois-ci`);
+      toast.error(`Vous avez atteint la limite de ${freeListingsLimit} annonces gratuites ce mois-ci`);
       return;
     }
 

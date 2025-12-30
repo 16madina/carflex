@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-const FREE_LISTINGS_PER_MONTH = 5;
+const DEFAULT_FREE_LISTINGS = 5;
 
 export interface ListingLimitResult {
   canCreateListing: boolean;
   listingsThisMonth: number;
   remainingListings: number;
+  freeListingsLimit: number;
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -14,8 +15,26 @@ export interface ListingLimitResult {
 
 export const useListingLimit = (userId: string | null): ListingLimitResult => {
   const [listingsThisMonth, setListingsThisMonth] = useState(0);
+  const [freeListingsLimit, setFreeListingsLimit] = useState(DEFAULT_FREE_LISTINGS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchListingLimit = async () => {
+    try {
+      // Récupérer la limite depuis app_settings_numeric
+      const { data, error } = await supabase
+        .from('app_settings_numeric')
+        .select('setting_value')
+        .eq('setting_key', 'free_listings_limit')
+        .maybeSingle();
+
+      if (!error && data) {
+        setFreeListingsLimit(data.setting_value);
+      }
+    } catch (err) {
+      console.error('[useListingLimit] Error fetching limit:', err);
+    }
+  };
 
   const fetchListingCount = async () => {
     if (!userId) {
@@ -27,6 +46,9 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     setError(null);
 
     try {
+      // Récupérer la limite d'abord
+      await fetchListingLimit();
+
       // Calculer le début du mois actuel
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -64,17 +86,46 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     fetchListingCount();
   }, [userId]);
 
-  const remainingListings = Math.max(0, FREE_LISTINGS_PER_MONTH - listingsThisMonth);
-  const canCreateListing = listingsThisMonth < FREE_LISTINGS_PER_MONTH;
+  const remainingListings = Math.max(0, freeListingsLimit - listingsThisMonth);
+  const canCreateListing = listingsThisMonth < freeListingsLimit;
 
   return {
     canCreateListing,
     listingsThisMonth,
     remainingListings,
+    freeListingsLimit,
     loading,
     error,
     refresh: fetchListingCount,
   };
 };
 
-export const FREE_LISTING_LIMIT = FREE_LISTINGS_PER_MONTH;
+// Export pour accès externe si nécessaire
+export const useFreeListingsLimit = () => {
+  const [limit, setLimit] = useState(DEFAULT_FREE_LISTINGS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLimit = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings_numeric')
+          .select('setting_value')
+          .eq('setting_key', 'free_listings_limit')
+          .maybeSingle();
+
+        if (!error && data) {
+          setLimit(data.setting_value);
+        }
+      } catch (err) {
+        console.error('[useFreeListingsLimit] Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLimit();
+  }, []);
+
+  return { limit, loading };
+};
