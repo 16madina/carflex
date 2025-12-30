@@ -198,7 +198,13 @@ const Subscription = () => {
       }
       
       // Pour les autres erreurs, afficher un message spécifique
-      if (error.message?.includes('identifiant du produit') || error.message?.includes('purchase identifier')) {
+      if (error.message?.includes('temporairement indisponible') || error.message?.includes('Product not found')) {
+        toast({
+          title: "Produit temporairement indisponible",
+          description: "Le service est en cours de mise à jour. Veuillez réessayer dans quelques minutes.",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('identifiant du produit') || error.message?.includes('purchase identifier')) {
         toast({
           title: "Produit invalide",
           description: "L'identifiant du produit est invalide. Contactez le support.",

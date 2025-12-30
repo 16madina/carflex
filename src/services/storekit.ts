@@ -181,6 +181,11 @@ class StoreKitService {
         console.log('[StoreKit] User cancelled purchase');
         throw new Error('CANCELLED');
       }
+      // Produit non trouvé - Configuration App Store Connect requise
+      if (code === 'E_PRODUCT_NOT_FOUND' || message.toLowerCase().includes('product not found')) {
+        console.error('[StoreKit] Product not found - App Store Connect configuration required');
+        throw new Error('Le produit est temporairement indisponible. Réessayez dans quelques minutes.');
+      }
       // Erreurs de validation de reçu (backend)
       if (code === 'E_RECEIPT_VALIDATION' || message.includes('receipt') || message.includes('reçu')) {
         throw new Error('La validation du reçu a échoué. L\'équipe Apple utilise peut-être un compte Sandbox.');
