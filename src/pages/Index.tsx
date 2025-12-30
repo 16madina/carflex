@@ -3,8 +3,6 @@ import BottomNav from "@/components/BottomNav";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
-import PremiumCarCard from "@/components/PremiumCarCard";
-import ProPlanPromo from "@/components/ProPlanPromo";
 import AdBanner from "@/components/AdBanner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -35,7 +33,6 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promis
 const Index = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
   const [rentalCars, setRentalCars] = useState<any[]>([]);
-  const [premiumCars, setPremiumCars] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState("created_at");
   const [userFirstName, setUserFirstName] = useState<string>();
   const [loading, setLoading] = useState(true);
@@ -85,195 +82,30 @@ const Index = () => {
       setError(null);
 
       try {
-        // Fetch premium sale listings with JOIN (with timeout)
-        const premiumSaleResult = await withTimeout(
+        // Fetch latest sale cars (with timeout)
+        const latestResult = await withTimeout(
           executeQuery(
             supabase
-              .from("premium_listings")
+              .from("sale_listings")
               .select(`
-                listing_id,
-                sale_listings!inner (
-                  id,
-                  brand,
-                  model,
-                  year,
-                  price,
-                  mileage,
-                  city,
-                  country,
-                  transmission,
-                  fuel_type,
-                  images,
-                  seller_id,
-                  profiles!sale_listings_seller_id_fkey (
-                    first_name,
-                    last_name,
-                    user_type
-                  )
+                *,
+                profiles!sale_listings_seller_id_fkey (
+                  first_name,
+                  last_name,
+                  user_type
                 )
               `)
-              .eq("is_active", true)
-              .eq("listing_type", "sale")
-              .eq("sale_listings.country", selectedCountry.name)
-              .gte("end_date", new Date().toISOString())
-              .order("created_at", { ascending: false })
-              .limit(4)
+              .eq("country", selectedCountry.name)
+              .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
+              .limit(6)
           ),
           10000,
-          'premiumSale'
+          'latestCars'
         );
-        const premiumSaleData = premiumSaleResult.data;
-        const premiumSaleError = premiumSaleResult.error;
+        const latestData = latestResult.data;
 
-        // Fetch premium rental IDs separately (with timeout)
-        const premiumRentalResult = await withTimeout(
-          executeQuery(
-            supabase
-              .from("premium_listings")
-              .select("listing_id")
-              .eq("is_active", true)
-              .eq("listing_type", "rental")
-              .gte("end_date", new Date().toISOString())
-              .order("created_at", { ascending: false })
-              .limit(4)
-          ),
-          10000,
-          'premiumRentalIds'
-        );
-        const premiumRentalIds = premiumRentalResult.data;
-        const premiumRentalIdsError = premiumRentalResult.error;
-
-        if (premiumSaleError) {
-          console.error("Error fetching premium sale listings:", premiumSaleError);
-        }
-        if (premiumRentalIdsError) {
-          console.error("Error fetching premium rental IDs:", premiumRentalIdsError);
-        }
-
-        // Process premium sale listings
-        const premiumSaleListings = (premiumSaleData || [])
-          .map((p: any) => {
-            const saleListing = p.sale_listings;
-            if (saleListing && saleListing.profiles) {
-              return {
-                ...saleListing,
-                profiles: saleListing.profiles,
-                listing_type: 'sale'
-              };
-            }
-            return null;
-          })
-          .filter((car: any) => car !== null);
-
-        // Fetch rental listings details separately
-        let premiumRentalListings: any[] = [];
-        if (premiumRentalIds && premiumRentalIds.length > 0) {
-          const rentalIds = premiumRentalIds.map(p => p.listing_id);
-          const rentalResult = await withTimeout(
-            executeQuery(
-              supabase
-                .from("rental_listings")
-                .select(`
-                  id,
-                  brand,
-                  model,
-                  year,
-                  price_per_day,
-                  mileage,
-                  city,
-                  country,
-                  transmission,
-                  fuel_type,
-                  images,
-                  owner_id,
-                  profiles!rental_listings_owner_id_fkey (
-                    first_name,
-                    last_name,
-                    user_type
-                  )
-                `)
-                .in("id", rentalIds)
-                .eq("country", selectedCountry.name)
-            ),
-            10000,
-            'rentalDetails'
-          );
-          const rentalData = rentalResult.data;
-          const rentalError = rentalResult.error;
-
-          if (rentalError) {
-            console.error("Error fetching rental listings details:", rentalError);
-          } else {
-            premiumRentalListings = (rentalData || []).map((listing: any) => ({
-              ...listing,
-              price: listing.price_per_day,
-              listing_type: 'rental'
-            }));
-          }
-        }
-
-        // Combine both types of premium listings
-        const allPremiumListings = [...premiumSaleListings, ...premiumRentalListings];
-        console.log("[Index] All premium listings:", allPremiumListings.length);
-
-        if (allPremiumListings.length > 0) {
-          setPremiumCars(allPremiumListings);
-          
-          // Store premium IDs to filter them out from latest cars
-          const premiumIds = allPremiumListings.map((car: any) => car.id);
-
-          // Fetch latest cars (with timeout)
-          const latestResult = await withTimeout(
-            executeQuery(
-              supabase
-                .from("sale_listings")
-                .select(`
-                  *,
-                  profiles!sale_listings_seller_id_fkey (
-                    first_name,
-                    last_name,
-                    user_type
-                  )
-                `)
-                .eq("country", selectedCountry.name)
-                .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
-                .limit(10)
-            ),
-            10000,
-            'latestCars'
-          );
-          const latestData = latestResult.data;
-
-          // Filter out premium listings from latest cars
-          const filteredLatestData = (latestData || []).filter((car: any) => !premiumIds.includes(car.id)).slice(0, 6);
-          console.log("[Index] Latest cars:", filteredLatestData.length);
-          setFeaturedCars(filteredLatestData);
-        } else {
-          // If no premium listings, just fetch latest cars normally
-          const latestResult = await withTimeout(
-            executeQuery(
-              supabase
-                .from("sale_listings")
-                .select(`
-                  *,
-                  profiles!sale_listings_seller_id_fkey (
-                    first_name,
-                    last_name,
-                    user_type
-                  )
-                `)
-                .eq("country", selectedCountry.name)
-                .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
-                .limit(6)
-            ),
-            10000,
-            'latestCarsNoPremium'
-          );
-          const latestData = latestResult.data;
-
-          console.log("[Index] Latest cars (no premium):", (latestData || []).length);
-          setFeaturedCars(latestData || []);
-        }
+        console.log("[Index] Latest cars:", (latestData || []).length);
+        setFeaturedCars(latestData || []);
 
         // Fetch rental cars (with timeout)
         const rentalCarsResult = await withTimeout(
@@ -363,48 +195,6 @@ const Index = () => {
       <TopBar />
       <main className="flex-1 pt-16">
         <Hero userFirstName={userFirstName} />
-        {userFirstName === null && <ProPlanPromo />}
-        {/* Premium Listings Section */}
-        {premiumCars.length > 0 && (
-          <section className="py-8 bg-background">
-            <div className="container mx-auto px-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Annonces Premium</h2>
-                <Button variant="link" asChild className="text-primary active-press text-sm">
-                  <Link to="/listings">
-                    Voir tout
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex gap-5 px-6 pb-4" style={{ width: 'max-content' }}>
-                {premiumCars.map((car) => (
-                  <div key={car.id} className="w-[280px] md:w-[320px] flex-shrink-0">
-                    <PremiumCarCard
-                      id={car.id}
-                      brand={car.brand}
-                      model={car.model}
-                      year={car.year}
-                      price={car.listing_type === 'rental' ? car.price_per_day || car.price : car.price}
-                      mileage={car.mileage}
-                      city={car.city}
-                      country={car.country}
-                      transmission={car.transmission}
-                      fuel_type={car.fuel_type}
-                      images={Array.isArray(car.images) ? car.images : []}
-                      priceQuality="good"
-                      sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
-                      sellerType={car.profiles?.user_type}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Featured Cars Section with Tabs */}
         <section className="py-10 container mx-auto px-6">

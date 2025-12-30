@@ -12,11 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, MapPin, X, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { CAR_BRANDS, BODY_TYPES, AVAILABLE_DOCUMENTS, CAR_MODELS } from "@/constants/vehicles";
 import { validateImageFiles } from "@/lib/fileValidation";
 import { ImagePicker } from "@/components/ImagePicker";
+import { useListingLimit, FREE_LISTING_LIMIT } from "@/hooks/useListingLimit";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const SellForm = () => {
   const navigate = useNavigate();
@@ -26,6 +28,9 @@ const SellForm = () => {
   const [geoLoading, setGeoLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  
+  // Limite de 5 annonces gratuites par mois
+  const { canCreateListing, remainingListings, loading: limitLoading } = useListingLimit(user?.id);
   
   const [formData, setFormData] = useState({
     brand: "",
@@ -207,6 +212,11 @@ const SellForm = () => {
     
     if (!user) {
       toast.error("Vous devez être connecté");
+      return;
+    }
+
+    if (!canCreateListing) {
+      toast.error(`Vous avez atteint la limite de ${FREE_LISTING_LIMIT} annonces gratuites ce mois-ci`);
       return;
     }
 
