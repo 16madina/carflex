@@ -607,7 +607,6 @@ const AdminPanel = () => {
               <Megaphone className="h-4 w-4 mr-2" />
               Sponsorisées
             </TabsTrigger>
-            <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
             <TabsTrigger value="users">Gestion des Utilisateurs</TabsTrigger>
             <TabsTrigger value="moderation">
@@ -761,83 +760,6 @@ const AdminPanel = () => {
             <SponsoredListingsManager />
           </TabsContent>
 
-          <TabsContent value="promote">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-amber-500" />
-                  Promouvoir une annonce en Premium
-                </CardTitle>
-                <CardDescription>
-                  Sélectionnez une annonce et un package pour la mettre en avant
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handlePromoteToTrending} className="space-y-4">
-                  <div>
-                    <Label htmlFor="listing-type">Type d'annonce</Label>
-                    <Select
-                      value={promotionData.listing_type}
-                      onValueChange={(value) => setPromotionData({ ...promotionData, listing_type: value as 'sale' | 'rental', listing_id: "" })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir le type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sale">🚗 Vente</SelectItem>
-                        <SelectItem value="rental">🔑 Location</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="listing">Sélectionner une annonce</Label>
-                    <Select
-                      value={promotionData.listing_id}
-                      onValueChange={(value) => setPromotionData({ ...promotionData, listing_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir une annonce" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {listings
-                          .filter((listing) => listing.listing_type === promotionData.listing_type)
-                          .map((listing) => (
-                            <SelectItem key={listing.id} value={listing.id}>
-                              {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="package">Package Premium</Label>
-                    <Select
-                      value={promotionData.package_id}
-                      onValueChange={(value) => setPromotionData({ ...promotionData, package_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir un package" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {packages.filter(p => p.is_active).map((pkg) => (
-                          <SelectItem key={pkg.id} value={pkg.id}>
-                            {pkg.name} - {pkg.duration_days} jours - {formatPrice(pkg.price)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <Button type="submit" className="w-full">
-                    <Zap className="mr-2 h-4 w-4" />
-                    Promouvoir cette annonce
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="banners">
             <div className="grid md:grid-cols-2 gap-6">
