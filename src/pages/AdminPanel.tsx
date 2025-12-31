@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent, ArrowLeft, Shield } from "lucide-react";
+import { Plus, Edit, Trash2, Crown, Zap, Image as ImageIcon, ExternalLink, Users, Settings, Tag, Percent, ArrowLeft, Shield, Megaphone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,6 +18,7 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { ModerationPanel } from "@/components/admin/ModerationPanel";
 import { ImagePicker } from "@/components/ImagePicker";
 import { ListingsLimitSettings } from "@/components/admin/ListingsLimitSettings";
+import { SponsoredListingsManager } from "@/components/admin/SponsoredListingsManager";
 
 interface PremiumPackage {
   id: string;
@@ -602,6 +603,10 @@ const AdminPanel = () => {
         <Tabs defaultValue="packages" className="space-y-6">
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="packages">Packages Premium</TabsTrigger>
+            <TabsTrigger value="sponsored">
+              <Megaphone className="h-4 w-4 mr-2" />
+              Sponsorisées
+            </TabsTrigger>
             <TabsTrigger value="promote">Promouvoir une annonce</TabsTrigger>
             <TabsTrigger value="banners">Bannières Publicitaires</TabsTrigger>
             <TabsTrigger value="users">Gestion des Utilisateurs</TabsTrigger>
@@ -750,6 +755,10 @@ const AdminPanel = () => {
                 ))}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="sponsored">
+            <SponsoredListingsManager />
           </TabsContent>
 
           <TabsContent value="promote">
