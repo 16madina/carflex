@@ -5,9 +5,8 @@ import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
 import AdBanner from "@/components/AdBanner";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowRight, Loader2, Zap } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,8 +33,6 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promis
 const Index = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
   const [rentalCars, setRentalCars] = useState<any[]>([]);
-  const [sponsoredSaleCars, setSponsoredSaleCars] = useState<any[]>([]);
-  const [sponsoredRentalCars, setSponsoredRentalCars] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState("created_at");
   const [userFirstName, setUserFirstName] = useState<string>();
   const [loading, setLoading] = useState(true);
@@ -85,7 +82,7 @@ const Index = () => {
       setError(null);
 
       try {
-        // Fetch sponsored listings first
+        // Fetch sponsored listing IDs to exclude from regular listings
         const sponsoredResult = await withTimeout(
           executeQuery(
             supabase
@@ -101,54 +98,6 @@ const Index = () => {
         
         const sponsoredSaleIds = sponsoredData.filter(s => s.listing_type === 'sale').map(s => s.listing_id);
         const sponsoredRentalIds = sponsoredData.filter(s => s.listing_type === 'rental').map(s => s.listing_id);
-
-        // Fetch sponsored sale cars details
-        if (sponsoredSaleIds.length > 0) {
-          const sponsoredSaleResult = await withTimeout(
-            executeQuery(
-              supabase
-                .from("sale_listings")
-                .select(`
-                  *,
-                  profiles!sale_listings_seller_id_fkey (
-                    first_name,
-                    last_name,
-                    user_type
-                  )
-                `)
-                .in("id", sponsoredSaleIds)
-            ),
-            10000,
-            'sponsoredSaleCars'
-          );
-          setSponsoredSaleCars(sponsoredSaleResult.data || []);
-        } else {
-          setSponsoredSaleCars([]);
-        }
-
-        // Fetch sponsored rental cars details
-        if (sponsoredRentalIds.length > 0) {
-          const sponsoredRentalResult = await withTimeout(
-            executeQuery(
-              supabase
-                .from("rental_listings")
-                .select(`
-                  *,
-                  profiles!rental_listings_owner_id_fkey (
-                    first_name,
-                    last_name,
-                    user_type
-                  )
-                `)
-                .in("id", sponsoredRentalIds)
-            ),
-            10000,
-            'sponsoredRentalCars'
-          );
-          setSponsoredRentalCars(sponsoredRentalResult.data || []);
-        } else {
-          setSponsoredRentalCars([]);
-        }
 
         // Fetch latest sale cars (exclude sponsored ones)
         const latestResult = await withTimeout(
@@ -312,29 +261,6 @@ const Index = () => {
 
             <TabsContent value="sale">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Sponsored sale cars first */}
-                {sponsoredSaleCars.map((car) => (
-                  <div key={`sponsored-${car.id}`} className="relative">
-                    <Badge className="absolute top-2 left-2 z-20 bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center gap-1">
-                      <Zap className="h-3 w-3" />
-                      Sponsorisé
-                    </Badge>
-                    <CarCard
-                      id={car.id}
-                      brand={car.brand}
-                      model={car.model}
-                      year={car.year}
-                      price={car.price}
-                      mileage={car.mileage}
-                      city={car.city}
-                      transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
-                      images={Array.isArray(car.images) ? car.images : []}
-                      sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
-                      sellerType={car.profiles?.user_type}
-                    />
-                  </div>
-                ))}
-                {/* Regular sale cars */}
                 {featuredCars.filter((car) => {
                   const matchesPrice = 
                     (!filters.priceMin || car.price >= parseInt(filters.priceMin)) &&
@@ -375,30 +301,6 @@ const Index = () => {
 
             <TabsContent value="rental">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Sponsored rental cars first */}
-                {sponsoredRentalCars.map((car) => (
-                  <div key={`sponsored-${car.id}`} className="relative">
-                    <Badge className="absolute top-2 left-2 z-20 bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center gap-1">
-                      <Zap className="h-3 w-3" />
-                      Sponsorisé
-                    </Badge>
-                    <CarCard
-                      id={car.id}
-                      brand={car.brand}
-                      model={car.model}
-                      year={car.year}
-                      price={car.price_per_day}
-                      mileage={car.mileage}
-                      city={car.city}
-                      transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
-                      images={Array.isArray(car.images) ? car.images : []}
-                      isRental={true}
-                      sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
-                      sellerType={car.profiles?.user_type}
-                    />
-                  </div>
-                ))}
-                {/* Regular rental cars */}
                 {rentalCars.filter((car) => {
                   const matchesPrice = 
                     (!filters.priceMin || car.price_per_day >= parseInt(filters.priceMin)) &&
