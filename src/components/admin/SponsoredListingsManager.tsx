@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Megaphone, Trash2, Calendar, Car, Key } from "lucide-react";
+import { Megaphone, Trash2, Calendar, Car, Key, Search, CheckCircle, Image as ImageIcon, Zap } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useCountry } from "@/contexts/CountryContext";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Listing {
   id: string;
@@ -19,6 +20,10 @@ interface Listing {
   seller_id?: string;
   owner_id?: string;
   listing_type: 'sale' | 'rental';
+  images?: string[];
+  city?: string;
+  country?: string;
+  is_sponsored?: boolean;
 }
 
 interface SponsoredListing {
@@ -33,6 +38,8 @@ interface SponsoredListing {
     model: string;
     year: number;
     price: number;
+    images?: string[];
+    city?: string;
   };
 }
 
@@ -41,11 +48,10 @@ export const SponsoredListingsManager = () => {
   const [sponsoredListings, setSponsoredListings] = useState<SponsoredListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    listing_id: "",
-    listing_type: "sale" as 'sale' | 'rental',
-    duration_days: 30,
-  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [listingTypeFilter, setListingTypeFilter] = useState<'all' | 'sale' | 'rental'>('all');
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const [durationDays, setDurationDays] = useState(30);
   const { toast } = useToast();
   const { formatPrice } = useCountry();
 
@@ -60,32 +66,52 @@ export const SponsoredListingsManager = () => {
   };
 
   const fetchListings = async () => {
+    // Récupérer les annonces sponsorisées actives
+    const { data: sponsoredData } = await supabase
+      .from("premium_listings")
+      .select("listing_id")
+      .eq("is_active", true);
+
+    const sponsoredIds = new Set((sponsoredData || []).map(s => s.listing_id));
+
     // Récupérer les annonces de vente
     const { data: saleData } = await supabase
       .from("sale_listings")
-      .select("id, brand, model, year, price, seller_id")
-      .order("created_at", { ascending: false })
-      .limit(50);
+      .select("id, brand, model, year, price, seller_id, images, city, country")
+      .order("created_at", { ascending: false });
 
     // Récupérer les annonces de location
     const { data: rentalData } = await supabase
       .from("rental_listings")
-      .select("id, brand, model, year, price_per_day, owner_id")
-      .order("created_at", { ascending: false })
-      .limit(50);
+      .select("id, brand, model, year, price_per_day, owner_id, images, city, country")
+      .order("created_at", { ascending: false });
 
     const saleListings = (saleData || []).map(listing => ({
-      ...listing,
+      id: listing.id,
+      brand: listing.brand,
+      model: listing.model,
+      year: listing.year,
       price: listing.price,
       listing_type: 'sale' as const,
-      seller_id: listing.seller_id
+      seller_id: listing.seller_id,
+      images: listing.images as string[] || [],
+      city: listing.city,
+      country: listing.country,
+      is_sponsored: sponsoredIds.has(listing.id),
     }));
 
     const rentalListings = (rentalData || []).map(listing => ({
-      ...listing,
+      id: listing.id,
+      brand: listing.brand,
+      model: listing.model,
+      year: listing.year,
       price: listing.price_per_day,
       listing_type: 'rental' as const,
-      owner_id: listing.owner_id
+      owner_id: listing.owner_id,
+      images: listing.images as string[] || [],
+      city: listing.city,
+      country: listing.country,
+      is_sponsored: sponsoredIds.has(listing.id),
     }));
 
     setListings([...saleListings, ...rentalListings]);
@@ -112,20 +138,24 @@ export const SponsoredListingsManager = () => {
       if (sponsored.listing_type === 'sale') {
         const { data: saleData } = await supabase
           .from("sale_listings")
-          .select("brand, model, year, price")
+          .select("brand, model, year, price, images, city")
           .eq("id", sponsored.listing_id)
-          .single();
+          .maybeSingle();
         listingDetails = saleData;
       } else {
         const { data: rentalData } = await supabase
           .from("rental_listings")
-          .select("brand, model, year, price_per_day")
+          .select("brand, model, year, price_per_day, images, city")
           .eq("id", sponsored.listing_id)
-          .single();
+          .maybeSingle();
         if (rentalData) {
           listingDetails = {
-            ...rentalData,
-            price: rentalData.price_per_day
+            brand: rentalData.brand,
+            model: rentalData.model,
+            year: rentalData.year,
+            price: rentalData.price_per_day,
+            images: rentalData.images as string[] || [],
+            city: rentalData.city,
           };
         }
       }
@@ -139,10 +169,29 @@ export const SponsoredListingsManager = () => {
     setSponsoredListings(sponsoredWithDetails);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.listing_id) {
+  const filteredListings = useMemo(() => {
+    return listings.filter(listing => {
+      // Filtre par type
+      if (listingTypeFilter !== 'all' && listing.listing_type !== listingTypeFilter) {
+        return false;
+      }
+      
+      // Filtre par recherche
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesBrand = listing.brand.toLowerCase().includes(query);
+        const matchesModel = listing.model.toLowerCase().includes(query);
+        const matchesYear = listing.year.toString().includes(query);
+        const matchesCity = listing.city?.toLowerCase().includes(query);
+        return matchesBrand || matchesModel || matchesYear || matchesCity;
+      }
+      
+      return true;
+    });
+  }, [listings, listingTypeFilter, searchQuery]);
+
+  const handleSponsor = async () => {
+    if (!selectedListingId) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner une annonce",
@@ -153,12 +202,21 @@ export const SponsoredListingsManager = () => {
 
     setSubmitting(true);
 
-    // Trouver l'annonce sélectionnée
-    const selectedListing = listings.find(l => l.id === formData.listing_id);
+    const selectedListing = listings.find(l => l.id === selectedListingId);
     if (!selectedListing) {
       toast({
         title: "Erreur",
         description: "Annonce non trouvée",
+        variant: "destructive",
+      });
+      setSubmitting(false);
+      return;
+    }
+
+    if (selectedListing.is_sponsored) {
+      toast({
+        title: "Erreur",
+        description: "Cette annonce est déjà sponsorisée",
         variant: "destructive",
       });
       setSubmitting(false);
@@ -179,35 +237,18 @@ export const SponsoredListingsManager = () => {
       return;
     }
 
-    // Vérifier si l'annonce n'est pas déjà sponsorisée
-    const alreadySponsored = sponsoredListings.find(
-      s => s.listing_id === formData.listing_id && s.is_active
-    );
-    
-    if (alreadySponsored) {
-      toast({
-        title: "Erreur",
-        description: "Cette annonce est déjà sponsorisée",
-        variant: "destructive",
-      });
-      setSubmitting(false);
-      return;
-    }
-
-    // Créer un package temporaire gratuit ou utiliser un existant
+    // Créer ou récupérer le package gratuit
     let packageId: string;
     
-    // Chercher un package gratuit existant
     const { data: freePackage } = await supabase
       .from("premium_packages")
       .select("id")
       .eq("name", "Sponsorisé Gratuit")
-      .single();
+      .maybeSingle();
 
     if (freePackage) {
       packageId = freePackage.id;
     } else {
-      // Créer un package gratuit
       const { data: newPackage, error: packageError } = await supabase
         .from("premium_packages")
         .insert([{
@@ -234,12 +275,12 @@ export const SponsoredListingsManager = () => {
     }
 
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() + formData.duration_days);
+    endDate.setDate(endDate.getDate() + durationDays);
 
     const { error } = await supabase
       .from("premium_listings")
       .insert([{
-        listing_id: formData.listing_id,
+        listing_id: selectedListingId,
         listing_type: selectedListing.listing_type,
         package_id: packageId,
         user_id: listingOwnerId,
@@ -259,11 +300,11 @@ export const SponsoredListingsManager = () => {
 
     toast({ 
       title: "Annonce sponsorisée !",
-      description: `L'annonce est maintenant sponsorisée pour ${formData.duration_days} jours`
+      description: `${selectedListing.brand} ${selectedListing.model} est maintenant sponsorisée pour ${durationDays} jours`
     });
 
-    setFormData({ listing_id: "", listing_type: "sale", duration_days: 30 });
-    await fetchSponsoredListings();
+    setSelectedListingId(null);
+    await fetchData();
     setSubmitting(false);
   };
 
@@ -285,13 +326,13 @@ export const SponsoredListingsManager = () => {
     }
 
     toast({ title: "Sponsoring retiré avec succès" });
-    await fetchSponsoredListings();
+    await fetchData();
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
-      month: 'long',
+      month: 'short',
       year: 'numeric'
     });
   };
@@ -300,167 +341,272 @@ export const SponsoredListingsManager = () => {
     return new Date(endDate) < new Date();
   };
 
+  const getFirstImage = (images?: string[]) => {
+    if (!images || images.length === 0) return null;
+    return images[0];
+  };
+
   if (loading) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p>Chargement...</p>
+          <p>Chargement des annonces...</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="space-y-6">
+      {/* Section sponsorisées actives */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Megaphone className="h-5 w-5 text-primary" />
-            Sponsoriser une annonce
+            <Zap className="h-5 w-5 text-orange-500" />
+            Annonces sponsorisées actives ({sponsoredListings.length})
           </CardTitle>
           <CardDescription>
-            Ajoutez gratuitement une annonce aux annonces sponsorisées
+            Ces annonces apparaissent dans la section Hero de la page d'accueil
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Type d'annonce</Label>
-              <Select
-                value={formData.listing_type}
-                onValueChange={(value) => setFormData({ 
-                  ...formData, 
-                  listing_type: value as 'sale' | 'rental', 
-                  listing_id: "" 
-                })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir le type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sale">
-                    <span className="flex items-center gap-2">
-                      <Car className="h-4 w-4" />
-                      Vente
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="rental">
-                    <span className="flex items-center gap-2">
-                      <Key className="h-4 w-4" />
-                      Location
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+          {sponsoredListings.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Megaphone className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              <p>Aucune annonce sponsorisée pour le moment</p>
+              <p className="text-sm">Sélectionnez une annonce ci-dessous pour la sponsoriser</p>
             </div>
+          ) : (
+            <div className="grid gap-3">
+              {sponsoredListings.map((sponsored) => (
+                <div 
+                  key={sponsored.id} 
+                  className={`flex items-center gap-4 p-3 rounded-lg border ${
+                    isExpired(sponsored.end_date) ? "bg-destructive/5 border-destructive/20" : "bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800"
+                  }`}
+                >
+                  {/* Image */}
+                  <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                    {sponsored.listing && getFirstImage(sponsored.listing.images as string[]) ? (
+                      <img 
+                        src={getFirstImage(sponsored.listing.images as string[])!} 
+                        alt="" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
 
-            <div>
-              <Label>Sélectionner une annonce</Label>
-              <Select
-                value={formData.listing_id}
-                onValueChange={(value) => setFormData({ ...formData, listing_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir une annonce" />
-                </SelectTrigger>
-                <SelectContent>
-                  {listings
-                    .filter((listing) => listing.listing_type === formData.listing_type)
-                    .map((listing) => (
-                      <SelectItem key={listing.id} value={listing.id}>
-                        {listing.year} {listing.brand} {listing.model} - {formatPrice(listing.price)}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Durée (jours)</Label>
-              <Input
-                type="number"
-                min={1}
-                max={365}
-                value={formData.duration_days}
-                onChange={(e) => setFormData({ ...formData, duration_days: parseInt(e.target.value) || 30 })}
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={submitting}>
-              <Megaphone className="mr-2 h-4 w-4" />
-              {submitting ? "Sponsorisation..." : "Sponsoriser gratuitement"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Megaphone className="h-5 w-5" />
-          Annonces sponsorisées actives
-        </h2>
-        
-        {sponsoredListings.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              Aucune annonce sponsorisée pour le moment
-            </CardContent>
-          </Card>
-        ) : (
-          sponsoredListings.map((sponsored) => (
-            <Card key={sponsored.id} className={isExpired(sponsored.end_date) ? "opacity-60" : ""}>
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-base">
-                      {sponsored.listing 
-                        ? `${sponsored.listing.year} ${sponsored.listing.brand} ${sponsored.listing.model}`
-                        : "Annonce supprimée"
-                      }
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-2 mt-1">
-                      {sponsored.listing_type === 'sale' ? (
-                        <Badge variant="secondary" className="text-xs">
-                          <Car className="h-3 w-3 mr-1" />
-                          Vente
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">
-                          <Key className="h-3 w-3 mr-1" />
-                          Location
-                        </Badge>
-                      )}
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium truncate">
+                        {sponsored.listing 
+                          ? `${sponsored.listing.year} ${sponsored.listing.brand} ${sponsored.listing.model}`
+                          : "Annonce supprimée"
+                        }
+                      </h4>
+                      <Badge 
+                        variant="outline" 
+                        className={sponsored.listing_type === 'sale' ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-green-50 text-green-700 border-green-200"}
+                      >
+                        {sponsored.listing_type === 'sale' ? (
+                          <><Car className="h-3 w-3 mr-1" />Vente</>
+                        ) : (
+                          <><Key className="h-3 w-3 mr-1" />Location</>
+                        )}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                       {sponsored.listing && (
-                        <span className="text-sm font-medium text-primary">
-                          {formatPrice(sponsored.listing.price)}
+                        <span className="font-semibold text-primary">
+                          {formatPrice(sponsored.listing.price)}{sponsored.listing_type === 'rental' ? '/jour' : ''}
                         </span>
                       )}
-                    </CardDescription>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        Expire: {formatDate(sponsored.end_date)}
+                      </span>
+                      {isExpired(sponsored.end_date) && (
+                        <Badge variant="destructive" className="text-xs">Expiré</Badge>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Action */}
                   <Button
-                    size="icon"
-                    variant="destructive"
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:bg-destructive/10"
                     onClick={() => handleRemoveSponsorship(sponsored.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    {formatDate(sponsored.start_date)} → {formatDate(sponsored.end_date)}
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section nouvelle sponsorisation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-primary" />
+            Sponsoriser une nouvelle annonce
+          </CardTitle>
+          <CardDescription>
+            Choisissez parmi {listings.length} annonces disponibles sur la plateforme
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Filtres */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par marque, modèle, année, ville..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={listingTypeFilter}
+              onValueChange={(value) => setListingTypeFilter(value as 'all' | 'sale' | 'rental')}
+            >
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous types</SelectItem>
+                <SelectItem value="sale">
+                  <span className="flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    Vente
                   </span>
-                  {isExpired(sponsored.end_date) && (
-                    <Badge variant="destructive" className="text-xs">Expiré</Badge>
-                  )}
+                </SelectItem>
+                <SelectItem value="rental">
+                  <span className="flex items-center gap-2">
+                    <Key className="h-4 w-4" />
+                    Location
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Liste des annonces */}
+          <ScrollArea className="h-[400px] border rounded-lg">
+            <div className="p-2 space-y-2">
+              {filteredListings.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Aucune annonce trouvée</p>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+              ) : (
+                filteredListings.map((listing) => (
+                  <div
+                    key={listing.id}
+                    onClick={() => !listing.is_sponsored && setSelectedListingId(
+                      selectedListingId === listing.id ? null : listing.id
+                    )}
+                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                      listing.is_sponsored
+                        ? "bg-orange-50 border-orange-200 dark:bg-orange-950/20 cursor-not-allowed opacity-60"
+                        : selectedListingId === listing.id
+                        ? "bg-primary/10 border-primary ring-2 ring-primary"
+                        : "hover:bg-muted/50 border-border"
+                    }`}
+                  >
+                    {/* Image */}
+                    <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                      {getFirstImage(listing.images) ? (
+                        <img 
+                          src={getFirstImage(listing.images)!} 
+                          alt="" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm truncate">
+                          {listing.year} {listing.brand} {listing.model}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${listing.listing_type === 'sale' ? "bg-blue-50/50 text-blue-600 border-blue-200" : "bg-green-50/50 text-green-600 border-green-200"}`}
+                        >
+                          {listing.listing_type === 'sale' ? 'Vente' : 'Location'}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {listing.city}, {listing.country}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Prix et statut */}
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="font-semibold text-primary">
+                        {formatPrice(listing.price)}
+                        {listing.listing_type === 'rental' && <span className="text-xs text-muted-foreground">/j</span>}
+                      </span>
+                      {listing.is_sponsored ? (
+                        <Badge className="bg-orange-500 text-white text-xs">
+                          <Zap className="h-3 w-3 mr-1" />
+                          Sponsorisé
+                        </Badge>
+                      ) : selectedListingId === listing.id ? (
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                      ) : null}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+
+          {/* Actions */}
+          {selectedListingId && (
+            <div className="flex flex-col sm:flex-row items-end gap-3 p-4 bg-muted/50 rounded-lg border">
+              <div className="flex-1 w-full sm:w-auto">
+                <Label className="text-sm">Durée du sponsoring</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={durationDays}
+                    onChange={(e) => setDurationDays(parseInt(e.target.value) || 30)}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">jours</span>
+                </div>
+              </div>
+              <Button 
+                onClick={handleSponsor} 
+                disabled={submitting}
+                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600"
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                {submitting ? "Sponsorisation..." : "Sponsoriser maintenant"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
