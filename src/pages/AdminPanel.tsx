@@ -600,9 +600,8 @@ const AdminPanel = () => {
           <h1 className="text-3xl font-bold">Panneau d'Administration</h1>
         </div>
 
-        <Tabs defaultValue="packages" className="space-y-6">
+        <Tabs defaultValue="sponsored" className="space-y-6">
           <TabsList className="flex-wrap h-auto">
-            <TabsTrigger value="packages">Packages Premium</TabsTrigger>
             <TabsTrigger value="sponsored">
               <Megaphone className="h-4 w-4 mr-2" />
               Sponsorisées

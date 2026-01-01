@@ -377,76 +377,76 @@ export const SponsoredListingsManager = () => {
               <p className="text-sm">Sélectionnez une annonce ci-dessous pour la sponsoriser</p>
             </div>
           ) : (
-            <div className="grid gap-3">
-              {sponsoredListings.map((sponsored) => (
-                <div 
-                  key={sponsored.id} 
-                  className={`flex items-center gap-4 p-3 rounded-lg border ${
-                    isExpired(sponsored.end_date) ? "bg-destructive/5 border-destructive/20" : "bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800"
-                  }`}
-                >
-                  {/* Image */}
-                  <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                    {sponsored.listing && getFirstImage(sponsored.listing.images as string[]) ? (
-                      <img 
-                        src={getFirstImage(sponsored.listing.images as string[])!} 
-                        alt="" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium truncate">
-                        {sponsored.listing 
-                          ? `${sponsored.listing.year} ${sponsored.listing.brand} ${sponsored.listing.model}`
-                          : "Annonce supprimée"
-                        }
-                      </h4>
-                      <Badge 
-                        variant="outline" 
-                        className={sponsored.listing_type === 'sale' ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-green-50 text-green-700 border-green-200"}
-                      >
-                        {sponsored.listing_type === 'sale' ? (
-                          <><Car className="h-3 w-3 mr-1" />Vente</>
+            <div className="border rounded-lg overflow-hidden">
+              <ScrollArea className="max-h-[300px]">
+                <div className="divide-y">
+                  {sponsoredListings.map((sponsored) => (
+                    <div 
+                      key={sponsored.id} 
+                      className={`flex items-center gap-2 p-2 ${
+                        isExpired(sponsored.end_date) ? "bg-destructive/5" : "bg-orange-50 dark:bg-orange-950/20"
+                      }`}
+                    >
+                      {/* Image */}
+                      <div className="w-10 h-10 rounded bg-muted overflow-hidden flex-shrink-0">
+                        {sponsored.listing && getFirstImage(sponsored.listing.images as string[]) ? (
+                          <img 
+                            src={getFirstImage(sponsored.listing.images as string[])!} 
+                            alt="" 
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <><Key className="h-3 w-3 mr-1" />Location</>
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                          </div>
                         )}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                      {sponsored.listing && (
-                        <span className="font-semibold text-primary">
-                          {formatPrice(sponsored.listing.price)}{sponsored.listing_type === 'rental' ? '/jour' : ''}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Expire: {formatDate(sponsored.end_date)}
-                      </span>
-                      {isExpired(sponsored.end_date) && (
-                        <Badge variant="destructive" className="text-xs">Expiré</Badge>
-                      )}
-                    </div>
-                  </div>
+                      </div>
 
-                  {/* Action */}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive hover:bg-destructive/10"
-                    onClick={() => handleRemoveSponsorship(sponsored.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-medium text-sm truncate">
+                            {sponsored.listing 
+                              ? `${sponsored.listing.year} ${sponsored.listing.brand} ${sponsored.listing.model}`
+                              : "Annonce supprimée"
+                            }
+                          </h4>
+                          <Badge 
+                            variant="outline" 
+                            className={`text-[10px] px-1.5 py-0 ${sponsored.listing_type === 'sale' ? "text-blue-600 border-blue-200" : "text-green-600 border-green-200"}`}
+                          >
+                            {sponsored.listing_type === 'sale' ? 'Vente' : 'Location'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {sponsored.listing && (
+                            <span className="font-semibold text-primary">
+                              {formatPrice(sponsored.listing.price)}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Expire: {formatDate(sponsored.end_date)}
+                          </span>
+                          {isExpired(sponsored.end_date) && (
+                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Expiré</Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10 flex-shrink-0"
+                        onClick={() => handleRemoveSponsorship(sponsored.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </ScrollArea>
             </div>
           )}
         </CardContent>
@@ -501,82 +501,78 @@ export const SponsoredListingsManager = () => {
           </div>
 
           {/* Liste des annonces */}
-          <ScrollArea className="h-[400px] border rounded-lg">
-            <div className="p-2 space-y-2">
-              {filteredListings.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Aucune annonce trouvée</p>
-                </div>
-              ) : (
-                filteredListings.map((listing) => (
-                  <div
-                    key={listing.id}
-                    onClick={() => !listing.is_sponsored && setSelectedListingId(
-                      selectedListingId === listing.id ? null : listing.id
-                    )}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                      listing.is_sponsored
-                        ? "bg-orange-50 border-orange-200 dark:bg-orange-950/20 cursor-not-allowed opacity-60"
-                        : selectedListingId === listing.id
-                        ? "bg-primary/10 border-primary ring-2 ring-primary"
-                        : "hover:bg-muted/50 border-border"
-                    }`}
-                  >
-                    {/* Image */}
-                    <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                      {getFirstImage(listing.images) ? (
-                        <img 
-                          src={getFirstImage(listing.images)!} 
-                          alt="" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                        </div>
+          <div className="border rounded-lg overflow-hidden">
+            <ScrollArea className="h-[500px]">
+              <div className="divide-y">
+                {filteredListings.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Aucune annonce trouvée</p>
+                  </div>
+                ) : (
+                  filteredListings.map((listing) => (
+                    <div
+                      key={listing.id}
+                      onClick={() => !listing.is_sponsored && setSelectedListingId(
+                        selectedListingId === listing.id ? null : listing.id
                       )}
-                    </div>
+                      className={`flex items-center gap-2 p-2 cursor-pointer transition-all ${
+                        listing.is_sponsored
+                          ? "bg-orange-50 dark:bg-orange-950/20 cursor-not-allowed opacity-60"
+                          : selectedListingId === listing.id
+                          ? "bg-primary/10 ring-1 ring-primary"
+                          : "hover:bg-muted/50"
+                      }`}
+                    >
+                      {/* Image compacte */}
+                      <div className="w-10 h-10 rounded bg-muted overflow-hidden flex-shrink-0">
+                        {getFirstImage(listing.images) ? (
+                          <img 
+                            src={getFirstImage(listing.images)!} 
+                            alt="" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      {/* Info compacte */}
+                      <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm truncate">
                           {listing.year} {listing.brand} {listing.model}
                         </h4>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Badge 
+                            variant="outline" 
+                            className={`text-[10px] px-1.5 py-0 ${listing.listing_type === 'sale' ? "text-blue-600 border-blue-200" : "text-green-600 border-green-200"}`}
+                          >
+                            {listing.listing_type === 'sale' ? 'Vente' : 'Location'}
+                          </Badge>
+                          <span className="truncate">{listing.city}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${listing.listing_type === 'sale' ? "bg-blue-50/50 text-blue-600 border-blue-200" : "bg-green-50/50 text-green-600 border-green-200"}`}
-                        >
-                          {listing.listing_type === 'sale' ? 'Vente' : 'Location'}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {listing.city}, {listing.country}
-                        </span>
-                      </div>
-                    </div>
 
-                    {/* Prix et statut */}
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="font-semibold text-primary">
-                        {formatPrice(listing.price)}
-                        {listing.listing_type === 'rental' && <span className="text-xs text-muted-foreground">/j</span>}
-                      </span>
-                      {listing.is_sponsored ? (
-                        <Badge className="bg-orange-500 text-white text-xs">
-                          <Zap className="h-3 w-3 mr-1" />
-                          Sponsorisé
-                        </Badge>
-                      ) : selectedListingId === listing.id ? (
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                      ) : null}
+                      {/* Prix et statut */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="font-semibold text-primary text-sm">
+                          {formatPrice(listing.price)}
+                        </span>
+                        {listing.is_sponsored ? (
+                          <Badge className="bg-orange-500 text-white text-[10px] px-1.5 py-0">
+                            <Zap className="h-2.5 w-2.5" />
+                          </Badge>
+                        ) : selectedListingId === listing.id ? (
+                          <CheckCircle className="h-4 w-4 text-primary" />
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </ScrollArea>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
 
           {/* Actions */}
           {selectedListingId && (
