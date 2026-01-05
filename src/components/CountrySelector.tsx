@@ -57,10 +57,10 @@ const CountrySelector = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <span className="text-xl">{selectedCountry.flag}</span>
-          <span className="hidden sm:inline">{selectedCountry.name}</span>
-          <ChevronDown className="h-4 w-4" />
+        <Button variant="ghost" className="gap-1.5 px-2 h-10">
+          <span className="text-3xl sm:text-2xl leading-none drop-shadow-sm">{selectedCountry.flag}</span>
+          <span className="hidden sm:inline text-sm font-medium">{selectedCountry.name}</span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 p-0">
