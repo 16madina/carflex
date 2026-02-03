@@ -21,11 +21,11 @@ import { ImagePicker } from "@/components/ImagePicker";
 import { Capacitor } from "@capacitor/core";
 import { storeKitService } from "@/services/storekit";
 
-// Mapping des packages vers les Product IDs iOS
+// Mapping des packages vers les Product IDs iOS (utilise .boost. car .premium. existe déjà)
 const IOS_PRODUCT_IDS: { [key: number]: string } = {
-  3: "com.missdee.carflextest.premium.3jours",
-  7: "com.missdee.carflextest.premium.7days",
-  15: "com.missdee.carflextest.premium.15days",
+  3: "com.missdee.carflextest.boost.3days",
+  7: "com.missdee.carflextest.boost.7days",
+  15: "com.missdee.carflextest.boost.15days",
 };
 
 interface PremiumPackage {
