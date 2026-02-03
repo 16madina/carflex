@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle, Loader2 } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle, Loader2, Sparkles } from "lucide-react";
 import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -917,7 +917,26 @@ const Profile = () => {
                                   </span>
                                 </div>
                                 <div className="flex gap-1.5 flex-wrap">
-                                  {/* Bouton Promouvoir masqué temporairement - modèle gratuit */}
+                                  {!listing.isPremium && (
+                                    <Button 
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 px-2 text-[10px] bg-accent/10 hover:bg-accent/20 text-accent border-accent/30"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePromote(listing.id, listing.type);
+                                      }}
+                                    >
+                                      <Sparkles className="mr-1 h-2.5 w-2.5" />
+                                      Promouvoir
+                                    </Button>
+                                  )}
+                                  {listing.isPremium && (
+                                    <Badge variant="secondary" className="h-7 px-2 text-[10px] bg-accent/20 text-accent">
+                                      <Sparkles className="mr-1 h-2.5 w-2.5" />
+                                      Sponsorisée
+                                    </Badge>
+                                  )}
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <Button 
