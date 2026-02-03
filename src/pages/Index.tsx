@@ -3,6 +3,7 @@ import BottomNav from "@/components/BottomNav";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
+import PremiumCarCard from "@/components/PremiumCarCard";
 import AdBanner from "@/components/AdBanner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -13,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AdvancedFilters, { FilterState } from "@/components/AdvancedFilters";
 import { useCountry } from "@/contexts/CountryContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFavoritesList } from "@/hooks/useFavoritesList";
 
 // Helper: execute Supabase query as a proper Promise (fixes iOS hang issues)
 const executeQuery = async <T,>(queryBuilder: PromiseLike<T>): Promise<T> => {
@@ -33,10 +35,12 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promis
 const Index = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
   const [rentalCars, setRentalCars] = useState<any[]>([]);
+  const [premiumListings, setPremiumListings] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState("created_at");
   const [userFirstName, setUserFirstName] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { favorites, toggleFavorite, isFavorite } = useFavoritesList();
   const [filters, setFilters] = useState<FilterState>({
     priceMin: "",
     priceMax: "",
@@ -98,6 +102,49 @@ const Index = () => {
         
         const sponsoredSaleIds = sponsoredData.filter(s => s.listing_type === 'sale').map(s => s.listing_id);
         const sponsoredRentalIds = sponsoredData.filter(s => s.listing_type === 'rental').map(s => s.listing_id);
+
+        // Fetch premium listings details for the Premium section
+        const premiumListingsData: any[] = [];
+        for (const premium of sponsoredData) {
+          if (premium.listing_type === 'sale') {
+            const { data } = await supabase
+              .from('sale_listings')
+              .select(`
+                *,
+                profiles!sale_listings_seller_id_fkey (
+                  first_name,
+                  last_name,
+                  user_type
+                )
+              `)
+              .eq('id', premium.listing_id)
+              .maybeSingle();
+            if (data) {
+              premiumListingsData.push({ ...data, listing_type: 'sale' });
+            }
+          } else {
+            const { data } = await supabase
+              .from('rental_listings')
+              .select(`
+                *,
+                profiles!rental_listings_owner_id_fkey (
+                  first_name,
+                  last_name,
+                  user_type
+                )
+              `)
+              .eq('id', premium.listing_id)
+              .maybeSingle();
+            if (data) {
+              premiumListingsData.push({ 
+                ...data, 
+                price: data.price_per_day,
+                listing_type: 'rental' 
+              });
+            }
+          }
+        }
+        setPremiumListings(premiumListingsData);
 
         // Fetch latest sale cars (exclude sponsored ones)
         const latestResult = await withTimeout(
@@ -213,7 +260,48 @@ const Index = () => {
       <main className="flex-1 pt-16">
         <Hero userFirstName={userFirstName} />
 
-        {/* Featured Cars Section with Tabs */}
+        {/* Premium Listings Section */}
+        {premiumListings.length > 0 && (
+          <section className="py-10 container mx-auto px-6">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold mb-1">Annonces Premium</h2>
+                <p className="text-sm text-muted-foreground">
+                  Les meilleures offres mises en avant
+                </p>
+              </div>
+              <Button variant="outline" asChild className="active-press text-sm">
+                <Link to="/listings">
+                  Voir tout
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {premiumListings.map((car) => (
+                <PremiumCarCard
+                  key={car.id}
+                  id={car.id}
+                  brand={car.brand}
+                  model={car.model}
+                  year={car.year}
+                  price={car.price}
+                  city={car.city}
+                  country={car.country}
+                  mileage={car.mileage}
+                  transmission={car.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                  fuel_type={car.fuel_type}
+                  images={Array.isArray(car.images) ? car.images : []}
+                  isFavorite={isFavorite(car.id)}
+                  onToggleFavorite={() => toggleFavorite(car.id, car.listing_type === 'rental' ? 'rental' : 'sale')}
+                  sellerName={car.profiles ? `${car.profiles.first_name} ${car.profiles.last_name}` : undefined}
+                  sellerType={car.profiles?.user_type}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="py-10 container mx-auto px-6">
           <div className="flex items-center justify-between mb-8">
             <div>
