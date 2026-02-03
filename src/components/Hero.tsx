@@ -160,7 +160,7 @@ const Hero = ({ userFirstName }: HeroProps) => {
                     onClick={() => navigate(listing.type === 'sale' ? `/listing/${listing.id}` : `/rental/${listing.id}`)}
                     className="bg-background/95 backdrop-blur rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-lg"
                   >
-                    <div className="relative h-20">
+                    <div className="relative h-28">
                       <img
                         src={listing.images[0] || '/placeholder.svg'}
                         alt={`${listing.brand} ${listing.model}`}
