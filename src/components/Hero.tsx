@@ -153,30 +153,30 @@ const Hero = ({ userFirstName }: HeroProps) => {
                 <Zap className="h-4 w-4 text-orange-400" />
                 <span className="text-sm font-medium text-primary-foreground/90">Annonces sponsorisées</span>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pb-3 -mx-4 px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
                 {sponsoredListings.map((listing) => (
                   <div
                     key={listing.id}
                     onClick={() => navigate(listing.type === 'sale' ? `/listing/${listing.id}` : `/rental/${listing.id}`)}
-                    className="bg-background rounded-xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform shadow-lg flex-shrink-0 w-64"
+                    className="bg-background rounded-xl overflow-hidden cursor-pointer hover:shadow-xl transition-shadow shadow-lg flex-shrink-0 w-48"
                   >
-                    <div className="relative h-40">
+                    <div className="relative h-32">
                       <img
                         src={listing.images[0] || '/placeholder.svg'}
                         alt={`${listing.brand} ${listing.model}`}
                         className="w-full h-full object-cover"
                       />
-                      <Badge className="absolute top-3 left-3 bg-orange-500 text-white text-xs px-2 py-1 shadow-md">
+                      <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-2 py-0.5">
                         <Zap className="h-3 w-3 mr-1" />
                         Premium
                       </Badge>
                     </div>
-                    <div className="p-3">
-                      <p className="text-sm font-bold text-foreground">
+                    <div className="p-2.5">
+                      <p className="text-xs font-semibold text-foreground truncate">
                         {listing.year} {listing.brand} {listing.model}
                       </p>
-                      <p className="text-base text-primary font-bold mt-1">
-                        {formatPrice(listing.price)}{listing.type === 'rental' && <span className="text-xs font-normal text-muted-foreground">/jour</span>}
+                      <p className="text-sm text-primary font-bold mt-0.5">
+                        {formatPrice(listing.price)}{listing.type === 'rental' && <span className="text-[10px] font-normal text-muted-foreground">/jour</span>}
                       </p>
                     </div>
                   </div>
