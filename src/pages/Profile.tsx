@@ -1394,8 +1394,86 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Premium Pack masqué temporairement - modèle gratuit */}
-      {/* PaymentMethodSelector masqué temporairement - modèle gratuit */}
+      {/* Dialog sélection de pack premium */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-accent" />
+              Promouvoir votre annonce
+            </DialogTitle>
+            <DialogDescription>
+              Choisissez un pack pour mettre en avant votre annonce et attirer plus d'acheteurs.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {packages.map((pkg) => (
+              <Card
+                key={pkg.id}
+                className={`cursor-pointer transition-all ${
+                  selectedPackage === pkg.id
+                    ? "border-accent ring-2 ring-accent/20"
+                    : "hover:border-accent/50"
+                }`}
+                onClick={() => setSelectedPackage(pkg.id)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold">{pkg.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.duration_days} jours de visibilité
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-accent">
+                        {formatPrice(pkg.price)}
+                      </p>
+                    </div>
+                  </div>
+                  {pkg.description && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {pkg.description}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setDialogOpen(false)}
+            >
+              Annuler
+            </Button>
+            <Button
+              className="flex-1"
+              disabled={!selectedPackage || submitting}
+              onClick={confirmPromote}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Traitement...
+                </>
+              ) : (
+                "Continuer"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* PaymentMethodSelector pour le paiement */}
+      <PaymentMethodSelector
+        open={showPaymentSelector}
+        onOpenChange={setShowPaymentSelector}
+        onSelectMethod={(method) => handlePaymentMethod(method === 'apple-pay' ? 'stripe' : method)}
+        amount={selectedPackageData?.price || 0}
+        formatPrice={formatPrice}
+      />
 
       {/* Booking Details Dialog */}
       <Dialog open={bookingDetailOpen} onOpenChange={setBookingDetailOpen}>
