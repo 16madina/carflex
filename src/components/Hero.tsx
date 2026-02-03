@@ -153,29 +153,29 @@ const Hero = ({ userFirstName }: HeroProps) => {
                 <Zap className="h-4 w-4 text-orange-400" />
                 <span className="text-sm font-medium text-primary-foreground/90">Annonces sponsorisées</span>
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {sponsoredListings.map((listing) => (
                   <div
                     key={listing.id}
                     onClick={() => navigate(listing.type === 'sale' ? `/listing/${listing.id}` : `/rental/${listing.id}`)}
-                    className="bg-background/95 backdrop-blur rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-lg flex-shrink-0 w-32"
+                    className="bg-background/95 backdrop-blur rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-lg flex-shrink-0 w-40"
                   >
-                    <div className="relative h-24">
+                    <div className="relative h-28">
                       <img
                         src={listing.images[0] || '/placeholder.svg'}
                         alt={`${listing.brand} ${listing.model}`}
                         className="w-full h-full object-cover"
                       />
-                      <Badge className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] px-1 py-0.5">
-                        <Zap className="h-2 w-2 mr-0.5" />
+                      <Badge className="absolute top-1.5 right-1.5 bg-orange-500 text-white text-[9px] px-1.5 py-0.5">
+                        <Zap className="h-2.5 w-2.5 mr-0.5" />
                         Sponsorisé
                       </Badge>
                     </div>
-                    <div className="p-1.5">
-                      <p className="text-[10px] font-medium text-foreground truncate">
+                    <div className="p-2">
+                      <p className="text-xs font-medium text-foreground truncate">
                         {listing.brand} {listing.model}
                       </p>
-                      <p className="text-[10px] text-primary font-semibold">
+                      <p className="text-xs text-primary font-semibold">
                         {formatPrice(listing.price)}{listing.type === 'rental' && '/jour'}
                       </p>
                     </div>
