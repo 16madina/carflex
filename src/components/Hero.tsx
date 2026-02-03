@@ -1,10 +1,21 @@
-import { Search, Crown } from "lucide-react";
+import { Search, Zap, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import heroImage from "@/assets/hero-cars.jpg";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+
+interface SponsoredListing {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  price: number;
+  images: string[];
+  type: 'sale' | 'rental';
+}
 
 interface HeroProps {
   userFirstName?: string;
@@ -12,7 +23,57 @@ interface HeroProps {
 
 const Hero = ({ userFirstName }: HeroProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [sponsoredListings, setSponsoredListings] = useState<SponsoredListing[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchSponsored = async () => {
+      const { data: premiumData } = await supabase
+        .from('premium_listings')
+        .select('listing_id, listing_type')
+        .eq('is_active', true)
+        .gte('end_date', new Date().toISOString())
+        .limit(4);
+
+      if (!premiumData || premiumData.length === 0) return;
+
+      const listings: SponsoredListing[] = [];
+
+      for (const premium of premiumData) {
+        if (premium.listing_type === 'sale') {
+          const { data } = await supabase
+            .from('sale_listings')
+            .select('id, brand, model, year, price, images')
+            .eq('id', premium.listing_id)
+            .maybeSingle();
+          if (data) {
+            listings.push({ ...data, images: (data.images as string[]) || [], type: 'sale' });
+          }
+        } else {
+          const { data } = await supabase
+            .from('rental_listings')
+            .select('id, brand, model, year, price_per_day, images')
+            .eq('id', premium.listing_id)
+            .maybeSingle();
+          if (data) {
+            listings.push({ 
+              id: data.id, 
+              brand: data.brand, 
+              model: data.model, 
+              year: data.year, 
+              price: data.price_per_day,
+              images: (data.images as string[]) || [], 
+              type: 'rental' 
+            });
+          }
+        }
+      }
+
+      setSponsoredListings(listings);
+    };
+
+    fetchSponsored();
+  }, []);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -24,6 +85,10 @@ const Hero = ({ userFirstName }: HeroProps) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
   };
 
   return (
@@ -81,6 +146,44 @@ const Hero = ({ userFirstName }: HeroProps) => {
             </div>
           </div>
 
+          {/* Annonces sponsorisées */}
+          {sponsoredListings.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-orange-400" />
+                <span className="text-sm font-medium text-primary-foreground/90">Annonces sponsorisées</span>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {sponsoredListings.map((listing) => (
+                  <div
+                    key={listing.id}
+                    onClick={() => navigate(listing.type === 'sale' ? `/listing/${listing.id}` : `/rental/${listing.id}`)}
+                    className="bg-background/95 backdrop-blur rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-lg flex-shrink-0 w-32"
+                  >
+                    <div className="relative h-24">
+                      <img
+                        src={listing.images[0] || '/placeholder.svg'}
+                        alt={`${listing.brand} ${listing.model}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <Badge className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] px-1 py-0.5">
+                        <Zap className="h-2 w-2 mr-0.5" />
+                        Sponsorisé
+                      </Badge>
+                    </div>
+                    <div className="p-1.5">
+                      <p className="text-[10px] font-medium text-foreground truncate">
+                        {listing.brand} {listing.model}
+                      </p>
+                      <p className="text-[10px] text-primary font-semibold">
+                        {formatPrice(listing.price)}{listing.type === 'rental' && '/jour'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
