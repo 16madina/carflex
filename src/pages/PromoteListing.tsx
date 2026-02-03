@@ -93,6 +93,7 @@ const PromoteListing = () => {
       .from("premium_packages")
       .select("*")
       .eq("is_active", true)
+      .gt("price", 0) // Exclure le package gratuit admin (0 CFA)
       .order("price", { ascending: true });
 
     if (error) {
