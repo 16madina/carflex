@@ -1,4 +1,4 @@
-import { Search, Zap } from "lucide-react";
+import { Search, Zap, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -130,6 +130,17 @@ const Hero = ({ userFirstName }: HeroProps) => {
               <Button size="lg" className="h-11 px-6" onClick={handleSearch}>
                 <Search className="mr-2 h-5 w-5" />
                 Rechercher
+              </Button>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={() => navigate("/subscription")}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-elevated"
+              >
+                <Crown className="mr-2 h-4 w-4" />
+                Plan Pro
               </Button>
             </div>
           </div>
