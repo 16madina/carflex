@@ -101,6 +101,18 @@ const Hero = ({ userFirstName }: HeroProps) => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10 py-8">
+        {/* Bouton Plan Pro en haut à droite */}
+        <div className="absolute top-4 right-4 md:top-6 md:right-6">
+          <Button 
+            onClick={() => navigate("/subscription")}
+            className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-elevated animate-fade-in hover:scale-105 transition-all duration-300 group"
+            size="sm"
+          >
+            <Crown className="mr-2 h-4 w-4 group-hover:animate-pulse" />
+            Plan Pro
+          </Button>
+        </div>
+
         <div className="max-w-2xl text-primary-foreground">
           {userFirstName && (
             <div className="flex items-center justify-between mb-4 animate-fade-in">
@@ -130,17 +142,6 @@ const Hero = ({ userFirstName }: HeroProps) => {
               <Button size="lg" className="h-11 px-6" onClick={handleSearch}>
                 <Search className="mr-2 h-5 w-5" />
                 Rechercher
-              </Button>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={() => navigate("/subscription")}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-elevated"
-              >
-                <Crown className="mr-2 h-4 w-4" />
-                Plan Pro
               </Button>
             </div>
           </div>
