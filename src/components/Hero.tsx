@@ -168,7 +168,7 @@ const Hero = ({ userFirstName }: HeroProps) => {
                       />
                       <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-2 py-0.5">
                         <Zap className="h-3 w-3 mr-1" />
-                        Premium
+                        Sponsorisé
                       </Badge>
                     </div>
                     <div className="p-2.5">
