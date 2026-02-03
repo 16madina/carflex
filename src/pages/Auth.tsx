@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Car, Upload, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import { WEST_AFRICAN_COUNTRIES } from "@/contexts/CountryContext";
+import { WEST_AFRICAN_COUNTRIES, Country } from "@/contexts/CountryContext";
 import CitySelector from "@/components/CitySelector";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { validateImageFile } from "@/lib/fileValidation";
@@ -20,7 +20,44 @@ import { TermsDialog } from "@/components/TermsDialog";
 import { PrivacyDialog } from "@/components/PrivacyDialog";
 import { ImagePicker } from "@/components/ImagePicker";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppTracking } from "@/hooks/useAppTracking";
+
+// Régions de pays pour le sélecteur d'inscription
+const COUNTRY_REGIONS: { name: string; codes: string[] }[] = [
+  {
+    name: "Afrique de l'Ouest",
+    codes: ['CI', 'SN', 'BJ', 'BF', 'ML', 'NE', 'TG', 'GW', 'GN', 'NG', 'GH', 'SL', 'LR', 'GM', 'CV', 'MR']
+  },
+  {
+    name: "Afrique Centrale",
+    codes: ['CM', 'CG', 'GA', 'TD', 'CF', 'GQ', 'CD', 'ST', 'AO']
+  },
+  {
+    name: "Afrique de l'Est",
+    codes: ['KE', 'TZ', 'UG', 'RW', 'BI', 'ET', 'ER', 'DJ', 'SO', 'SS', 'SD']
+  },
+  {
+    name: "Afrique Australe",
+    codes: ['ZA', 'BW', 'NA', 'ZM', 'ZW', 'MW', 'MZ', 'SZ', 'LS']
+  },
+  {
+    name: "Afrique du Nord",
+    codes: ['MA', 'DZ', 'TN', 'LY', 'EG']
+  },
+  {
+    name: "Océan Indien",
+    codes: ['MG', 'MU', 'KM', 'SC']
+  },
+  {
+    name: "Europe & Amérique",
+    codes: ['FR', 'BE', 'CH', 'CA', 'US', 'GB', 'DE', 'IT', 'ES', 'PT', 'NL']
+  }
+];
+
+const getCountriesByRegion = (regionCodes: string[]): Country[] => {
+  return WEST_AFRICAN_COUNTRIES.filter(country => regionCodes.includes(country.code));
+};
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -454,15 +491,30 @@ const Auth = () => {
                         <SelectTrigger id="signup-country">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          {WEST_AFRICAN_COUNTRIES.map((country) => (
-                            <SelectItem key={country.code} value={country.code}>
-                              <span className="flex items-center gap-2">
-                                <span className="text-lg">{country.flag}</span>
-                                <span>{country.name}</span>
-                              </span>
-                            </SelectItem>
-                          ))}
+                        <SelectContent className="max-h-[300px]">
+                          <ScrollArea className="h-[300px]">
+                            {COUNTRY_REGIONS.map((region, index) => {
+                              const countries = getCountriesByRegion(region.codes);
+                              if (countries.length === 0) return null;
+                              
+                              return (
+                                <SelectGroup key={region.name}>
+                                  {index > 0 && <SelectSeparator />}
+                                  <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
+                                    {region.name}
+                                  </SelectLabel>
+                                  {countries.map((country) => (
+                                    <SelectItem key={country.code} value={country.code}>
+                                      <span className="flex items-center gap-2">
+                                        <span className="text-lg">{country.flag}</span>
+                                        <span>{country.name}</span>
+                                      </span>
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              );
+                            })}
+                          </ScrollArea>
                         </SelectContent>
                       </Select>
                     </div>
