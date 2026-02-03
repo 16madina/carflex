@@ -32,7 +32,9 @@ import Favorites from "./pages/Favorites";
 import AdminPanel from "./pages/AdminPanel";
 import PromoteListing from "./pages/PromoteListing";
 import Dashboard from "./pages/Dashboard";
-// Subscription temporairement masqué - app gratuite
+import Subscription from "./pages/Subscription";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import SubscriptionPlansAdmin from "./pages/SubscriptionPlansAdmin";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -89,12 +91,11 @@ const App = () => {
               <Route path="/profile/:userId" element={<PublicProfile />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/admin" element={<AdminPanel />} />
-              {/* Routes de paiement temporairement redirigées vers Index - app gratuite */}
-              <Route path="/admin/subscription-plans" element={<Index />} />
-              <Route path="/promote" element={<Index />} />
+              <Route path="/admin/subscription-plans" element={<SubscriptionPlansAdmin />} />
+              <Route path="/promote" element={<PromoteListing />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/subscription" element={<Index />} />
-              <Route path="/subscription-success" element={<Index />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/subscription-success" element={<SubscriptionSuccess />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
