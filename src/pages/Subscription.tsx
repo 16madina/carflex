@@ -45,8 +45,8 @@ const Subscription = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
-  // ID du produit IAP configuré dans App Store Connect (v2 car l'ancien ID a été supprimé)
-  const IOS_PRODUCT_ID = "com.missdee.carflextest.pro.monthly.v2";
+  // ID du produit IAP configuré dans App Store Connect (v3 car Apple ne réutilise jamais les Product IDs)
+  const IOS_PRODUCT_ID = "com.missdee.carflextest.pro.monthly.v3";
   
   // Initialiser StoreKit pour iOS
   useEffect(() => {

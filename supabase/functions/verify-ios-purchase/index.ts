@@ -351,10 +351,10 @@ serve(async (req) => {
     }
 
     // Vérifier que le produit correspond aux IDs configurés dans App Store Connect
-    // Pro subscription: com.missdee.carflextest.pro.monthly.v2
+    // Pro subscription: com.missdee.carflextest.pro.monthly.v3
     // Boost packages: com.missdee.carflextest.boost.3days, .7days, .15days
     const validProductIds = [
-      'com.missdee.carflextest.pro.monthly.v2',
+      'com.missdee.carflextest.pro.monthly.v3',
       'com.missdee.carflextest.boost.3days',
       'com.missdee.carflextest.boost.7days',
       'com.missdee.carflextest.boost.15days',
