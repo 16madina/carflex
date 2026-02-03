@@ -15,11 +15,11 @@ import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { Capacitor } from "@capacitor/core";
 import { storeKitService } from "@/services/storekit";
 
-// Mapping des packages vers les Product IDs iOS (nouveaux IDs car les anciens ont été supprimés)
+// Mapping des packages vers les Product IDs iOS (v2 car Apple ne réutilise jamais les IDs)
 const IOS_PRODUCT_IDS: { [key: number]: string } = {
-  3: "com.missdee.carflextest.boost.3days",
-  7: "com.missdee.carflextest.boost.7days",
-  15: "com.missdee.carflextest.boost.15days",
+  3: "com.missdee.carflextest.boost.3days.v2",
+  7: "com.missdee.carflextest.boost.7days.v2",
+  15: "com.missdee.carflextest.boost.15days.v2",
 };
 
 interface PremiumPackage {
