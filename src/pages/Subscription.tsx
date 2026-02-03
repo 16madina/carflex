@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft, RefreshCw } from "lucide-react";
+import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft, RefreshCw, Zap, Shield, Star, Infinity } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { Capacitor } from "@capacitor/core";
 import { storeKitService } from "@/services/storekit";
+import { motion } from "framer-motion";
 
 interface SubscriptionPlan {
   id: string;
@@ -513,252 +514,379 @@ const Subscription = () => {
     <div className="min-h-screen bg-background pb-20">
       <TopBar />
       
-      <main className="container mx-auto px-4 pt-24 pb-8 max-w-4xl">
+      <main className="container mx-auto px-4 pt-20 pb-8 max-w-5xl">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-6"
+          className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
         
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Choisissez votre plan</h1>
-          <p className="text-muted-foreground">
-            Augmentez vos ventes avec un abonnement premium
-          </p>
-        </div>
+        {/* Hero Section avec Gradient */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative mb-10 text-center py-8 px-4 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent overflow-hidden"
+        >
+          {/* Decoration */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          
+          <div className="relative z-10">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4"
+            >
+              <Crown className="h-4 w-4" />
+              <span className="text-sm font-medium">Passez au niveau supérieur</span>
+            </motion.div>
+            
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">
+              Boostez vos ventes avec <span className="text-primary">CarFlex Pro</span>
+            </h1>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Débloquez toutes les fonctionnalités premium et vendez vos véhicules plus rapidement
+            </p>
+          </div>
+        </motion.div>
 
         {/* Informations requises par Apple pour les abonnements auto-renouvelables (Guideline 3.1.2) */}
         {isIOS && (
-          <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border text-sm">
-            <p className="font-semibold mb-2">Abonnement CarFlex Pro</p>
-            <ul className="space-y-1 text-muted-foreground">
-              <li>• Durée : Mensuel (renouvellement automatique)</li>
-              <li>• Prix : 10 000 XOF/mois</li>
-              <li>• Le paiement sera débité sur votre compte iTunes à la confirmation de l'achat</li>
-              <li>• L'abonnement se renouvelle automatiquement sauf annulation au moins 24h avant la fin de la période en cours</li>
-              <li>• Gérez vos abonnements dans les Réglages de votre compte Apple</li>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mb-8 p-5 bg-muted/30 backdrop-blur-sm rounded-2xl border border-border/50"
+          >
+            <div className="flex items-start gap-3 mb-3">
+              <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Informations sur l'abonnement</p>
+                <p className="text-sm text-muted-foreground">Abonnement CarFlex Pro - Mensuel</p>
+              </div>
+            </div>
+            <ul className="space-y-2 text-sm text-muted-foreground pl-8">
+              <li>• Prix : <span className="font-medium text-foreground">10 000 XOF/mois</span></li>
+              <li>• Renouvellement automatique chaque mois</li>
+              <li>• Annulable à tout moment (24h avant la fin de période)</li>
+              <li>• Gérez vos abonnements dans Réglages &gt; Apple ID</li>
             </ul>
-            <div className="mt-3 pt-3 border-t border-border flex gap-4 text-xs">
-              <Link to="/privacy-policy" className="text-primary hover:underline">
+            <div className="mt-4 pt-4 border-t border-border/50 flex gap-6 text-xs">
+              <Link to="/privacy-policy" className="text-primary hover:underline flex items-center gap-1">
+                <Shield className="h-3 w-3" />
                 Politique de confidentialité
               </Link>
               <Link to="/terms-of-service" className="text-primary hover:underline">
                 Conditions d'utilisation
               </Link>
             </div>
-          </div>
+          </motion.div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Plans de tarification */}
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
           {/* Plan Gratuit */}
-          <Card className={!isPro ? "border-primary" : ""}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Gratuit</CardTitle>
-                {!isPro && <Badge>Plan actuel</Badge>}
-              </div>
-              <CardDescription>
-                <span className="text-3xl font-bold">0 XOF</span>
-                <span className="text-muted-foreground">/mois</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {FREE_FEATURES.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Plan Pro - Chargé depuis la base de données */}
-          {proPlan && (
-            <Card className={isPro ? "border-primary bg-gradient-to-br from-primary/5 to-transparent" : ""}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle>{proPlan.name}</CardTitle>
-                    <Crown className="h-5 w-5 text-primary" />
-                  </div>
-                  {isPro && <Badge className="bg-primary">Plan actuel</Badge>}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className={`relative h-full transition-all duration-300 hover:shadow-lg ${!isPro ? "border-primary/50 shadow-md" : "border-border/50"}`}>
+              {!isPro && (
+                <div className="absolute -top-3 left-4">
+                  <Badge variant="secondary" className="shadow-sm">
+                    Plan actuel
+                  </Badge>
                 </div>
+              )}
+              <CardHeader className="pt-8">
+                <CardTitle className="text-xl">Gratuit</CardTitle>
                 <CardDescription>
-                  <span className="text-3xl font-bold">{formatPrice(proPlan.price)}</span>
+                  <span className="text-4xl font-bold text-foreground">0</span>
+                  <span className="text-lg font-medium text-foreground"> XOF</span>
                   <span className="text-muted-foreground">/mois</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {proPlan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            <CardFooter>
-              {!isPro ? (
-                <div className="w-full space-y-3">
-                  {/* Codes promo uniquement pour Web/Android (Stripe) */}
-                  {!isIOS && (
-                    <div className="space-y-2">
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Idéal pour débuter et tester la plateforme
+                </p>
+                <ul className="space-y-3">
+                  {FREE_FEATURES.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="rounded-full p-1 bg-muted">
+                        <Check className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Plan Pro - Chargé depuis la base de données */}
+          {proPlan && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Card className={`relative h-full transition-all duration-300 hover:shadow-xl ${
+                isPro 
+                  ? "border-primary shadow-lg shadow-primary/10" 
+                  : "border-primary/30 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"
+              }`}>
+                {/* Badge recommandé ou plan actuel */}
+                <div className="absolute -top-3 left-4 flex gap-2">
+                  {isPro ? (
+                    <Badge className="bg-primary shadow-sm">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Plan actuel
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-sm">
+                      <Star className="h-3 w-3 mr-1" />
+                      Recommandé
+                    </Badge>
+                  )}
+                </div>
+                
+                <CardHeader className="pt-8">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-xl">{proPlan.name}</CardTitle>
+                    <Crown className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardDescription>
+                    <span className="text-4xl font-bold text-foreground">{formatPrice(proPlan.price).replace(' XOF', '')}</span>
+                    <span className="text-lg font-medium text-foreground"> XOF</span>
+                    <span className="text-muted-foreground">/mois</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Maximisez votre visibilité et vos ventes
+                  </p>
+                  <ul className="space-y-3">
+                    {proPlan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <div className="rounded-full p-1 bg-primary/10">
+                          <Check className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-4">
+                  {!isPro ? (
+                    <div className="w-full space-y-3">
+                      {/* Codes promo uniquement pour Web/Android (Stripe) */}
+                      {!isIOS && (
+                        <div className="space-y-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowPromoInput(!showPromoInput)}
+                            className="w-full border-dashed"
+                            size="sm"
+                          >
+                            <Tag className="mr-2 h-4 w-4" />
+                            {showPromoInput ? "Masquer" : "J'ai un"} code promo
+                          </Button>
+                          
+                          {showPromoInput && (
+                            <Input
+                              placeholder="Entrez votre code promo"
+                              value={promoCode}
+                              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                              className="text-center uppercase"
+                            />
+                          )}
+                        </div>
+                      )}
+
                       <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowPromoInput(!showPromoInput)}
-                        className="w-full"
+                        onClick={handleSubscribe} 
+                        disabled={subscribing || restoring}
+                        className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20"
+                        size="lg"
                       >
-                        <Tag className="mr-2 h-4 w-4" />
-                        {showPromoInput ? "Masquer" : "Ajouter"} un code promo
+                        {subscribing ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {isIOS ? "Ouverture App Store..." : "Redirection..."}
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="mr-2 h-4 w-4" />
+                            Passer à Pro
+                          </>
+                        )}
                       </Button>
                       
-                      {showPromoInput && (
-                        <Input
-                          placeholder="Code promo (optionnel)"
-                          value={promoCode}
-                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                        />
+                      {isIOS && (
+                        <Button
+                          onClick={handleRestorePurchases}
+                          disabled={subscribing || restoring}
+                          variant="ghost"
+                          className="w-full text-muted-foreground"
+                          size="sm"
+                        >
+                          {restoring ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Restauration...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                              Restaurer mes achats
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-full space-y-3">
+                      {subscriptionEnd && (
+                        <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <p className="text-xs text-muted-foreground">Prochain renouvellement</p>
+                          <p className="font-medium text-primary">
+                            {new Date(subscriptionEnd).toLocaleDateString('fr-FR', { 
+                              day: 'numeric', 
+                              month: 'long', 
+                              year: 'numeric' 
+                            })}
+                          </p>
+                        </div>
+                      )}
+                      {!isIOS && (
+                        <Button 
+                          onClick={handleManageSubscription} 
+                          disabled={managing}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          {managing ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Chargement...
+                            </>
+                          ) : (
+                            "Gérer mon abonnement"
+                          )}
+                        </Button>
+                      )}
+                      
+                      {isIOS && (
+                        <Button
+                          onClick={handleRestorePurchases}
+                          disabled={restoring}
+                          variant="ghost"
+                          className="w-full text-muted-foreground"
+                          size="sm"
+                        >
+                          {restoring ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Restauration...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                              Restaurer mes achats
+                            </>
+                          )}
+                        </Button>
                       )}
                     </div>
                   )}
-
-                  <Button
-                    onClick={handleSubscribe} 
-                    disabled={subscribing || restoring}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {subscribing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {isIOS ? "Ouverture App Store..." : "Redirection vers Stripe..."}
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Passer à Pro
-                      </>
-                    )}
-                  </Button>
-                  
-                  {isIOS && (
-                    <Button
-                      onClick={handleRestorePurchases}
-                      disabled={subscribing || restoring}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      {restoring ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Restauration...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Restaurer mes achats
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="w-full space-y-2">
-                  {subscriptionEnd && (
-                    <p className="text-sm text-muted-foreground text-center">
-                      Renouvelé le {new Date(subscriptionEnd).toLocaleDateString('fr-FR')}
-                    </p>
-                  )}
-                  {!isIOS && (
-                    <Button 
-                      onClick={handleManageSubscription} 
-                      disabled={managing}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      {managing ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Chargement...
-                        </>
-                      ) : (
-                        "Gérer mon abonnement"
-                      )}
-                    </Button>
-                  )}
-                  
-                  {isIOS && (
-                    <Button
-                      onClick={handleRestorePurchases}
-                      disabled={restoring}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      {restoring ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Restauration...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Restaurer mes achats
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              )}
-            </CardFooter>
-          </Card>
+                </CardFooter>
+              </Card>
+            </motion.div>
           )}
         </div>
 
-        {/* Avantages du plan Pro */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <TrendingUp className="h-8 w-8 text-primary mb-2" />
-              <CardTitle className="text-lg">Visibilité maximale</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Vos annonces apparaissent en premier dans les résultats de recherche
-              </p>
-            </CardContent>
-          </Card>
+        {/* Section des avantages Pro */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mb-8"
+        >
+          <h2 className="text-xl font-semibold text-center mb-6">
+            Pourquoi passer à <span className="text-primary">Pro</span> ?
+          </h2>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                icon: TrendingUp,
+                title: "Visibilité maximale",
+                description: "Vos annonces apparaissent en premier",
+                color: "from-blue-500/10 to-blue-500/5"
+              },
+              {
+                icon: Crown,
+                title: "Badge Pro",
+                description: "Gagnez en crédibilité et confiance",
+                color: "from-amber-500/10 to-amber-500/5"
+              },
+              {
+                icon: Infinity,
+                title: "Annonces illimitées",
+                description: "Publiez sans aucune limite",
+                color: "from-green-500/10 to-green-500/5"
+              },
+              {
+                icon: BarChart3,
+                title: "Statistiques avancées",
+                description: "Analysez vos performances",
+                color: "from-purple-500/10 to-purple-500/5"
+              }
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + index * 0.1 }}
+              >
+                <Card className={`h-full border-0 bg-gradient-to-br ${feature.color} hover:shadow-md transition-all duration-300`}>
+                  <CardContent className="pt-6 text-center">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-background shadow-sm mb-3">
+                      <feature.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-1">{feature.title}</h3>
+                    <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
 
-          <Card>
-            <CardHeader>
-              <Crown className="h-8 w-8 text-primary mb-2" />
-              <CardTitle className="text-lg">Badge Premium</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Un badge "Pro" distinctif sur toutes vos annonces pour gagner en crédibilité
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <BarChart3 className="h-8 w-8 text-primary mb-2" />
-              <CardTitle className="text-lg">Statistiques avancées</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Suivez les performances de vos annonces avec des analyses détaillées
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Section garantie */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="text-center p-6 rounded-2xl bg-muted/30 border border-border/50"
+        >
+          <div className="inline-flex items-center gap-2 text-primary mb-2">
+            <Shield className="h-5 w-5" />
+            <span className="font-semibold">Satisfaction garantie</span>
+          </div>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Annulez à tout moment. Pas d'engagement, pas de surprise. 
+            Votre abonnement reste actif jusqu'à la fin de la période payée.
+          </p>
+        </motion.div>
       </main>
 
       <BottomNav />
