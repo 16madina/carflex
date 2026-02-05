@@ -68,7 +68,7 @@ const SellType = () => {
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
                 style={{ backgroundImage: `url(${sellCarBg})` }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-white/70" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/50 to-transparent" />
               
               <CardContent className="relative flex flex-col items-center justify-center p-6 space-y-3">
                 <div className="relative w-20 h-20">
@@ -96,7 +96,7 @@ const SellType = () => {
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
                 style={{ backgroundImage: `url(${rentCarBg})` }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-white/70" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/50 to-transparent" />
               
               <CardContent className="relative flex flex-col items-center justify-center p-6 space-y-3">
                 <div className="relative w-20 h-20">
@@ -127,8 +127,8 @@ const SellType = () => {
             />
             <div className={`absolute inset-0 ${
               isEvaluationRestricted 
-                ? 'bg-gradient-to-t from-white via-white/95 to-white/85' 
-                : 'bg-gradient-to-t from-white via-white/90 to-white/70'
+                ? 'bg-gradient-to-t from-white/95 via-white/70 to-white/50' 
+                : 'bg-gradient-to-t from-white/95 via-white/50 to-transparent'
             }`} />
             
             <CardContent className="relative flex flex-col items-center justify-center p-8 space-y-4">
