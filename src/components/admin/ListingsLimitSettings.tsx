@@ -5,36 +5,71 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Save, Loader2 } from 'lucide-react';
+import { FileText, Save, Loader2, User, Building2, Briefcase } from 'lucide-react';
+
+interface LimitConfig {
+  key: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  defaultValue: number;
+}
+
+const LIMIT_CONFIGS: LimitConfig[] = [
+  {
+    key: 'free_listings_limit',
+    label: 'Utilisateurs (Particuliers)',
+    description: 'Acheteurs et vendeurs particuliers',
+    icon: User,
+    defaultValue: 5,
+  },
+  {
+    key: 'free_listings_limit_agent',
+    label: 'Agents immobiliers',
+    description: 'Agents et courtiers automobiles',
+    icon: Briefcase,
+    defaultValue: 15,
+  },
+  {
+    key: 'free_listings_limit_dealer',
+    label: 'Concessionnaires',
+    description: 'Garages et concessionnaires automobiles',
+    icon: Building2,
+    defaultValue: 20,
+  },
+];
 
 export const ListingsLimitSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [limit, setLimit] = useState(5);
+  const [limits, setLimits] = useState<Record<string, number>>({});
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchLimit();
+    fetchLimits();
   }, []);
 
-  const fetchLimit = async () => {
+  const fetchLimits = async () => {
     try {
       const { data, error } = await supabase
         .from('app_settings_numeric')
-        .select('setting_value')
-        .eq('setting_key', 'free_listings_limit')
-        .maybeSingle();
+        .select('setting_key, setting_value')
+        .in('setting_key', LIMIT_CONFIGS.map(c => c.key));
 
       if (error) throw error;
 
-      if (data) {
-        setLimit(data.setting_value);
-      }
+      const limitsMap: Record<string, number> = {};
+      LIMIT_CONFIGS.forEach(config => {
+        const found = data?.find(d => d.setting_key === config.key);
+        limitsMap[config.key] = found?.setting_value ?? config.defaultValue;
+      });
+
+      setLimits(limitsMap);
     } catch (err) {
-      console.error('Error fetching limit:', err);
+      console.error('Error fetching limits:', err);
       toast({
         title: "Erreur",
-        description: "Impossible de charger la limite d'annonces",
+        description: "Impossible de charger les limites d'annonces",
         variant: "destructive"
       });
     } finally {
@@ -43,38 +78,48 @@ export const ListingsLimitSettings = () => {
   };
 
   const handleSave = async () => {
-    if (limit < 1) {
-      toast({
-        title: "Erreur",
-        description: "La limite doit être au moins de 1 annonce",
-        variant: "destructive"
-      });
-      return;
+    // Validate all limits
+    for (const config of LIMIT_CONFIGS) {
+      if ((limits[config.key] ?? 0) < 1) {
+        toast({
+          title: "Erreur",
+          description: `La limite pour ${config.label} doit être au moins de 1`,
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('app_settings_numeric')
-        .update({ setting_value: limit, updated_at: new Date().toISOString() })
-        .eq('setting_key', 'free_listings_limit');
+      // Update all limits
+      for (const config of LIMIT_CONFIGS) {
+        const { error } = await supabase
+          .from('app_settings_numeric')
+          .update({ setting_value: limits[config.key], updated_at: new Date().toISOString() })
+          .eq('setting_key', config.key);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       toast({
         title: "Succès",
-        description: `Limite mise à jour: ${limit} annonces gratuites par mois`
+        description: "Limites d'annonces mises à jour"
       });
     } catch (err) {
-      console.error('Error saving limit:', err);
+      console.error('Error saving limits:', err);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder la limite",
+        description: "Impossible de sauvegarder les limites",
         variant: "destructive"
       });
     } finally {
       setSaving(false);
     }
+  };
+
+  const updateLimit = (key: string, value: number) => {
+    setLimits(prev => ({ ...prev, [key]: value }));
   };
 
   if (loading) {
@@ -94,50 +139,62 @@ export const ListingsLimitSettings = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
-          Limite d'annonces gratuites
+          Limites d'annonces gratuites
         </CardTitle>
         <CardDescription>
-          Définissez le nombre maximum d'annonces gratuites que chaque utilisateur peut publier par mois
+          Définissez le nombre maximum d'annonces gratuites par mois pour chaque type d'utilisateur
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="listings-limit">Nombre d'annonces gratuites par mois</Label>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1 max-w-xs">
-              <Input
-                id="listings-limit"
-                type="number"
-                min={1}
-                max={100}
-                value={limit}
-                onChange={(e) => setLimit(parseInt(e.target.value) || 1)}
-                className="text-lg"
-              />
-            </div>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Enregistrer
-                </>
-              )}
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Chaque utilisateur pourra publier jusqu'à {limit} annonce{limit > 1 ? 's' : ''} gratuitement par mois (ventes + locations combinées).
-          </p>
+        <div className="grid gap-6 md:grid-cols-3">
+          {LIMIT_CONFIGS.map((config) => {
+            const Icon = config.icon;
+            return (
+              <div key={config.key} className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <Label className="font-medium">{config.label}</Label>
+                    <p className="text-xs text-muted-foreground">{config.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={limits[config.key] ?? config.defaultValue}
+                    onChange={(e) => updateLimit(config.key, parseInt(e.target.value) || 1)}
+                    className="text-center text-lg font-semibold"
+                  />
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">/ mois</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
+
+        <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
+          {saving ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Enregistrement...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Enregistrer les limites
+            </>
+          )}
+        </Button>
 
         <div className="bg-muted/50 rounded-lg p-4 space-y-2">
           <h4 className="font-medium text-sm">Comment ça fonctionne:</h4>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>La limite se réinitialise au début de chaque mois</li>
+            <li>Chaque type d'utilisateur a sa propre limite mensuelle</li>
+            <li>Les limites se réinitialisent au début de chaque mois</li>
             <li>Les annonces de vente et de location sont comptées ensemble</li>
             <li>Un message d'erreur s'affiche quand la limite est atteinte</li>
           </ul>
