@@ -80,9 +80,9 @@ const CountrySelector = () => {
                     <DropdownMenuItem
                       key={country.code}
                       onClick={() => setSelectedCountry(country)}
-                      className="cursor-pointer gap-3"
+                      className="cursor-pointer gap-3 py-2"
                     >
-                      <span className="text-lg">{country.flag}</span>
+                      <span className="text-2xl leading-none">{country.flag}</span>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{country.name}</div>
                         <div className="text-xs text-muted-foreground">
