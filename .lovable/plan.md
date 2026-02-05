@@ -1,65 +1,50 @@
 
+# Correction de l'affichage des drapeaux sur la page d'inscription
 
-# Amélioration de l'affichage des drapeaux pays
+## Probleme identifie
 
-## Problème identifié
-Les drapeaux emoji (🇨🇮, 🇸🇳, 🇧🇯) s'affichent comme des codes pays (CI, SN, BJ) sur **Windows** car ce système d'exploitation ne supporte pas les emoji de drapeaux (Regional Indicator Symbols).
+Sur la page d'inscription (`Auth.tsx`), les drapeaux de pays sont affiches avec des emoji Unicode (`country.flag`) qui ne s'affichent pas correctement sur Windows. A la place, seuls les codes pays (CI, SN, BJ...) apparaissent.
 
-## Impact
-- **iOS/Android/macOS** : Les drapeaux s'affichent correctement
-- **Windows** : Les drapeaux apparaissent comme des codes à deux lettres
+## Zones concernees
 
-## Solutions proposées
+Deux endroits dans le fichier `src/pages/Auth.tsx` utilisent les emoji au lieu du composant SVG:
 
-### Option 1 : Utiliser des images de drapeaux (Recommandé)
-Remplacer les emoji par des images SVG de drapeaux qui fonctionnent sur tous les systèmes.
+1. **Selecteur de pays (ligne 509)**: Le dropdown affiche `{country.flag}` (emoji)
+2. **Champ telephone (lignes 533-534)**: L'indicatif affiche l'emoji du drapeau du pays selectionne
 
-**Avantages :**
-- Fonctionne sur tous les systèmes (Windows, Mac, iOS, Android)
-- Rendu visuel cohérent partout
-- Meilleur contrôle sur la taille et le style
+## Solution
 
-**Implémentation :**
-1. Installer un package d'icônes de drapeaux (`flag-icons` ou `country-flag-icons`)
-2. Modifier `CountryContext.tsx` pour utiliser les codes ISO au lieu des emoji
-3. Mettre à jour `CountrySelector.tsx` pour afficher les images SVG
+Utiliser le composant `FlagIcon` existant (qui exploite la bibliotheque `country-flag-icons` pour generer des drapeaux SVG) au lieu des emoji. Ce composant fonctionne deja correctement dans `CountrySelector.tsx`.
 
-### Option 2 : Utiliser une police emoji (Twemoji)
-Utiliser la police Twemoji de Twitter qui rend les emoji de drapeaux comme images.
+## Modifications a effectuer
 
-**Avantages :**
-- Pas besoin de changer la structure des données
-- Rendu cohérent des emoji
+### Fichier: `src/pages/Auth.tsx`
 
-**Inconvénients :**
-- Ajoute une dépendance externe
-- Légère augmentation du temps de chargement
+1. **Ajouter l'import du composant FlagIcon** en haut du fichier:
+   ```tsx
+   import FlagIcon from "@/components/FlagIcon";
+   ```
 
-### Option 3 : Laisser tel quel (Si l'app est principalement mobile)
-Puisque l'application cible principalement des utilisateurs mobiles en Afrique, les drapeaux s'afficheront correctement sur leurs appareils.
+2. **Remplacer l'emoji dans le selecteur de pays** (autour de la ligne 509):
+   ```tsx
+   // Avant
+   <span className="text-lg">{country.flag}</span>
+   
+   // Apres
+   <FlagIcon countryCode={country.code} className="w-5 h-4" />
+   ```
 
-## Recommandation
-**Option 1 (images SVG)** est la plus robuste pour une expérience cohérente sur tous les appareils.
+3. **Remplacer l'emoji dans le champ telephone** (autour de la ligne 533):
+   ```tsx
+   // Avant
+   <span className="text-lg">
+     {WEST_AFRICAN_COUNTRIES.find(c => c.code === signupData.country)?.flag}
+   </span>
+   
+   // Apres
+   <FlagIcon countryCode={signupData.country} className="w-5 h-4" />
+   ```
 
-## Fichiers à modifier
-- `src/components/CountrySelector.tsx` - Affichage des drapeaux
-- `src/components/TopBar.tsx` - Drapeau dans le header (si nécessaire)
-- `package.json` - Ajouter la dépendance `country-flag-icons`
+## Resultat attendu
 
-## Section technique
-
-### Installation
-```bash
-npm install country-flag-icons
-```
-
-### Modification du CountrySelector
-```tsx
-import { getCountryCode } from 'country-flag-icons';
-import Flags from 'country-flag-icons/react/3x2';
-
-// Dans le composant
-const FlagComponent = Flags[country.code];
-return <FlagComponent className="w-6 h-4 rounded-sm" />;
-```
-
+Les drapeaux s'afficheront correctement sur toutes les plateformes (Windows, macOS, iOS, Android) car ils seront rendus en SVG plutot qu'en emoji Unicode.
