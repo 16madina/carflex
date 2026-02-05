@@ -31,23 +31,25 @@ serve(async (req) => {
     logStep("Clé Stripe vérifiée");
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Pas d'en-tête d'autorisation");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Pas d'en-tête d'autorisation valide");
     logStep("En-tête d'autorisation trouvé");
 
     const token = authHeader.replace("Bearer ", "");
     logStep("Authentification de l'utilisateur");
     
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Erreur d'authentification: ${userError.message}`);
-    const user = userData.user;
-    if (!user?.email) throw new Error("Utilisateur non authentifié");
-    logStep("Utilisateur authentifié", { userId: user.id, email: user.email });
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) throw new Error(`Erreur d'authentification: ${claimsError?.message || 'Token invalide'}`);
+    
+    const userId = claimsData.claims.sub as string;
+    const userEmail = claimsData.claims.email as string;
+    if (!userId || !userEmail) throw new Error("Utilisateur non authentifié");
+    logStep("Utilisateur authentifié", { userId, email: userEmail });
 
     // Vérifier d'abord dans user_subscriptions (pour iOS et abonnements déjà synchronisés)
     const { data: localSub } = await supabaseClient
       .from('user_subscriptions')
       .select('product_id, status, current_period_end')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('status', 'active')
       .gte('current_period_end', new Date().toISOString())
       .maybeSingle();
@@ -71,7 +73,7 @@ serve(async (req) => {
     logStep("Aucun abonnement actif en base, vérification Stripe");
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     
     if (customers.data.length === 0) {
       logStep("Pas de client trouvé");
@@ -80,7 +82,7 @@ serve(async (req) => {
       await supabaseClient
         .from('user_subscriptions')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           product_id: 'free',
           status: 'inactive'
         });
@@ -127,7 +129,7 @@ serve(async (req) => {
       await supabaseClient
         .from('user_subscriptions')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           stripe_customer_id: customerId,
           stripe_subscription_id: stripeSubscriptionId,
           product_id: planData?.stripe_product_id || productId,
@@ -140,7 +142,7 @@ serve(async (req) => {
       await supabaseClient
         .from('user_subscriptions')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           stripe_customer_id: customerId,
           product_id: 'free',
           status: 'inactive'
