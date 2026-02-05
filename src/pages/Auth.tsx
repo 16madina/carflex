@@ -567,12 +567,14 @@ const Auth = () => {
                     </Select>
                   </div>
 
-                  {(signupData.userType === "seller" || signupData.userType === "dealer") && (
+                  {(signupData.userType === "seller" || signupData.userType === "dealer" || signupData.userType === "agent") && (
                     <div className="space-y-2">
-                      <Label htmlFor="signup-company">Nom de l'entreprise <span className="text-destructive">*</span></Label>
+                      <Label htmlFor="signup-company">
+                        {signupData.userType === "agent" ? "Nom de l'agence / Parc auto" : "Nom de l'entreprise"} <span className="text-destructive">*</span>
+                      </Label>
                       <Input
                         id="signup-company"
-                        placeholder="Mon Garage SARL"
+                        placeholder={signupData.userType === "agent" ? "Auto Prestige Dakar" : "Mon Garage SARL"}
                         value={signupData.companyName}
                         onChange={(e) => setSignupData({ ...signupData, companyName: e.target.value })}
                         required
