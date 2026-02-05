@@ -3,6 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 const DEFAULT_FREE_LISTINGS = 5;
 
+// Map user_type to the appropriate setting key
+const getUserTypeSettingKey = (userType: string | null): string => {
+  switch (userType) {
+    case 'dealer':
+      return 'free_listings_limit_dealer';
+    case 'agent':
+      return 'free_listings_limit_agent';
+    default:
+      return 'free_listings_limit';
+  }
+};
+
 export interface ListingLimitResult {
   canCreateListing: boolean;
   listingsThisMonth: number;
@@ -19,17 +31,29 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchListingLimit = async () => {
+  const fetchListingLimit = async (userType: string | null) => {
     try {
-      // Récupérer la limite depuis app_settings_numeric
+      const settingKey = getUserTypeSettingKey(userType);
+      
       const { data, error } = await supabase
         .from('app_settings_numeric')
         .select('setting_value')
-        .eq('setting_key', 'free_listings_limit')
+        .eq('setting_key', settingKey)
         .maybeSingle();
 
       if (!error && data) {
         setFreeListingsLimit(data.setting_value);
+      } else {
+        // Fallback to default limit if specific one not found
+        const { data: defaultData } = await supabase
+          .from('app_settings_numeric')
+          .select('setting_value')
+          .eq('setting_key', 'free_listings_limit')
+          .maybeSingle();
+        
+        if (defaultData) {
+          setFreeListingsLimit(defaultData.setting_value);
+        }
       }
     } catch (err) {
       console.error('[useListingLimit] Error fetching limit:', err);
@@ -46,15 +70,22 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     setError(null);
 
     try {
-      // Récupérer la limite d'abord
-      await fetchListingLimit();
+      // First get user type to determine appropriate limit
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', userId)
+        .single();
 
-      // Calculer le début du mois actuel
+      // Fetch the appropriate limit based on user type
+      await fetchListingLimit(profile?.user_type || null);
+
+      // Calculate start of current month
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const startOfMonthISO = startOfMonth.toISOString();
 
-      // Compter les annonces de vente créées ce mois-ci
+      // Count sale listings created this month
       const { count: saleCount, error: saleError } = await supabase
         .from('sale_listings')
         .select('*', { count: 'exact', head: true })
@@ -63,7 +94,7 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
 
       if (saleError) throw saleError;
 
-      // Compter les annonces de location créées ce mois-ci
+      // Count rental listings created this month
       const { count: rentalCount, error: rentalError } = await supabase
         .from('rental_listings')
         .select('*', { count: 'exact', head: true })
@@ -100,18 +131,20 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
   };
 };
 
-// Export pour accès externe si nécessaire
-export const useFreeListingsLimit = () => {
+// Export for external access if needed
+export const useFreeListingsLimit = (userType?: string) => {
   const [limit, setLimit] = useState(DEFAULT_FREE_LISTINGS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLimit = async () => {
       try {
+        const settingKey = getUserTypeSettingKey(userType || null);
+        
         const { data, error } = await supabase
           .from('app_settings_numeric')
           .select('setting_value')
-          .eq('setting_key', 'free_listings_limit')
+          .eq('setting_key', settingKey)
           .maybeSingle();
 
         if (!error && data) {
@@ -125,7 +158,7 @@ export const useFreeListingsLimit = () => {
     };
 
     fetchLimit();
-  }, []);
+  }, [userType]);
 
   return { limit, loading };
 };
