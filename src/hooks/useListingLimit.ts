@@ -22,6 +22,7 @@ export interface ListingLimitResult {
   freeListingsLimit: number;
   loading: boolean;
   error: string | null;
+  isPro: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -30,6 +31,31 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
   const [freeListingsLimit, setFreeListingsLimit] = useState(DEFAULT_FREE_LISTINGS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPro, setIsPro] = useState(false);
+
+  const checkProSubscription = async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('user_subscriptions')
+        .select('status, current_period_end')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (error || !data) return false;
+
+      // Check if subscription is still valid
+      if (data.current_period_end) {
+        const endDate = new Date(data.current_period_end);
+        return endDate > new Date();
+      }
+
+      return data.status === 'active';
+    } catch (err) {
+      console.error('[useListingLimit] Error checking Pro status:', err);
+      return false;
+    }
+  };
 
   const fetchListingLimit = async (userType: string | null) => {
     try {
@@ -70,7 +96,17 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     setError(null);
 
     try {
-      // First get user type to determine appropriate limit
+      // Check if user has Pro subscription
+      const hasProSubscription = await checkProSubscription(userId);
+      setIsPro(hasProSubscription);
+
+      // If Pro, no need to count listings (unlimited)
+      if (hasProSubscription) {
+        setLoading(false);
+        return;
+      }
+
+      // Get user type to determine appropriate limit
       const { data: profile } = await supabase
         .from('profiles')
         .select('user_type')
@@ -117,8 +153,9 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     fetchListingCount();
   }, [userId]);
 
-  const remainingListings = Math.max(0, freeListingsLimit - listingsThisMonth);
-  const canCreateListing = listingsThisMonth < freeListingsLimit;
+  // Pro users have unlimited listings
+  const remainingListings = isPro ? Infinity : Math.max(0, freeListingsLimit - listingsThisMonth);
+  const canCreateListing = isPro || listingsThisMonth < freeListingsLimit;
 
   return {
     canCreateListing,
@@ -127,6 +164,7 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     freeListingsLimit,
     loading,
     error,
+    isPro,
     refresh: fetchListingCount,
   };
 };

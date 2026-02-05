@@ -1,18 +1,21 @@
-import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Crown } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 interface ListingLimitIndicatorProps {
   listingsThisMonth: number;
   freeListingsLimit: number;
   loading?: boolean;
+  isPro?: boolean;
 }
 
 export const ListingLimitIndicator = ({
   listingsThisMonth,
   freeListingsLimit,
   loading = false,
+  isPro = false,
 }: ListingLimitIndicatorProps) => {
   if (loading) {
     return (
@@ -20,6 +23,26 @@ export const ListingLimitIndicator = ({
         <Skeleton className="h-4 w-48" />
         <Skeleton className="h-2 w-full" />
       </div>
+    );
+  }
+
+  // Pro users have unlimited listings
+  if (isPro) {
+    return (
+      <Alert className="border-primary/50 bg-primary/5">
+        <Crown className="h-4 w-4 text-primary" />
+        <AlertTitle className="flex items-center gap-2">
+          Annonces illimitées
+          <Badge variant="default" className="bg-gradient-to-r from-primary to-primary/80">
+            PRO
+          </Badge>
+        </AlertTitle>
+        <AlertDescription>
+          <p className="text-muted-foreground">
+            En tant qu'abonné Pro, vous pouvez publier autant d'annonces que vous le souhaitez sans aucune limite.
+          </p>
+        </AlertDescription>
+      </Alert>
     );
   }
 
