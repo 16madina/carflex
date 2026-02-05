@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { PRODUCT_TIERS, TIER_LIMITS, SubscriptionTier } from '@/contexts/SubscriptionContext';
 
 const DEFAULT_FREE_LISTINGS = 5;
 
@@ -23,6 +24,9 @@ export interface ListingLimitResult {
   loading: boolean;
   error: string | null;
   isPro: boolean;
+  tier: SubscriptionTier;
+  boostsRemaining: number;
+  boostsLimit: number;
   refresh: () => Promise<void>;
 }
 
@@ -32,28 +36,42 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPro, setIsPro] = useState(false);
+  const [tier, setTier] = useState<SubscriptionTier>('free');
+  const [boostsUsed, setBoostsUsed] = useState(0);
 
-  const checkProSubscription = async (userId: string): Promise<boolean> => {
+  const checkProSubscription = async (userId: string): Promise<{ isPro: boolean; tier: SubscriptionTier; limit: number }> => {
     try {
       const { data, error } = await supabase
         .from('user_subscriptions')
-        .select('status, current_period_end')
+        .select('status, current_period_end, product_id')
         .eq('user_id', userId)
         .eq('status', 'active')
         .maybeSingle();
 
-      if (error || !data) return false;
+      if (error || !data) return { isPro: false, tier: 'free', limit: DEFAULT_FREE_LISTINGS };
 
       // Check if subscription is still valid
       if (data.current_period_end) {
         const endDate = new Date(data.current_period_end);
-        return endDate > new Date();
+        if (endDate <= new Date()) {
+          return { isPro: false, tier: 'free', limit: DEFAULT_FREE_LISTINGS };
+        }
       }
 
-      return data.status === 'active';
+      if (data.status === 'active' && data.product_id) {
+        const subTier = PRODUCT_TIERS[data.product_id] || 'free';
+        const tierLimits = TIER_LIMITS[subTier];
+        return { 
+          isPro: subTier !== 'free', 
+          tier: subTier, 
+          limit: tierLimits.listings 
+        };
+      }
+
+      return { isPro: false, tier: 'free', limit: DEFAULT_FREE_LISTINGS };
     } catch (err) {
       console.error('[useListingLimit] Error checking Pro status:', err);
-      return false;
+      return { isPro: false, tier: 'free', limit: DEFAULT_FREE_LISTINGS };
     }
   };
 
@@ -86,6 +104,27 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     }
   };
 
+  const fetchBoostsUsed = async (userId: string) => {
+    try {
+      // Count active boosts this month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const { count, error } = await supabase
+        .from('premium_listings')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .gte('created_at', startOfMonth.toISOString());
+
+      if (!error && count !== null) {
+        setBoostsUsed(count);
+      }
+    } catch (err) {
+      console.error('[useListingLimit] Error fetching boosts:', err);
+    }
+  };
+
   const fetchListingCount = async () => {
     if (!userId) {
       setLoading(false);
@@ -96,25 +135,26 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     setError(null);
 
     try {
-      // Check if user has Pro subscription
-      const hasProSubscription = await checkProSubscription(userId);
-      setIsPro(hasProSubscription);
+      // Check if user has Pro subscription and get tier
+      const proStatus = await checkProSubscription(userId);
+      setIsPro(proStatus.isPro);
+      setTier(proStatus.tier);
 
-      // If Pro, no need to count listings (unlimited)
-      if (hasProSubscription) {
-        setLoading(false);
-        return;
+      // Set limit based on tier
+      if (proStatus.isPro) {
+        setFreeListingsLimit(proStatus.limit);
+        await fetchBoostsUsed(userId);
+      } else {
+        // Get user type to determine appropriate limit for free users
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', userId)
+          .single();
+
+        // Fetch the appropriate limit based on user type
+        await fetchListingLimit(profile?.user_type || null);
       }
-
-      // Get user type to determine appropriate limit
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', userId)
-        .single();
-
-      // Fetch the appropriate limit based on user type
-      await fetchListingLimit(profile?.user_type || null);
 
       // Calculate start of current month
       const now = new Date();
@@ -153,9 +193,10 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     fetchListingCount();
   }, [userId]);
 
-  // Pro users have unlimited listings
-  const remainingListings = isPro ? Infinity : Math.max(0, freeListingsLimit - listingsThisMonth);
-  const canCreateListing = isPro || listingsThisMonth < freeListingsLimit;
+  const tierLimits = TIER_LIMITS[tier];
+  const remainingListings = Math.max(0, freeListingsLimit - listingsThisMonth);
+  const canCreateListing = listingsThisMonth < freeListingsLimit;
+  const boostsRemaining = Math.max(0, tierLimits.boosts - boostsUsed);
 
   return {
     canCreateListing,
@@ -165,6 +206,9 @@ export const useListingLimit = (userId: string | null): ListingLimitResult => {
     loading,
     error,
     isPro,
+    tier,
+    boostsRemaining,
+    boostsLimit: tierLimits.boosts,
     refresh: fetchListingCount,
   };
 };
