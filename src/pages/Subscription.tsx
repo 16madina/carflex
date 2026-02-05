@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Check, Loader2, Crown, Sparkles, TrendingUp, BarChart3, Tag, ArrowLeft, RefreshCw, Zap, Shield, Star, Infinity } from "lucide-react";
-import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useSubscription, PRODUCT_TIERS } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
@@ -28,10 +28,27 @@ interface SubscriptionPlan {
 }
 
 const FREE_FEATURES = [
-  "Jusqu'à 5 annonces",
+  "Jusqu'à 5 annonces/mois",
   "Fonctionnalités de base",
   "Support standard"
 ];
+
+// Plan display configuration
+const PLAN_CONFIG: Record<string, { 
+  gradient: string; 
+  badgeIcon: string;
+  recommended?: boolean;
+}> = {
+  'Pro Argent': { 
+    gradient: 'from-slate-400/10 via-slate-300/5 to-transparent',
+    badgeIcon: '🥈',
+  },
+  'Pro Gold': { 
+    gradient: 'from-amber-400/10 via-amber-300/5 to-transparent',
+    badgeIcon: '🥇',
+    recommended: true,
+  },
+};
 
 const Subscription = () => {
   const navigate = useNavigate();
@@ -102,19 +119,23 @@ const Subscription = () => {
     fetchPlans();
   }, []);
 
-  const proPlan = plans.find(plan => plan.name === 'Pro');
-  const isPro = subscribed && proPlan && productId === proPlan.stripe_product_id;
+  // Get Pro plans (Argent and Gold)
+  const proPlans = plans.filter(plan => plan.name.startsWith('Pro'));
+  const currentPlan = proPlans.find(plan => plan.stripe_product_id === productId);
+  const isPro = subscribed && currentPlan !== undefined;
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
 
-  const handleSubscribe = async () => {
-    if (!proPlan) {
+  const handleSubscribe = async (plan: SubscriptionPlan) => {
+    if (!plan) {
       toast({
         title: "Erreur",
-        description: "Le plan Pro n'est pas disponible",
+        description: "Veuillez sélectionner un plan",
         variant: "destructive"
       });
       return;
     }
 
+    setSelectedPlan(plan);
     setSubscribing(true);
     
     try {
@@ -123,7 +144,7 @@ const Subscription = () => {
         await handleIOSPurchase();
       } else {
         // Sur web/Android, utiliser Stripe
-        await handleStripePurchase();
+        await handleStripePurchase(plan);
       }
     } catch (error: any) {
       console.error('[Subscription] Erreur lors de l\'achat:', error?.message);
@@ -138,6 +159,7 @@ const Subscription = () => {
       }
     } finally {
       setSubscribing(false);
+      setSelectedPlan(null);
     }
   };
 
@@ -260,16 +282,13 @@ const Subscription = () => {
     }
   };
 
-  const handleStripePurchase = async () => {
+  const handleStripePurchase = async (plan: SubscriptionPlan) => {
     try {
-      // Prix Stripe pour le Plan Pro mensuel (10,000 XOF/mois)
-      const STRIPE_PRICE_ID = 'price_1SO66N0uNiBPsOk0hWzYsLTW';
-      
-      console.log('[STRIPE] Création de la session de paiement...');
+      console.log('[STRIPE] Création de la session de paiement pour:', plan.name);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
-          priceId: STRIPE_PRICE_ID,
+          priceId: plan.stripe_price_id,
           ...(promoCode && { couponCode: promoCode })
         }
       });
@@ -589,7 +608,7 @@ const Subscription = () => {
         )}
 
         {/* Plans de tarification */}
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
           {/* Plan Gratuit */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -630,187 +649,200 @@ const Subscription = () => {
             </Card>
           </motion.div>
 
-          {/* Plan Pro - Chargé depuis la base de données */}
-          {proPlan && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className={`relative h-full transition-all duration-300 hover:shadow-xl ${
-                isPro 
-                  ? "border-primary shadow-lg shadow-primary/10" 
-                  : "border-primary/30 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"
-              }`}>
-                {/* Badge recommandé ou plan actuel */}
-                <div className="absolute -top-3 left-4 flex gap-2">
-                  {isPro ? (
-                    <Badge className="bg-primary shadow-sm">
-                      <Crown className="h-3 w-3 mr-1" />
-                      Plan actuel
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-sm">
-                      <Star className="h-3 w-3 mr-1" />
-                      Recommandé
-                    </Badge>
-                  )}
-                </div>
-                
-                <CardHeader className="pt-8">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-xl">{proPlan.name}</CardTitle>
-                    <Crown className="h-5 w-5 text-primary" />
+          {/* Plans Pro - Chargés depuis la base de données */}
+          {proPlans.map((plan, planIndex) => {
+            const config = PLAN_CONFIG[plan.name] || { gradient: 'from-primary/5 to-transparent', badgeIcon: '⭐' };
+            const isCurrentPlan = currentPlan?.stripe_product_id === plan.stripe_product_id;
+            const isSubscribingToThis = selectedPlan?.id === plan.id && subscribing;
+            
+            return (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + planIndex * 0.1 }}
+              >
+                <Card className={`relative h-full transition-all duration-300 hover:shadow-xl ${
+                  isCurrentPlan 
+                    ? "border-primary shadow-lg shadow-primary/10" 
+                    : config.recommended 
+                      ? "border-amber-400/50 bg-gradient-to-br " + config.gradient
+                      : "border-primary/30 bg-gradient-to-br " + config.gradient
+                }`}>
+                  {/* Badge recommandé ou plan actuel */}
+                  <div className="absolute -top-3 left-4 flex gap-2">
+                    {isCurrentPlan ? (
+                      <Badge className="bg-primary shadow-sm">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Plan actuel
+                      </Badge>
+                    ) : config.recommended ? (
+                      <Badge className="bg-gradient-to-r from-amber-500 to-amber-400 text-white shadow-sm">
+                        <Star className="h-3 w-3 mr-1" />
+                        Recommandé
+                      </Badge>
+                    ) : null}
                   </div>
-                  <CardDescription>
-                    <span className="text-4xl font-bold text-foreground">{formatPrice(proPlan.price).replace(' XOF', '')}</span>
-                    <span className="text-lg font-medium text-foreground"> XOF</span>
-                    <span className="text-muted-foreground">/mois</span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Maximisez votre visibilité et vos ventes
-                  </p>
-                  <ul className="space-y-3">
-                    {proPlan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <div className="rounded-full p-1 bg-primary/10">
-                          <Check className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter className="pt-4">
-                  {!isPro ? (
-                    <div className="w-full space-y-3">
-                      {/* Codes promo uniquement pour Web/Android (Stripe) */}
-                      {!isIOS && (
-                        <div className="space-y-2">
+                  
+                  <CardHeader className="pt-8">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{config.badgeIcon}</span>
+                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                    </div>
+                    <CardDescription>
+                      <span className="text-4xl font-bold text-foreground">{formatPrice(plan.price).replace(' XOF', '')}</span>
+                      <span className="text-lg font-medium text-foreground"> XOF</span>
+                      <span className="text-muted-foreground">/mois</span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      {plan.description || "Maximisez votre visibilité et vos ventes"}
+                    </p>
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <div className={`rounded-full p-1 ${config.recommended ? 'bg-amber-500/10' : 'bg-primary/10'}`}>
+                            <Check className={`h-3.5 w-3.5 ${config.recommended ? 'text-amber-600' : 'text-primary'}`} />
+                          </div>
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter className="pt-4">
+                    {!isCurrentPlan ? (
+                      <div className="w-full space-y-3">
+                        {/* Codes promo uniquement pour Web/Android (Stripe) */}
+                        {!isIOS && !isPro && (
+                          <div className="space-y-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setShowPromoInput(!showPromoInput)}
+                              className="w-full border-dashed"
+                              size="sm"
+                            >
+                              <Tag className="mr-2 h-4 w-4" />
+                              {showPromoInput ? "Masquer" : "J'ai un"} code promo
+                            </Button>
+                            
+                            {showPromoInput && (
+                              <Input
+                                placeholder="Entrez votre code promo"
+                                value={promoCode}
+                                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                className="text-center uppercase"
+                              />
+                            )}
+                          </div>
+                        )}
+
+                        <Button
+                          onClick={() => handleSubscribe(plan)} 
+                          disabled={subscribing || restoring}
+                          className={`w-full shadow-lg ${
+                            config.recommended 
+                              ? 'bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 shadow-amber-500/20' 
+                              : 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-primary/20'
+                          }`}
+                          size="lg"
+                        >
+                          {isSubscribingToThis ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {isIOS ? "Ouverture App Store..." : "Redirection..."}
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="mr-2 h-4 w-4" />
+                              {isPro ? "Changer de plan" : `Passer à ${plan.name}`}
+                            </>
+                          )}
+                        </Button>
+                        
+                        {isIOS && !isPro && (
                           <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setShowPromoInput(!showPromoInput)}
-                            className="w-full border-dashed"
+                            onClick={handleRestorePurchases}
+                            disabled={subscribing || restoring}
+                            variant="ghost"
+                            className="w-full text-muted-foreground"
                             size="sm"
                           >
-                            <Tag className="mr-2 h-4 w-4" />
-                            {showPromoInput ? "Masquer" : "J'ai un"} code promo
+                            {restoring ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Restauration...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Restaurer mes achats
+                              </>
+                            )}
                           </Button>
-                          
-                          {showPromoInput && (
-                            <Input
-                              placeholder="Entrez votre code promo"
-                              value={promoCode}
-                              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                              className="text-center uppercase"
-                            />
-                          )}
-                        </div>
-                      )}
-
-                      <Button
-                        onClick={handleSubscribe} 
-                        disabled={subscribing || restoring}
-                        className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20"
-                        size="lg"
-                      >
-                        {subscribing ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {isIOS ? "Ouverture App Store..." : "Redirection..."}
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="mr-2 h-4 w-4" />
-                            Passer à Pro
-                          </>
                         )}
-                      </Button>
-                      
-                      {isIOS && (
-                        <Button
-                          onClick={handleRestorePurchases}
-                          disabled={subscribing || restoring}
-                          variant="ghost"
-                          className="w-full text-muted-foreground"
-                          size="sm"
-                        >
-                          {restoring ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Restauration...
-                            </>
-                          ) : (
-                            <>
-                              <RefreshCw className="mr-2 h-4 w-4" />
-                              Restaurer mes achats
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="w-full space-y-3">
-                      {subscriptionEnd && (
-                        <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
-                          <p className="text-xs text-muted-foreground">Prochain renouvellement</p>
-                          <p className="font-medium text-primary">
-                            {new Date(subscriptionEnd).toLocaleDateString('fr-FR', { 
-                              day: 'numeric', 
-                              month: 'long', 
-                              year: 'numeric' 
-                            })}
-                          </p>
-                        </div>
-                      )}
-                      {!isIOS && (
-                        <Button 
-                          onClick={handleManageSubscription} 
-                          disabled={managing}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          {managing ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Chargement...
-                            </>
-                          ) : (
-                            "Gérer mon abonnement"
-                          )}
-                        </Button>
-                      )}
-                      
-                      {isIOS && (
-                        <Button
-                          onClick={handleRestorePurchases}
-                          disabled={restoring}
-                          variant="ghost"
-                          className="w-full text-muted-foreground"
-                          size="sm"
-                        >
-                          {restoring ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Restauration...
-                            </>
-                          ) : (
-                            <>
-                              <RefreshCw className="mr-2 h-4 w-4" />
-                              Restaurer mes achats
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </CardFooter>
-              </Card>
-            </motion.div>
-          )}
+                      </div>
+                    ) : (
+                      <div className="w-full space-y-3">
+                        {subscriptionEnd && (
+                          <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
+                            <p className="text-xs text-muted-foreground">Prochain renouvellement</p>
+                            <p className="font-medium text-primary">
+                              {new Date(subscriptionEnd).toLocaleDateString('fr-FR', { 
+                                day: 'numeric', 
+                                month: 'long', 
+                                year: 'numeric' 
+                              })}
+                            </p>
+                          </div>
+                        )}
+                        {!isIOS && (
+                          <Button 
+                            onClick={handleManageSubscription} 
+                            disabled={managing}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            {managing ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Chargement...
+                              </>
+                            ) : (
+                              "Gérer mon abonnement"
+                            )}
+                          </Button>
+                        )}
+                        
+                        {isIOS && (
+                          <Button
+                            onClick={handleRestorePurchases}
+                            disabled={restoring}
+                            variant="ghost"
+                            className="w-full text-muted-foreground"
+                            size="sm"
+                          >
+                            {restoring ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Restauration...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Restaurer mes achats
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Section des avantages Pro */}
