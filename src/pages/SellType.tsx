@@ -61,8 +61,15 @@ const SellType = () => {
               onClick={() => navigate("/sell/vendre")}
             >
               <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <DollarSign className="w-8 h-8 text-primary" strokeWidth={2.5} />
+                <div className="relative w-20 h-20">
+                  {/* Liquid gradient background */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-accent/20 blur-xl animate-pulse" />
+                  {/* Glassmorphism container */}
+                  <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md border border-white/50 shadow-lg flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
+                      <DollarSign className="w-6 h-6 text-white" strokeWidth={2.5} />
+                    </div>
+                  </div>
                 </div>
                 <h2 className="text-lg font-bold text-center text-foreground leading-tight">
                   Je veux vendre<br />mon véhicule
@@ -75,8 +82,15 @@ const SellType = () => {
               onClick={() => navigate("/sell/louer")}
             >
               <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Key className="w-8 h-8 text-primary" strokeWidth={2.5} />
+                <div className="relative w-20 h-20">
+                  {/* Liquid gradient background */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-accent/20 blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+                  {/* Glassmorphism container */}
+                  <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md border border-white/50 shadow-lg flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
+                      <Key className="w-6 h-6 text-white" strokeWidth={2.5} />
+                    </div>
+                  </div>
                 </div>
                 <h2 className="text-lg font-bold text-center text-foreground leading-tight">
                   Je veux louer<br />mon véhicule
@@ -90,14 +104,25 @@ const SellType = () => {
             onClick={handleEvaluationClick}
           >
             <CardContent className="flex flex-col items-center justify-center p-8 space-y-4">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
-                isEvaluationRestricted ? 'bg-muted' : 'bg-accent/10'
-              }`}>
-                {isEvaluationRestricted ? (
-                  <Lock className="w-10 h-10 text-muted-foreground" strokeWidth={2.5} />
-                ) : (
-                  <Calculator className="w-10 h-10 text-accent" strokeWidth={2.5} />
-                )}
+              <div className="relative w-24 h-24">
+                {/* Liquid gradient background */}
+                <div className={`absolute inset-0 rounded-full blur-xl animate-pulse ${
+                  isEvaluationRestricted 
+                    ? 'bg-gradient-to-br from-muted/30 via-muted/10 to-muted/20' 
+                    : 'bg-gradient-to-br from-accent/30 via-accent/10 to-primary/20'
+                }`} style={{ animationDelay: '1s' }} />
+                {/* Glassmorphism container */}
+                <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md border border-white/50 shadow-lg flex items-center justify-center">
+                  {isEvaluationRestricted ? (
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-muted-foreground/60 to-muted-foreground/40 flex items-center justify-center shadow-md">
+                      <Lock className="w-7 h-7 text-white" strokeWidth={2.5} />
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center shadow-md">
+                      <Calculator className="w-7 h-7 text-white" strokeWidth={2.5} />
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <h2 className={`text-xl font-bold text-center leading-tight ${
