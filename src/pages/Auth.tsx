@@ -13,6 +13,7 @@ import { Car, Upload, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { WEST_AFRICAN_COUNTRIES, Country } from "@/contexts/CountryContext";
 import CitySelector from "@/components/CitySelector";
+import FlagIcon from "@/components/FlagIcon";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { validateImageFile } from "@/lib/fileValidation";
 import { validatePassword } from "@/lib/passwordValidation";
@@ -506,7 +507,7 @@ const Auth = () => {
                                   {countries.map((country) => (
                                     <SelectItem key={country.code} value={country.code}>
                                       <span className="flex items-center gap-2">
-                                        <span className="text-lg">{country.flag}</span>
+                                        <FlagIcon countryCode={country.code} className="w-5 h-4" />
                                         <span>{country.name}</span>
                                       </span>
                                     </SelectItem>
@@ -530,9 +531,7 @@ const Auth = () => {
                     <Label htmlFor="signup-phone">Téléphone <span className="text-destructive">*</span></Label>
                     <div className="relative">
                       <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                        <span className="text-lg">
-                          {WEST_AFRICAN_COUNTRIES.find(c => c.code === signupData.country)?.flag}
-                        </span>
+                        <FlagIcon countryCode={signupData.country} className="w-5 h-4" />
                         <span className="text-sm text-muted-foreground">
                           {WEST_AFRICAN_COUNTRIES.find(c => c.code === signupData.country)?.dialCode}
                         </span>
