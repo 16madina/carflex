@@ -101,7 +101,7 @@ const ProgressiveSearch = () => {
                   variant="outline"
                   role="combobox"
                   aria-expanded={brandOpen}
-                  className="w-full h-11 justify-between text-base font-normal"
+                  className="w-full h-11 justify-between text-base font-normal text-foreground bg-background border-input"
                 >
                   {selectedBrand || "Sélectionnez une marque..."}
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -160,7 +160,7 @@ const ProgressiveSearch = () => {
                     transition={{ delay: 0.1 }}
                   >
                     <Select value={selectedModel} onValueChange={setSelectedModel}>
-                      <SelectTrigger className="h-11">
+                      <SelectTrigger className="h-11 text-foreground bg-background border-input">
                         <SelectValue placeholder="Modèle (optionnel)" />
                       </SelectTrigger>
                       <SelectContent className="z-50">
@@ -181,7 +181,7 @@ const ProgressiveSearch = () => {
                   transition={{ delay: 0.2 }}
                 >
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-11 text-foreground bg-background border-input">
                       <SelectValue placeholder="Année (optionnel)" />
                     </SelectTrigger>
                     <SelectContent className="z-50 max-h-60">
@@ -201,7 +201,7 @@ const ProgressiveSearch = () => {
                   transition={{ delay: 0.3 }}
                 >
                   <Select value={selectedPriceRange} onValueChange={setSelectedPriceRange}>
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-11 text-foreground bg-background border-input">
                       <SelectValue placeholder="Budget (optionnel)" />
                     </SelectTrigger>
                     <SelectContent className="z-50">
