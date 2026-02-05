@@ -11,8 +11,14 @@ const TopBar = () => {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b pt-[max(1rem,env(safe-area-inset-top))]">
-      <div className="container mx-auto px-4">
+    <header className="fixed top-0 left-0 right-0 z-40 pt-[max(1rem,env(safe-area-inset-top))]">
+      {/* Glassmorphism background */}
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-xl border-b border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)]" />
+      
+      {/* Liquid gradient accent */}
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      
+      <div className="relative container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center">
             <img src={carflexLogo} alt="CarFlex Logo" className="h-12 w-auto object-contain" />
