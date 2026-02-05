@@ -1,12 +1,11 @@
-import { Search, Zap, Crown } from "lucide-react";
+import { Zap, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import heroImage from "@/assets/hero-cars.jpg";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
+import ProgressiveSearch from "./ProgressiveSearch";
 interface SponsoredListing {
   id: string;
   brand: string;
@@ -22,7 +21,6 @@ interface HeroProps {
 }
 
 const Hero = ({ userFirstName }: HeroProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [sponsoredListings, setSponsoredListings] = useState<SponsoredListing[]>([]);
   const navigate = useNavigate();
 
@@ -75,18 +73,6 @@ const Hero = ({ userFirstName }: HeroProps) => {
     fetchSponsored();
   }, []);
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/listings?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
   };
@@ -128,23 +114,7 @@ const Hero = ({ userFirstName }: HeroProps) => {
             Des milliers de véhicules à vendre et à louer dans toute l'Afrique
           </p>
 
-          <div className="bg-background rounded-xl p-4 shadow-elevated">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1">
-                <Input
-                  placeholder="Marque, modèle, année..."
-                  className="h-11 text-base"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                />
-              </div>
-              <Button size="lg" className="h-11 px-6" onClick={handleSearch}>
-                <Search className="mr-2 h-5 w-5" />
-                Rechercher
-              </Button>
-            </div>
-          </div>
+          <ProgressiveSearch />
 
           {/* Annonces sponsorisées */}
           {sponsoredListings.length > 0 && (
