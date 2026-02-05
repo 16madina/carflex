@@ -1,9 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingCart, Plus, MessageCircle, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Home, Car, PlusCircle, MessageSquare, UserCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const BottomNav = () => {
   const location = useLocation();
@@ -58,11 +58,11 @@ const BottomNav = () => {
   };
 
   const navItems = [
-    { path: "/", icon: Home, label: "Accueil" },
-    { path: "/listings", icon: ShoppingCart, label: "Acheter" },
-    { path: "/sell", icon: Plus, label: "Poster", isCenter: true },
-    { path: "/messages", icon: MessageCircle, label: "Messages", showBadge: true },
-    { path: "/profile", icon: User, label: "Profil" },
+    { path: "/", icon: Home, label: "Accueil", gradient: "from-blue-500 to-cyan-400" },
+    { path: "/listings", icon: Car, label: "Acheter", gradient: "from-emerald-500 to-teal-400" },
+    { path: "/sell", icon: PlusCircle, label: "Poster", isCenter: true, gradient: "from-primary to-primary/70" },
+    { path: "/messages", icon: MessageSquare, label: "Messages", showBadge: true, gradient: "from-violet-500 to-purple-400" },
+    { path: "/profile", icon: UserCircle, label: "Profil", gradient: "from-orange-500 to-amber-400" },
   ];
 
   const isActive = (path: string) => {
@@ -73,22 +73,46 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t shadow-material-xl" style={{ touchAction: 'none' }}>
-      <div className="flex items-center justify-around px-2 pb-safe-bottom" style={{ height: 'max(60px, calc(60px + env(safe-area-inset-bottom)))' }}>
+    <nav 
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50" 
+      style={{ touchAction: 'none' }}
+    >
+      {/* Glassmorphism background */}
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-xl border-t border-white/20 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]" />
+      
+      {/* Liquid gradient accent */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      
+      <div 
+        className="relative flex items-center justify-around px-2 pb-safe-bottom" 
+        style={{ height: 'max(70px, calc(70px + env(safe-area-inset-bottom)))' }}
+      >
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
 
           if (item.isCenter) {
             return (
-              <Link key={item.path} to={item.path} className="relative -top-6">
-                <Button
-                  size="icon"
-                  className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-hero shadow-material-xl hover:scale-110 active:scale-95 transition-all"
-                  aria-label={item.label}
-                >
-                  <Icon className="h-7 w-7 md:h-9 md:w-9" />
-                </Button>
+              <Link key={item.path} to={item.path} className="relative -top-5">
+                {/* Outer glow ring */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-primary/20 blur-xl scale-150 animate-pulse" />
+                
+                {/* Main button container */}
+                <div className={cn(
+                  "relative h-16 w-16 rounded-full",
+                  "bg-gradient-to-br from-primary via-primary to-primary/80",
+                  "shadow-[0_8px_32px_rgba(var(--primary),0.4)]",
+                  "flex items-center justify-center",
+                  "transition-all duration-300",
+                  "hover:scale-110 hover:shadow-[0_12px_40px_rgba(var(--primary),0.5)]",
+                  "active:scale-95"
+                )}>
+                  {/* Inner glassmorphism layer */}
+                  <div className="absolute inset-1 rounded-full bg-white/20 backdrop-blur-sm" />
+                  
+                  {/* Icon */}
+                  <Icon className="relative h-7 w-7 text-primary-foreground drop-shadow-lg" strokeWidth={2.5} />
+                </div>
               </Link>
             );
           }
@@ -97,35 +121,77 @@ const BottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`
-                flex flex-col items-center justify-center gap-1.5 px-4 py-2 rounded-2xl
-                transition-all duration-300 relative min-h-[48px] min-w-[48px] active-press
-                ${
-                  active
-                    ? "text-primary scale-105"
-                    : "text-muted-foreground hover:text-foreground"
-                }
-              `}
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 relative group"
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
+              {/* Active background glow */}
+              {active && (
+                <div className={cn(
+                  "absolute inset-0 rounded-2xl opacity-20",
+                  `bg-gradient-to-br ${item.gradient}`,
+                  "blur-md"
+                )} />
+              )}
+              
+              {/* Icon container */}
               <div className="relative">
-                <div className={`p-2 md:p-3 rounded-xl ${active ? 'glass-morphism' : ''}`}>
-                  <Icon className="h-6 w-6 md:h-7 md:w-7" />
+                {/* Glassmorphism icon background */}
+                <div className={cn(
+                  "relative p-2.5 rounded-xl transition-all duration-300",
+                  active 
+                    ? "bg-white/30 dark:bg-white/10 backdrop-blur-md shadow-lg border border-white/30" 
+                    : "group-hover:bg-white/20 group-hover:backdrop-blur-sm"
+                )}>
+                  {/* Gradient overlay for active state */}
+                  {active && (
+                    <div className={cn(
+                      "absolute inset-0 rounded-xl opacity-30",
+                      `bg-gradient-to-br ${item.gradient}`
+                    )} />
+                  )}
+                  
+                  <Icon 
+                    className={cn(
+                      "relative h-5 w-5 transition-all duration-300",
+                      active 
+                        ? "text-primary drop-shadow-sm" 
+                        : "text-muted-foreground group-hover:text-foreground"
+                    )} 
+                    strokeWidth={active ? 2.5 : 2}
+                  />
                 </div>
+                
+                {/* Notification badge */}
                 {item.showBadge && unreadCount > 0 && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] shadow-material"
+                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] shadow-lg border-2 border-background animate-pulse"
                   >
-                    {unreadCount}
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </Badge>
                 )}
+                
+                {/* Active indicator dot */}
                 {active && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
+                  <div className={cn(
+                    "absolute -bottom-1 left-1/2 -translate-x-1/2",
+                    "w-1 h-1 rounded-full",
+                    `bg-gradient-to-r ${item.gradient}`,
+                    "shadow-sm"
+                  )} />
                 )}
               </div>
-              <span className="text-xs md:text-sm font-medium">{item.label}</span>
+              
+              {/* Label */}
+              <span className={cn(
+                "text-[10px] font-medium transition-colors duration-300",
+                active 
+                  ? "text-primary" 
+                  : "text-muted-foreground group-hover:text-foreground"
+              )}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
