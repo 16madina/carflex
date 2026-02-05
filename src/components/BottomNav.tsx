@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 const BottomNav = () => {
   const location = useLocation();
@@ -72,6 +73,21 @@ const BottomNav = () => {
     return location.pathname.startsWith(path);
   };
 
+  const bounceAnimation = {
+    tap: { 
+      scale: [1, 0.85, 1.2, 0.95, 1],
+      transition: { duration: 0.4, ease: "easeInOut" as const }
+    }
+  };
+
+  const centerBounceAnimation = {
+    tap: { 
+      scale: [1, 0.88, 1.15, 1],
+      y: [0, 3, -6, 0],
+      transition: { duration: 0.4, ease: "easeOut" as const }
+    }
+  };
+
   return (
     <nav 
       className="lg:hidden fixed bottom-0 left-0 right-0 z-50" 
@@ -94,25 +110,30 @@ const BottomNav = () => {
           if (item.isCenter) {
             return (
               <Link key={item.path} to={item.path} className="relative -top-5">
-                {/* Outer glow ring */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-primary/20 blur-xl scale-150 animate-pulse" />
-                
-                {/* Main button container */}
-                <div className={cn(
-                  "relative h-16 w-16 rounded-full",
-                  "bg-gradient-to-br from-primary via-primary to-primary/80",
-                  "shadow-[0_8px_32px_rgba(var(--primary),0.4)]",
-                  "flex items-center justify-center",
-                  "transition-all duration-300",
-                  "hover:scale-110 hover:shadow-[0_12px_40px_rgba(var(--primary),0.5)]",
-                  "active:scale-95"
-                )}>
-                  {/* Inner glassmorphism layer */}
-                  <div className="absolute inset-1 rounded-full bg-white/20 backdrop-blur-sm" />
+                <motion.div
+                  whileTap="tap"
+                  variants={centerBounceAnimation}
+                  className="relative"
+                >
+                  {/* Outer glow ring */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-primary/20 blur-xl scale-150 animate-pulse" />
                   
-                  {/* Icon */}
-                  <Icon className="relative h-7 w-7 text-primary-foreground drop-shadow-lg" strokeWidth={2.5} />
-                </div>
+                  {/* Main button container */}
+                  <div className={cn(
+                    "relative h-16 w-16 rounded-full",
+                    "bg-gradient-to-br from-primary via-primary to-primary/80",
+                    "shadow-[0_8px_32px_rgba(var(--primary),0.4)]",
+                    "flex items-center justify-center",
+                    "transition-shadow duration-300",
+                    "hover:shadow-[0_12px_40px_rgba(var(--primary),0.5)]"
+                  )}>
+                    {/* Inner glassmorphism layer */}
+                    <div className="absolute inset-1 rounded-full bg-white/20 backdrop-blur-sm" />
+                    
+                    {/* Icon */}
+                    <Icon className="relative h-7 w-7 text-primary-foreground drop-shadow-lg" strokeWidth={2.5} />
+                  </div>
+                </motion.div>
               </Link>
             );
           }
@@ -134,8 +155,12 @@ const BottomNav = () => {
                 )} />
               )}
               
-              {/* Icon container */}
-              <div className="relative">
+              {/* Icon container with bounce animation */}
+              <motion.div 
+                className="relative"
+                whileTap="tap"
+                variants={bounceAnimation}
+              >
                 {/* Glassmorphism icon background */}
                 <div className={cn(
                   "relative p-2.5 rounded-xl transition-all duration-300",
@@ -174,14 +199,18 @@ const BottomNav = () => {
                 
                 {/* Active indicator dot */}
                 {active && (
-                  <div className={cn(
-                    "absolute -bottom-1 left-1/2 -translate-x-1/2",
-                    "w-1 h-1 rounded-full",
-                    `bg-gradient-to-r ${item.gradient}`,
-                    "shadow-sm"
-                  )} />
+                  <motion.div 
+                    className={cn(
+                      "absolute -bottom-1 left-1/2 -translate-x-1/2",
+                      "w-1.5 h-1.5 rounded-full",
+                      `bg-gradient-to-r ${item.gradient}`,
+                      "shadow-sm"
+                    )}
+                    layoutId="activeIndicator"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
                 )}
-              </div>
+              </motion.div>
               
               {/* Label */}
               <span className={cn(
