@@ -1,9 +1,11 @@
-import { AlertCircle, AlertTriangle, CheckCircle2, Crown, Zap } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Crown, Zap, ArrowRight } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { SubscriptionTier } from "@/contexts/SubscriptionContext";
+import { Link } from "react-router-dom";
 
 interface ListingLimitIndicatorProps {
   listingsThisMonth: number;
@@ -138,6 +140,15 @@ export const ListingLimitIndicator = ({
             className="h-2"
           />
         </div>
+        {(isNearLimit || isAtLimit) && (
+          <Button asChild variant="default" size="sm" className="w-full mt-2">
+            <Link to="/subscription">
+              <Crown className="h-4 w-4 mr-2" />
+              Passer Pro
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Link>
+          </Button>
+        )}
       </AlertDescription>
     </Alert>
   );
