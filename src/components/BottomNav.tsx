@@ -59,11 +59,11 @@ const BottomNav = () => {
   };
 
   const navItems = [
-    { path: "/", icon: Home, label: "Accueil", gradient: "from-blue-500 to-cyan-400" },
-    { path: "/listings", icon: Car, label: "Acheter", gradient: "from-emerald-500 to-teal-400" },
+    { path: "/", icon: Home, label: "Accueil", gradient: "from-primary to-primary/70" },
+    { path: "/listings", icon: Car, label: "Acheter", gradient: "from-primary/80 to-primary/50" },
     { path: "/sell", icon: PlusCircle, label: "Poster", isCenter: true, gradient: "from-primary to-primary/70" },
-    { path: "/messages", icon: MessageSquare, label: "Messages", showBadge: true, gradient: "from-violet-500 to-purple-400" },
-    { path: "/profile", icon: UserCircle, label: "Profil", gradient: "from-orange-500 to-amber-400" },
+    { path: "/messages", icon: MessageSquare, label: "Messages", showBadge: true, gradient: "from-primary/90 to-primary/60" },
+    { path: "/profile", icon: UserCircle, label: "Profil", gradient: "from-accent to-accent/70" },
   ];
 
   const isActive = (path: string) => {
