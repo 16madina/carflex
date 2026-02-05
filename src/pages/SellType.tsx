@@ -6,10 +6,13 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, Key, Calculator, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAppSettings } from "@/hooks/useAppSettings";
 
+// Background images
+import sellCarBg from "@/assets/sell-car-bg.jpg";
+import rentCarBg from "@/assets/rent-car-bg.jpg";
+import evaluateCarBg from "@/assets/evaluate-car-bg.jpg";
 const SellType = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -57,42 +60,56 @@ const SellType = () => {
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <Card 
-              className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] bg-white border-0 shadow-lg overflow-hidden"
+              className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] border-0 shadow-xl overflow-hidden relative group"
               onClick={() => navigate("/sell/vendre")}
             >
-              <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
+              {/* Background image with overlay */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                style={{ backgroundImage: `url(${sellCarBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-white/70" />
+              
+              <CardContent className="relative flex flex-col items-center justify-center p-6 space-y-3">
                 <div className="relative w-20 h-20">
                   {/* Liquid gradient background */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-accent/20 blur-xl animate-pulse" />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 via-primary/20 to-accent/30 blur-xl animate-pulse" />
                   {/* Glassmorphism container */}
-                  <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md border border-white/50 shadow-lg flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
+                  <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/90 to-white/60 backdrop-blur-lg border border-white/60 shadow-xl flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
                       <DollarSign className="w-6 h-6 text-white" strokeWidth={2.5} />
                     </div>
                   </div>
                 </div>
-                <h2 className="text-lg font-bold text-center text-foreground leading-tight">
+                <h2 className="text-lg font-bold text-center text-foreground leading-tight drop-shadow-sm">
                   Je veux vendre<br />mon véhicule
                 </h2>
               </CardContent>
             </Card>
 
             <Card 
-              className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] bg-white border-0 shadow-lg overflow-hidden"
+              className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] border-0 shadow-xl overflow-hidden relative group"
               onClick={() => navigate("/sell/louer")}
             >
-              <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
+              {/* Background image with overlay */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                style={{ backgroundImage: `url(${rentCarBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-white/70" />
+              
+              <CardContent className="relative flex flex-col items-center justify-center p-6 space-y-3">
                 <div className="relative w-20 h-20">
                   {/* Liquid gradient background */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-accent/20 blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 via-primary/20 to-accent/30 blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
                   {/* Glassmorphism container */}
-                  <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md border border-white/50 shadow-lg flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
+                  <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/90 to-white/60 backdrop-blur-lg border border-white/60 shadow-xl flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
                       <Key className="w-6 h-6 text-white" strokeWidth={2.5} />
                     </div>
                   </div>
                 </div>
-                <h2 className="text-lg font-bold text-center text-foreground leading-tight">
+                <h2 className="text-lg font-bold text-center text-foreground leading-tight drop-shadow-sm">
                   Je veux louer<br />mon véhicule
                 </h2>
               </CardContent>
@@ -100,32 +117,43 @@ const SellType = () => {
           </div>
 
           <Card 
-            className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] bg-white border-0 shadow-lg overflow-hidden"
+            className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] border-0 shadow-xl overflow-hidden relative group"
             onClick={handleEvaluationClick}
           >
-            <CardContent className="flex flex-col items-center justify-center p-8 space-y-4">
+            {/* Background image with overlay */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+              style={{ backgroundImage: `url(${evaluateCarBg})` }}
+            />
+            <div className={`absolute inset-0 ${
+              isEvaluationRestricted 
+                ? 'bg-gradient-to-t from-white via-white/95 to-white/85' 
+                : 'bg-gradient-to-t from-white via-white/90 to-white/70'
+            }`} />
+            
+            <CardContent className="relative flex flex-col items-center justify-center p-8 space-y-4">
               <div className="relative w-24 h-24">
                 {/* Liquid gradient background */}
                 <div className={`absolute inset-0 rounded-full blur-xl animate-pulse ${
                   isEvaluationRestricted 
-                    ? 'bg-gradient-to-br from-muted/30 via-muted/10 to-muted/20' 
-                    : 'bg-gradient-to-br from-accent/30 via-accent/10 to-primary/20'
+                    ? 'bg-gradient-to-br from-muted/40 via-muted/20 to-muted/30' 
+                    : 'bg-gradient-to-br from-accent/40 via-accent/20 to-primary/30'
                 }`} style={{ animationDelay: '1s' }} />
                 {/* Glassmorphism container */}
-                <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md border border-white/50 shadow-lg flex items-center justify-center">
+                <div className="relative w-full h-full rounded-full bg-gradient-to-br from-white/90 to-white/60 backdrop-blur-lg border border-white/60 shadow-xl flex items-center justify-center">
                   {isEvaluationRestricted ? (
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-muted-foreground/60 to-muted-foreground/40 flex items-center justify-center shadow-md">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-muted-foreground/60 to-muted-foreground/40 flex items-center justify-center shadow-lg">
                       <Lock className="w-7 h-7 text-white" strokeWidth={2.5} />
                     </div>
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center shadow-md">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center shadow-lg">
                       <Calculator className="w-7 h-7 text-white" strokeWidth={2.5} />
                     </div>
                   )}
                 </div>
               </div>
               <div className="space-y-2">
-                <h2 className={`text-xl font-bold text-center leading-tight ${
+                <h2 className={`text-xl font-bold text-center leading-tight drop-shadow-sm ${
                   isEvaluationRestricted ? 'text-muted-foreground' : 'text-foreground'
                 }`}>
                   Évaluer mon véhicule
@@ -135,7 +163,7 @@ const SellType = () => {
                     </span>
                   )}
                 </h2>
-                <p className="text-sm text-muted-foreground text-center">
+                <p className="text-sm text-muted-foreground text-center drop-shadow-sm">
                   {isEvaluationRestricted 
                     ? "Passez au plan Pro pour accéder à cette fonctionnalité"
                     : "Obtenez une estimation de prix basée sur le marché"
