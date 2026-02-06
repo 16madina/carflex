@@ -237,7 +237,7 @@ const Messages = () => {
                 </p>
               </div>
             ) : (
-              <div className="p-2">
+              <div className="p-3 space-y-2">
                 {conversations.map((conv) => {
                   const otherParticipant = conv.participant1_id === currentUserId 
                     ? conv.participant2_profile 
@@ -263,9 +263,12 @@ const Messages = () => {
                     <div
                       key={conv.id}
                       className={`
-                        p-3 rounded-lg cursor-pointer transition-all mb-1
-                        ${isSelected ? 'bg-accent' : 'hover:bg-accent/50'}
-                        ${hasUnreadMessages ? 'bg-accent/20' : ''}
+                        p-4 rounded-xl cursor-pointer transition-all
+                        border bg-card shadow-sm
+                        ${isSelected 
+                          ? 'border-primary bg-primary/10 shadow-md' 
+                          : 'border-border/50 hover:border-primary/30 hover:bg-accent/30 hover:shadow-md'}
+                        ${hasUnreadMessages ? 'border-primary/50 bg-primary/5' : ''}
                       `}
                       onClick={() => setSelectedConversation(conv.id)}
                     >
