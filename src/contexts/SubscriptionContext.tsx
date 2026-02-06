@@ -5,10 +5,15 @@ import { User } from '@supabase/supabase-js';
 // Plan tier types
 export type SubscriptionTier = 'free' | 'pro_argent' | 'pro_gold';
 
-// Product ID to tier mapping
+// Product ID to tier mapping (Stripe + iOS App Store)
 export const PRODUCT_TIERS: Record<string, SubscriptionTier> = {
-  'prod_TvPMpj9rsNw7A9': 'pro_argent',  // Pro Argent
-  'prod_TvPNJvVw9LiXVr': 'pro_gold',     // Pro Gold
+  // Stripe Product IDs
+  'prod_TvPMpj9rsNw7A9': 'pro_argent',  // Pro Argent (Stripe)
+  'prod_TvPNJvVw9LiXVr': 'pro_gold',     // Pro Gold (Stripe)
+  
+  // iOS App Store Product IDs
+  'com.missdee.carflextest.pro.argent.monthly': 'pro_argent',  // Pro Argent (iOS)
+  'com.missdee.carflextest.pro.gold.monthly': 'pro_gold',       // Pro Gold (iOS)
 };
 
 // Tier limits
