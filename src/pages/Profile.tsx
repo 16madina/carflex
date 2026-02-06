@@ -54,6 +54,7 @@ interface UserListing {
   };
   isPremium?: boolean;
   premiumEndDate?: string;
+  premiumPackageName?: string;
 }
 
 const Profile = () => {
@@ -190,7 +191,7 @@ const Profile = () => {
           .limit(10),
         supabase
           .from("premium_listings")
-          .select("listing_id, end_date")
+          .select("listing_id, end_date, premium_packages(name)")
           .eq("is_active", true)
           .gte("end_date", new Date().toISOString())
       ]);
@@ -199,15 +200,19 @@ const Profile = () => {
       const rentals = (rentalResult.data || []).map(item => ({ ...item, type: 'rental' as const }));
       const allListings = [...sales, ...rentals];
 
-      // Marquer les annonces premium
+      // Marquer les annonces premium avec le nom du package
       const premiumMap = new Map(
-        (premiumResult.data || []).map(p => [p.listing_id, p.end_date])
+        (premiumResult.data || []).map(p => [p.listing_id, {
+          endDate: p.end_date,
+          packageName: (p.premium_packages as any)?.name || 'Sponsorisé'
+        }])
       );
 
       const listingsWithPremium = allListings.map(listing => ({
         ...listing,
         isPremium: premiumMap.has(listing.id),
-        premiumEndDate: premiumMap.get(listing.id)
+        premiumEndDate: premiumMap.get(listing.id)?.endDate,
+        premiumPackageName: premiumMap.get(listing.id)?.packageName
       }));
 
       setUserListings(listingsWithPremium);
@@ -892,7 +897,7 @@ const Profile = () => {
                                     {listing.isPremium && (
                                       <Badge variant="default" className="text-[10px] h-4 px-1.5 bg-orange-500 border-0">
                                         <Zap className="h-2.5 w-2.5 mr-0.5" />
-                                        Sponsorisé
+                                        {listing.premiumPackageName || 'Sponsorisé'}
                                       </Badge>
                                     )}
                                   </div>
