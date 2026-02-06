@@ -705,6 +705,28 @@ const Profile = () => {
           {/* Hero Profile Section */}
           <Card className="shadow-elevated overflow-hidden">
             <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 pb-0">
+              {/* Top Right Actions */}
+              <div className="flex justify-end gap-2 mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/user/${user?.id}`)}
+                  className="text-xs"
+                >
+                  <UserCircle className="h-4 w-4 mr-1.5" />
+                  Ma page publique
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-xs text-destructive hover:text-destructive"
+                >
+                  <LogOut className="h-4 w-4 mr-1.5" />
+                  Déconnexion
+                </Button>
+              </div>
+              
               <div className="flex flex-col items-center text-center">
                 {/* Large Avatar */}
                 <div className="relative mb-4">
