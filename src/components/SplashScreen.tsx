@@ -25,7 +25,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
       style={{
-        background: 'linear-gradient(135deg, hsl(220 70% 30%), hsl(220 70% 40%), hsl(25 95% 55%))'
+        background: 'linear-gradient(135deg, hsl(220 15% 10%), hsl(220 20% 18%), hsl(25 80% 45%))'
       }}
     >
       <div className="text-center space-y-8">
