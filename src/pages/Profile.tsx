@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle, Loader2, Sparkles } from "lucide-react";
+import { LogOut, User as UserIcon, Crown, ShoppingCart, Store, UserCheck, Building2, CheckCircle2, Calendar, Car, Check, X, Clock, MessageSquare, Mail, AlertCircle, Trash2, Heart, Star, Share2, Bell, Settings, UserCircle, Loader2, Sparkles, Zap } from "lucide-react";
 import AvatarWithBadge from "@/components/AvatarWithBadge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -890,9 +890,9 @@ const Profile = () => {
                                       {listing.brand} {listing.model}
                                     </h3>
                                     {listing.isPremium && (
-                                      <Badge variant="default" className="text-[10px] h-4 px-1.5 bg-gradient-to-r from-amber-500 to-yellow-600 border-0">
-                                        <Crown className="h-2.5 w-2.5 mr-0.5" />
-                                        Pro
+                                      <Badge variant="default" className="text-[10px] h-4 px-1.5 bg-orange-500 border-0">
+                                        <Zap className="h-2.5 w-2.5 mr-0.5" />
+                                        Sponsorisé
                                       </Badge>
                                     )}
                                   </div>
