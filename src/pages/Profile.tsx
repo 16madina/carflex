@@ -898,6 +898,10 @@ const Profile = () => {
                                       <Badge variant="default" className="text-[10px] h-4 px-1.5 bg-orange-500 border-0">
                                         <Zap className="h-2.5 w-2.5 mr-0.5" />
                                         {listing.premiumPackageName || 'Sponsorisé'}
+                                        {listing.premiumEndDate && (() => {
+                                          const daysLeft = Math.ceil((new Date(listing.premiumEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                                          return daysLeft > 0 ? ` • ${daysLeft}j` : '';
+                                        })()}
                                       </Badge>
                                     )}
                                   </div>
