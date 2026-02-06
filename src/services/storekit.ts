@@ -1,21 +1,37 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
-// import { StoreKitPlugin } from 'capacitor-storekit-plugin';
 
-// Example usage
-// const result = await StoreKitPlugin.echo({ value: 'test' });
-// console.log(result);
+// ============================================
+// iOS Product IDs - App Store Connect
+// ============================================
+export const IOS_PRODUCT_IDS = {
+  // Subscriptions (Auto-Renewable)
+  PRO_ARGENT_MONTHLY: 'com.missdee.carflextest.pro.argent.monthly',
+  PRO_GOLD_MONTHLY: 'com.missdee.carflextest.pro.gold.monthly',
+  
+  // Consumables (Boost Packs)
+  BOOST_3_DAYS: 'com.missdee.carflextest.boost.3days.v2',
+  BOOST_7_DAYS: 'com.missdee.carflextest.boost.7days.v2',
+  BOOST_15_DAYS: 'com.missdee.carflextest.boost.15days.v2',
+} as const;
 
-// console.log("[StoreKit] storekit.ts loaded ✅");
+// All subscription product IDs
+export const IOS_SUBSCRIPTION_IDS = [
+  IOS_PRODUCT_IDS.PRO_ARGENT_MONTHLY,
+  IOS_PRODUCT_IDS.PRO_GOLD_MONTHLY,
+];
 
-// 3️⃣ Export the test function
-// export const testStoreKitPlugin = async () => {
-//   try {
-//     const result = await StoreKit.echo({ value: 'Simulator test' });
-//     console.log('[StoreKit Test] ✅ Plugin working:', result);
-//   } catch (error) {
-//     console.error('[StoreKit Test] ❌ Error:', error);
-//   }
-// };
+// All consumable product IDs
+export const IOS_CONSUMABLE_IDS = [
+  IOS_PRODUCT_IDS.BOOST_3_DAYS,
+  IOS_PRODUCT_IDS.BOOST_7_DAYS,
+  IOS_PRODUCT_IDS.BOOST_15_DAYS,
+];
+
+// All product IDs
+export const ALL_IOS_PRODUCT_IDS = [
+  ...IOS_SUBSCRIPTION_IDS,
+  ...IOS_CONSUMABLE_IDS,
+];
 
 function serializeError(error: any): string {
   if (!error) return 'Unknown error';
