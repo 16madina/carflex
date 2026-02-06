@@ -2,11 +2,12 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 
 // ============================================
 // iOS Product IDs - App Store Connect
+// Synchronized with Products.storekit
 // ============================================
 export const IOS_PRODUCT_IDS = {
-  // Subscriptions (Auto-Renewable)
-  PRO_ARGENT_MONTHLY: 'com.missdee.carflextest.pro.argent.monthly',
-  PRO_GOLD_MONTHLY: 'com.missdee.carflextest.pro.gold.monthly',
+  // Subscriptions (Auto-Renewable) - v1 suffix required by Apple
+  PRO_ARGENT_MONTHLY: 'com.missdee.carflextest.pro.argent.monthly.v1',
+  PRO_GOLD_MONTHLY: 'com.missdee.carflextest.pro.gold.monthly.v1',
   
   // Consumables (Boost Packs)
   BOOST_3_DAYS: 'com.missdee.carflextest.boost.3days.v2',

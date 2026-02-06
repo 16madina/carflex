@@ -1,0 +1,151 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "C9CDDB38",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : false,
+      "internalID" : "6758677083",
+      "localizations" : [
+        {
+          "description" : "Boost ton annonce pendant 15 jours",
+          "displayName" : "Pack Standard (15j)",
+          "locale" : "fr_CA"
+        }
+      ],
+      "productID" : "com.missdee.carflextest.boost.15days.v2",
+      "referenceName" : "Boost 15 jours",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "6758677295",
+      "localizations" : [
+        {
+          "description" : "Boost ton annonce pour 3 jours",
+          "displayName" : "Pack Standard (3j)",
+          "locale" : "fr_CA"
+        }
+      ],
+      "productID" : "com.missdee.carflextest.boost.3days.v2",
+      "referenceName" : "Boost 3 jours",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "5.99",
+      "familyShareable" : false,
+      "internalID" : "6758677204",
+      "localizations" : [
+        {
+          "description" : "Boost ton annonce pour 7 jours",
+          "displayName" : "Pack Standard (7j)",
+          "locale" : "fr_CA"
+        }
+      ],
+      "productID" : "com.missdee.carflextest.boost.7days.v2",
+      "referenceName" : "Boost 7 jours",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6754807677",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "6XW2XM3NDF",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 792034337.54595804,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21917523",
+      "localizations" : [
+
+      ],
+      "name" : "Plan Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "14.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6758789804",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Abonnement Pro Argent par mois ",
+              "displayName" : "Pro Argent",
+              "locale" : "fr_CA"
+            }
+          ],
+          "productID" : "com.missdee.carflextest.pro.argent.monthly.v1",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Argent Monthly",
+          "subscriptionGroupID" : "21917523",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "24.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6758790234",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Abonnement Pro Gold par mois ",
+              "displayName" : "Pro Gold",
+              "locale" : "fr_CA"
+            }
+          ],
+          "productID" : "com.missdee.carflextest.pro.gold.monthly.v1",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Gold Monthly",
+          "subscriptionGroupID" : "21917523",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

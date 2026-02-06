@@ -40,10 +40,14 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
         }
         
         print("[StoreKitPlugin] Getting products: \(productIds)")
+        
+        // Keep the call alive for async callback
+        call.keepAlive = true
+        productsCallbackId = call.callbackId
+        
         let productIdentifiers = Set(productIds)
         productsRequest = SKProductsRequest(productIdentifiers: productIdentifiers)
         productsRequest?.delegate = self
-        productsCallbackId = call.callbackId
         productsRequest?.start()
     }
     
@@ -61,6 +65,8 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
             return
         }
         
+        // Keep the call alive for async callback
+        call.keepAlive = true
         purchaseCallbackId = call.callbackId
         
         // Récupérer le produit
@@ -72,7 +78,11 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin, SKProductsRequestDeleg
     
     @objc func restorePurchases(_ call: CAPPluginCall) {
         print("[StoreKitPlugin] Restore purchases requested")
+        
+        // Keep the call alive for async callback
+        call.keepAlive = true
         purchaseCallbackId = call.callbackId
+        
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
     

@@ -63,8 +63,11 @@ const Subscription = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
-  // ID du produit IAP configuré dans App Store Connect (v3 car Apple ne réutilise jamais les Product IDs)
-  const IOS_PRODUCT_ID = "com.missdee.carflextest.pro.monthly.v3";
+  // Mapping des plans vers les Product IDs iOS (synchronisés avec Products.storekit)
+  const IOS_PRODUCT_IDS: Record<string, string> = {
+    'Pro Argent': 'com.missdee.carflextest.pro.argent.monthly.v1',
+    'Pro Gold': 'com.missdee.carflextest.pro.gold.monthly.v1',
+  };
   
   // Initialiser StoreKit pour iOS
   useEffect(() => {
@@ -141,7 +144,7 @@ const Subscription = () => {
     try {
       // Sur iOS, utiliser les achats in-app natifs
       if (isIOS) {
-        await handleIOSPurchase();
+        await handleIOSPurchase(plan);
       } else {
         // Sur web/Android, utiliser Stripe
         await handleStripePurchase(plan);
@@ -163,9 +166,17 @@ const Subscription = () => {
     }
   };
 
-  const handleIOSPurchase = async () => {
+  const handleIOSPurchase = async (plan: SubscriptionPlan) => {
+    // Déterminer le product ID iOS en fonction du plan
+    const iosProductId = IOS_PRODUCT_IDS[plan.name];
+    
+    if (!iosProductId) {
+      console.error('[StoreKit] No iOS product ID for plan:', plan.name);
+      throw new Error(`Le plan "${plan.name}" n'est pas disponible pour l'achat iOS.`);
+    }
+    
     try {
-      console.log('[StoreKit] Démarrage de l\'achat pour:', IOS_PRODUCT_ID);
+      console.log('[StoreKit] Démarrage de l\'achat pour:', iosProductId);
       
       if (!storeKitService.isAvailable()) {
         console.error('[StoreKit] Service not available');
@@ -181,19 +192,30 @@ const Subscription = () => {
       // Note: Les codes promo doivent être appliqués via l'App Store, pas dans l'app
       toast({
         title: "Ouverture App Store...",
-        description: "Préparation du paiement Apple",
+        description: `Préparation du paiement pour ${plan.name}`,
       });
       
-      const purchasePromise = storeKitService.purchase(IOS_PRODUCT_ID);
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => {
+      // Timeout annulable pour éviter les messages d'erreur après succès
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      let timeoutRejected = false;
+      
+      const purchasePromise = storeKitService.purchase(iosProductId);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          timeoutRejected = true;
           console.error('[StoreKit] Purchase timeout after 30 seconds');
           reject(new Error('Le paiement n\'a pas répondu. Vérifiez vos achats dans Réglages > App Store et réessayez.'));
-        }, 30000)
-      );
+        }, 30000);
+      });
       
-      console.log('[StoreKit] Waiting for purchase or timeout...');
+      console.log('[StoreKit] Waiting for purchase...');
       const purchaseResult = await Promise.race([purchasePromise, timeoutPromise]);
+      
+      // Annuler le timeout car l'achat a réussi
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
       
       console.log('[StoreKit] Achat réussi:', purchaseResult);
 

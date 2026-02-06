@@ -7,11 +7,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Register custom StoreKit plugin
-        let bridge = (window?.rootViewController as? CAPBridgeViewController)?.bridge
-        bridge?.registerPluginInstance(StoreKitPlugin())
-        print("[AppDelegate] StoreKitPlugin registered manually")
-        
+        // StoreKitPlugin is registered in ViewController.swift after bridge is ready
         return true
     }
 
