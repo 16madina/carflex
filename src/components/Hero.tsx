@@ -83,7 +83,7 @@ const Hero = ({ userFirstName }: HeroProps) => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/95 to-primary/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-primary/60 to-accent/40 dark:from-background/98 dark:via-primary/40 dark:to-background/80" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10 py-8">
