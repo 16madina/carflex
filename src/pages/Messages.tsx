@@ -8,6 +8,7 @@ import ChatBox from "@/components/ChatBox";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MessageCircle, User as UserIcon } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -272,22 +273,22 @@ const Messages = () => {
                       `}
                       onClick={() => setSelectedConversation(conv.id)}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="relative">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} className="object-cover" />
-                            <AvatarFallback className="bg-primary text-primary-foreground">
-                              <UserIcon className="h-6 w-6" />
-                            </AvatarFallback>
-                          </Avatar>
-                          {hasUnreadMessages && (
-                            <div className="absolute -top-1 -right-1 h-4 w-4 bg-blue-500 rounded-full border-2 border-card flex items-center justify-center">
-                              <span className="text-[10px] font-bold text-white">
+                        <div className="flex items-start gap-3">
+                          <div className="relative">
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={otherParticipant?.avatar_url} alt={participantName} className="object-cover" />
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                <UserIcon className="h-6 w-6" />
+                              </AvatarFallback>
+                            </Avatar>
+                            {hasUnreadMessages && (
+                              <Badge 
+                                className="absolute -top-2 -right-2 h-6 min-w-6 px-1.5 bg-blue-500 hover:bg-blue-500 text-white text-xs font-bold rounded-full border-2 border-card shadow-lg animate-pulse"
+                              >
                                 {conv.messages.filter(m => !m.is_read && m.sender_id !== currentUserId).length}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                              </Badge>
+                            )}
+                          </div>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-0.5">
