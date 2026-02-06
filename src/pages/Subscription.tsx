@@ -607,13 +607,14 @@ const Subscription = () => {
           </motion.div>
         )}
 
-        {/* Plans de tarification */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        {/* Plans de tarification - Carousel horizontal sur mobile */}
+        <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-6 mb-12 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
           {/* Plan Gratuit */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
+            className="flex-shrink-0 w-[280px] md:w-auto snap-center"
           >
             <Card className={`relative h-full transition-all duration-300 hover:shadow-lg ${!isPro ? "border-primary/50 shadow-md" : "border-border/50"}`}>
               {!isPro && (
@@ -661,6 +662,7 @@ const Subscription = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 + planIndex * 0.1 }}
+                className="flex-shrink-0 w-[280px] md:w-auto snap-center"
               >
                 <Card className={`relative h-full transition-all duration-300 hover:shadow-xl ${
                   isCurrentPlan 
