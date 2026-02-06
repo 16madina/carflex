@@ -714,6 +714,7 @@ const Profile = () => {
                     <ImagePicker
                       onImageSelect={handleAvatarChange}
                       disabled={uploadingAvatar}
+                      iconOnly={true}
                     />
                   </div>
                 </div>

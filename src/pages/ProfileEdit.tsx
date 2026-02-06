@@ -210,6 +210,7 @@ const ProfileEdit = () => {
                   <ImagePicker
                     onImageSelect={handleAvatarUpload}
                     disabled={uploading}
+                    iconOnly={true}
                   />
                 </div>
 

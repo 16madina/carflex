@@ -21,6 +21,7 @@ interface ImagePickerProps {
   className?: string;
   maxFiles?: number;
   currentFilesCount?: number;
+  iconOnly?: boolean;
 }
 
 export const ImagePicker = ({
@@ -31,6 +32,7 @@ export const ImagePicker = ({
   className = "",
   maxFiles = 10,
   currentFilesCount = 0,
+  iconOnly = false,
 }: ImagePickerProps) => {
   const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -113,16 +115,16 @@ export const ImagePicker = ({
       <>
         <Button
           type="button"
-          variant="outline"
+          variant={iconOnly ? "secondary" : "outline"}
+          size={iconOnly ? "icon" : "default"}
           onClick={handleClick}
           disabled={disabled || loading}
-          className={className}
+          className={iconOnly ? `h-10 w-10 rounded-full shadow-lg ${className}` : className}
         >
           {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Chargement...
-            </>
+            <Loader2 className={iconOnly ? "h-5 w-5 animate-spin" : "h-4 w-4 mr-2 animate-spin"} />
+          ) : iconOnly ? (
+            <CameraIcon className="h-5 w-5" />
           ) : (
             <>
               <CameraIcon className="h-4 w-4 mr-2" />
