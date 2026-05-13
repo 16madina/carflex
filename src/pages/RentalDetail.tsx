@@ -13,6 +13,7 @@ import DealRatingBadge from "@/components/DealRatingBadge";
 import ReviewsSection from "@/components/ReviewsSection";
 import BookingRequest from "@/components/BookingRequest";
 import ReportContentDialog from "@/components/ReportContentDialog";
+import PriceHistoryChart from "@/components/PriceHistoryChart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -345,6 +346,10 @@ const RentalDetail = () => {
             </p>
           </div>
         )}
+
+        <div className="mb-6">
+          <PriceHistoryChart listingId={id!} listingType="rental" currentPrice={Number(listing.price_per_day)} />
+        </div>
 
         {/* Features */}
         {features.length > 0 && (
