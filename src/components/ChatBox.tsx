@@ -365,6 +365,42 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
             <div className="space-y-4">
               {messages.map((message) => {
                 const isOwnMessage = message.sender_id === currentUserId;
+                const isOffer = message.message_type === "offer";
+                if (isOffer) {
+                  const status = message.offer_status || "pending";
+                  return (
+                    <div key={message.id} className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} animate-fade-in`}>
+                      <div className="max-w-[85%] rounded-2xl border-2 border-accent/40 bg-card p-4 shadow-card">
+                        <div className="flex items-center gap-2 mb-2">
+                          <HandCoins className="h-4 w-4 text-accent" />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-accent">Offre</span>
+                        </div>
+                        <p className="text-2xl font-bold text-foreground mb-1">
+                          {message.offer_amount ? formatPrice(Number(message.offer_amount)) : message.content}
+                        </p>
+                        {status === "pending" && !isOwnMessage && (
+                          <div className="flex gap-2 mt-3">
+                            <Button size="sm" className="flex-1" onClick={() => respondOffer(message.id, "accepted")}>
+                              <Check className="h-4 w-4 mr-1" /> Accepter
+                            </Button>
+                            <Button size="sm" variant="outline" className="flex-1" onClick={() => respondOffer(message.id, "rejected")}>
+                              <XCircle className="h-4 w-4 mr-1" /> Refuser
+                            </Button>
+                          </div>
+                        )}
+                        {status !== "pending" && (
+                          <p className={`text-xs font-semibold mt-2 ${status === "accepted" ? "text-green-500" : "text-destructive"}`}>
+                            {status === "accepted" ? "✓ Offre acceptée" : "✗ Offre refusée"}
+                          </p>
+                        )}
+                        {status === "pending" && isOwnMessage && (
+                          <p className="text-xs text-muted-foreground mt-2">En attente de réponse…</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">{format(new Date(message.created_at), "HH:mm")}</p>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={message.id}
@@ -389,6 +425,58 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
                   </div>
                 );
               })}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Input */}
+          <div className="px-4 pt-4 pb-safe-or-4 border-t border-border bg-card flex-shrink-0">
+            <form onSubmit={sendMessage} className="flex gap-2">
+              {listingType === 'sale' && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-[44px] w-[44px] flex-shrink-0"
+                  onClick={() => setOfferDialogOpen(true)}
+                  title="Faire une offre"
+                >
+                  <HandCoins className="h-4 w-4" />
+                </Button>
+              )}
+              <Textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage(e);
+                  }
+                }}
+                placeholder="Tapez votre message..."
+                className="min-h-[44px] max-h-32 resize-none bg-background border-input text-foreground placeholder:text-muted-foreground"
+                disabled={sending}
+              />
+              <Button
+                type="submit"
+                disabled={!newMessage.trim() || sending}
+                size="icon"
+                className="h-[44px] w-[44px] bg-accent hover:bg-accent/90 text-accent-foreground shadow-card disabled:opacity-50"
+              >
+                {sending ? (
+                  <div className="w-4 h-4 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+            </form>
+          </div>
+          <OfferDialog
+            open={offerDialogOpen}
+            onOpenChange={setOfferDialogOpen}
+            onSubmit={sendOffer}
+            basePrice={listingPrice}
+          />
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
