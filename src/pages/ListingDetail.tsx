@@ -565,6 +565,10 @@ const ListingDetail = () => {
         <ChatBox 
           conversationId={conversationId} 
           onClose={() => setChatOpen(false)}
+          listingId={id}
+          listingType="sale"
+          listingInfo={`${listing?.brand} ${listing?.model}`}
+          listingPrice={Number(listing?.price)}
         />
       )}
 
