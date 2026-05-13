@@ -176,6 +176,11 @@ const Favorites = () => {
           <p className="text-muted-foreground">
             Retrouvez tous vos véhicules favoris
           </p>
+          {offline && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-amber-500 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+              <WifiOff className="h-4 w-4" /> Mode hors-ligne — affichage du cache local
+            </div>
+          )}
         </div>
 
         {loading ? (
