@@ -120,8 +120,19 @@ const RentalDetail = () => {
     navigate("/messages");
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    const title = `${listing?.brand ?? ""} ${listing?.model ?? ""} ${listing?.year ?? ""}`.trim();
+    const text = `${title} — Location sur CarFlex`;
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch {
+        return;
+      }
+    }
+    await navigator.clipboard.writeText(url);
     toast.success("Lien copié dans le presse-papier");
   };
 
