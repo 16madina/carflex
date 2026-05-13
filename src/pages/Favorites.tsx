@@ -7,6 +7,7 @@ import CarCard from "@/components/CarCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import Seo from "@/components/Seo";
 
 const Favorites = () => {
   const navigate = useNavigate();
