@@ -1002,6 +1002,75 @@ export type Database = {
           },
         ]
       }
+      search_alerts: {
+        Row: {
+          body_type: string | null
+          brand: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          fuel_type: string | null
+          id: string
+          is_active: boolean
+          last_checked_at: string
+          listing_type: string
+          max_mileage: number | null
+          max_price: number | null
+          max_year: number | null
+          min_price: number | null
+          min_year: number | null
+          model: string | null
+          name: string
+          transmission: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body_type?: string | null
+          brand?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          fuel_type?: string | null
+          id?: string
+          is_active?: boolean
+          last_checked_at?: string
+          listing_type?: string
+          max_mileage?: number | null
+          max_price?: number | null
+          max_year?: number | null
+          min_price?: number | null
+          min_year?: number | null
+          model?: string | null
+          name: string
+          transmission?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body_type?: string | null
+          brand?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          fuel_type?: string | null
+          id?: string
+          is_active?: boolean
+          last_checked_at?: string
+          listing_type?: string
+          max_mileage?: number | null
+          max_price?: number | null
+          max_year?: number | null
+          min_price?: number | null
+          min_year?: number | null
+          model?: string | null
+          name?: string
+          transmission?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string | null
