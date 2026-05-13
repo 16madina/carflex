@@ -1,4 +1,5 @@
 import TopBar from "@/components/TopBar";
+import Seo from "@/components/Seo";
 import BottomNav from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Flag, Shield, Ban, AlertTriangle, CheckCircle } from "lucide-react";
@@ -15,6 +16,33 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <Seo
+        title="Foire aux questions — CarFlex"
+        description="Réponses aux questions sur la modération, les signalements, la sécurité et l'utilisation de CarFlex."
+        path="/faq"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "Qu'est-ce que la politique de tolérance zéro ?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "CarFlex applique une politique de tolérance zéro contre les contenus inappropriés, les utilisateurs abusifs, les arnaques, les violations de droits d'auteur et les discours haineux.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Comment signaler un contenu ou un utilisateur ?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Utilisez le bouton de signalement présent sur chaque annonce et chaque profil pour transmettre votre rapport à l'équipe de modération.",
+              },
+            },
+          ],
+        }}
+      />
       <TopBar />
       
       <div className="container mx-auto px-4 pt-24 pb-8 max-w-4xl">

@@ -210,6 +210,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-x-hidden" style={{ isolation: 'isolate' }}>
+      <Seo
+        title="CarFlex — Acheter, vendre et louer un véhicule"
+        description="Marketplace automobile : milliers d'annonces de voitures à vendre et à louer, évaluation IA et paiements sécurisés."
+        path="/"
+      />
       <TopBar />
       <main className="flex-1 pt-16">
         <Hero userFirstName={userFirstName} />
