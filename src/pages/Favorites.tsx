@@ -5,9 +5,10 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import CarCard from "@/components/CarCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, WifiOff, Clock } from "lucide-react";
 import { toast } from "sonner";
 import Seo from "@/components/Seo";
+import { cacheFavorites, readFavoritesCache, readRecentlyViewed, isOnline } from "@/lib/offlineCache";
 
 const Favorites = () => {
   const navigate = useNavigate();
