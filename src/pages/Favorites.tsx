@@ -124,9 +124,16 @@ const Favorites = () => {
 
       console.log("Total listings found:", allListings.length);
       setFavorites(allListings);
+      cacheFavorites(allListings as any);
     } catch (error) {
       console.error("Unexpected error:", error);
-      toast.error("Erreur inattendue");
+      const cached = readFavoritesCache();
+      if (cached.length > 0) {
+        setFavorites(cached);
+        toast.info("Mode hors-ligne : favoris en cache");
+      } else {
+        toast.error("Erreur inattendue");
+      }
     } finally {
       setLoading(false);
     }
