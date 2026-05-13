@@ -440,6 +440,9 @@ const RentalDetail = () => {
         <ChatBox 
           conversationId={conversationId} 
           onClose={() => setChatOpen(false)}
+          listingId={id}
+          listingType="rental"
+          listingInfo={`${listing?.brand} ${listing?.model}`}
         />
       )}
     </div>
