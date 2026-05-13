@@ -171,21 +171,40 @@ const ListingDetail = () => {
         path={`/listing/${listing.id}`}
         type="product"
         image={images[0]}
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "Product",
-          name: `${listing.brand} ${listing.model}`,
-          image: images,
-          description: listing.description,
-          brand: { "@type": "Brand", name: listing.brand },
-          offers: {
-            "@type": "Offer",
-            price: listing.price,
-            priceCurrency: listing.currency || "EUR",
-            availability: "https://schema.org/InStock",
-            url: `https://carflex.lovable.app/listing/${listing.id}`,
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Vehicle",
+            name: `${listing.brand} ${listing.model} ${listing.year ?? ""}`.trim(),
+            image: images,
+            description: listing.description,
+            brand: { "@type": "Brand", name: listing.brand },
+            model: listing.model,
+            vehicleModelDate: listing.year ? String(listing.year) : undefined,
+            mileageFromOdometer: listing.mileage
+              ? { "@type": "QuantitativeValue", value: listing.mileage, unitCode: "KMT" }
+              : undefined,
+            fuelType: listing.fuel_type,
+            vehicleTransmission: listing.transmission,
+            offers: {
+              "@type": "Offer",
+              price: listing.price,
+              priceCurrency: listing.currency || "EUR",
+              availability: "https://schema.org/InStock",
+              url: `https://carflex.lovable.app/listing/${listing.id}`,
+              itemCondition: "https://schema.org/UsedCondition",
+            },
           },
-        }}
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Accueil", item: "https://carflex.lovable.app/" },
+              { "@type": "ListItem", position: 2, name: "Annonces", item: "https://carflex.lovable.app/listings" },
+              { "@type": "ListItem", position: 3, name: `${listing.brand} ${listing.model}`, item: `https://carflex.lovable.app/listing/${listing.id}` },
+            ],
+          },
+        ]}
       />
       <TopBar />
 
