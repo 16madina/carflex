@@ -14,15 +14,38 @@ const Favorites = () => {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [offline, setOffline] = useState(!isOnline());
+  const [recent, setRecent] = useState<any[]>(readRecentlyViewed());
 
   useEffect(() => {
+    const onlineHandler = () => setOffline(false);
+    const offlineHandler = () => setOffline(true);
+    window.addEventListener("online", onlineHandler);
+    window.addEventListener("offline", offlineHandler);
+    setRecent(readRecentlyViewed());
     checkAuthAndFetchFavorites();
+    return () => {
+      window.removeEventListener("online", onlineHandler);
+      window.removeEventListener("offline", offlineHandler);
+    };
   }, []);
 
   const checkAuthAndFetchFavorites = async () => {
+    if (!isOnline()) {
+      const cached = readFavoritesCache();
+      setFavorites(cached);
+      setLoading(false);
+      return;
+    }
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      const cached = readFavoritesCache();
+      if (cached.length > 0) {
+        setFavorites(cached);
+        setLoading(false);
+        return;
+      }
       toast.error("Vous devez être connecté");
       navigate("/auth");
       return;
