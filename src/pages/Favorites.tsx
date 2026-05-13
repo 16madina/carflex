@@ -215,6 +215,31 @@ const Favorites = () => {
             ))}
           </div>
         )}
+
+        {recent.length > 0 && (
+          <section className="mt-12">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="h-5 w-5 text-accent" />
+              <h2 className="text-2xl font-bold">Vues récemment</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recent.map((listing) => (
+                <CarCard
+                  key={`recent-${listing.id}`}
+                  id={listing.id}
+                  brand={listing.brand || ""}
+                  model={listing.model || ""}
+                  year={listing.year || 0}
+                  price={listing.price || listing.price_per_day || 0}
+                  mileage={listing.mileage || 0}
+                  city={listing.city || ""}
+                  transmission={listing.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                  image={Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : undefined}
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       <BottomNav />
