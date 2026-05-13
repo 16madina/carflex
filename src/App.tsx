@@ -42,6 +42,7 @@ import DataProtection from "./pages/DataProtection";
 import FAQ from "./pages/FAQ";
 import SocialLinks from "./pages/SocialLinks";
 import NotificationPreferences from "./pages/NotificationPreferences";
+import SearchAlerts from "./pages/SearchAlerts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +89,7 @@ const App = () => {
               <Route path="/profile/edit" element={<ProfileEdit />} />
               <Route path="/profile/social-links" element={<SocialLinks />} />
               <Route path="/profile/notification-preferences" element={<NotificationPreferences />} />
+              <Route path="/profile/alerts" element={<SearchAlerts />} />
               <Route path="/profile/:userId" element={<PublicProfile />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/admin" element={<AdminPanel />} />
