@@ -1302,6 +1302,14 @@ const Profile = () => {
                     <Bell className="mr-2 h-4 w-4" />
                     Préférences de notifications
                   </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    onClick={() => navigate('/profile/alerts')}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Mes alertes de recherche
+                  </Button>
                 </CardContent>
               </Card>
 
