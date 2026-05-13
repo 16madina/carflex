@@ -76,6 +76,23 @@ const RentalDetail = () => {
       toast.error("Erreur lors du chargement de l'annonce");
     } else {
       setListing(data);
+      try {
+        const { trackRecentlyViewed } = await import("@/lib/offlineCache");
+        trackRecentlyViewed({
+          id: data.id,
+          listing_type: "rental",
+          brand: data.brand,
+          model: data.model,
+          year: data.year,
+          price_per_day: Number(data.price_per_day),
+          city: data.city,
+          country: data.country,
+          images: data.images,
+          mileage: data.mileage,
+          fuel_type: data.fuel_type,
+          transmission: data.transmission,
+        });
+      } catch {}
     }
 
     setLoading(false);
