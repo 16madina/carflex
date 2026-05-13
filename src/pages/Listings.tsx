@@ -78,7 +78,8 @@ const Listings = () => {
     setLoading(false);
   };
 
-  const filteredListings = listings.filter((listing) => {
+  const baseListings = aiOverride ?? listings;
+  const filteredListings = baseListings.filter((listing) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = 
       listing.brand.toLowerCase().includes(searchLower) ||
@@ -210,6 +211,21 @@ const Listings = () => {
                 </p>
               )}
             </div>
+
+        {/* AI Search */}
+        <AISearchBar
+          onResults={(d) => {
+            setAiOverride(d.listings);
+            if (d.listing_type && d.listing_type !== listingType) setListingType(d.listing_type);
+          }}
+        />
+        {aiOverride && (
+          <div className="mb-3 text-xs">
+            <button onClick={() => setAiOverride(null)} className="text-primary hover:underline">
+              ✕ Effacer la recherche IA
+            </button>
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="flex gap-3 mb-6">
