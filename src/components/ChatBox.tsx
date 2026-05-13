@@ -34,7 +34,9 @@ interface Message {
   offer_status?: string | null;
 }
 
-const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar, listingId, listingType, listingInfo }: ChatBoxProps) => {
+const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar, listingId, listingType, listingInfo, listingPrice }: ChatBoxProps) => {
+  const { formatPrice } = useCountry();
+  const [offerDialogOpen, setOfferDialogOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
