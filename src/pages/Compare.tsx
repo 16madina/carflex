@@ -93,14 +93,14 @@ const Compare = () => {
               ))}
 
               {rows.map((r) => (
-                <>
-                  <div key={`${r.label}-l`} className="text-sm font-medium text-muted-foreground py-3 border-t border-border">{r.label}</div>
+                <div key={r.label} className="contents">
+                  <div className="text-sm font-medium text-muted-foreground py-3 border-t border-border">{r.label}</div>
                   {data.map((l) => (
                     <div key={`${r.label}-${l.id}`} className="text-sm text-foreground py-3 border-t border-border">
                       {r.key(l)}
                     </div>
                   ))}
-                </>
+                </div>
               ))}
             </div>
           </div>
