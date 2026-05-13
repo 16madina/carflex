@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, X, User, ArrowLeft, ExternalLink, Flag } from "lucide-react";
+import { Send, X, User, ArrowLeft, ExternalLink, Flag, HandCoins, Check, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReportContentDialog from "@/components/ReportContentDialog";
+import OfferDialog from "@/components/OfferDialog";
+import { useCountry } from "@/contexts/CountryContext";
 
 interface ChatBoxProps {
   conversationId: string;
@@ -18,6 +20,7 @@ interface ChatBoxProps {
   listingId?: string;
   listingType?: 'sale' | 'rental';
   listingInfo?: string;
+  listingPrice?: number;
 }
 
 interface Message {
@@ -26,6 +29,9 @@ interface Message {
   content: string;
   created_at: string;
   is_read: boolean;
+  message_type?: string | null;
+  offer_amount?: number | null;
+  offer_status?: string | null;
 }
 
 const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar, listingId, listingType, listingInfo }: ChatBoxProps) => {
