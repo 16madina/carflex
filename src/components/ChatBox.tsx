@@ -477,40 +477,6 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
             onSubmit={sendOffer}
             basePrice={listingPrice}
           />
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-
-          {/* Input */}
-          <div className="px-4 pt-4 pb-safe-or-4 border-t border-border bg-card flex-shrink-0">
-            <form onSubmit={sendMessage} className="flex gap-3">
-              <Textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage(e);
-                  }
-                }}
-                placeholder="Tapez votre message..."
-                className="min-h-[44px] max-h-32 resize-none bg-background border-input text-foreground placeholder:text-muted-foreground"
-                disabled={sending}
-              />
-              <Button
-                type="submit"
-                disabled={!newMessage.trim() || sending}
-                size="icon"
-                className="h-[44px] w-[44px] bg-accent hover:bg-accent/90 text-accent-foreground shadow-card disabled:opacity-50"
-              >
-                {sending ? (
-                  <div className="w-4 h-4 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
-            </form>
-          </div>
         </>
       )}
     </div>
