@@ -218,8 +218,24 @@ const PublicProfile = () => {
     }
   };
 
+  const fullName = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Vendeur";
+
   return (
     <div className="min-h-screen bg-background pb-20">
+      <Seo
+        title={`${fullName} — Vendeur sur CarFlex`}
+        description={`Découvrez les annonces de ${fullName} sur CarFlex.`}
+        path={`/user/${userId}`}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Accueil", item: "https://carflex.lovable.app/" },
+            { "@type": "ListItem", position: 2, name: "Vendeurs", item: "https://carflex.lovable.app/listings" },
+            { "@type": "ListItem", position: 3, name: fullName, item: `https://carflex.lovable.app/user/${userId}` },
+          ],
+        }}
+      />
       <TopBar />
 
       <main className="container mx-auto px-4 py-6">
