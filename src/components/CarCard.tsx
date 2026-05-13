@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, MapPin, Calendar, Gauge } from "lucide-react";
+import { Heart, MapPin, Calendar, Gauge, GitCompare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useCountry } from "@/contexts/CountryContext";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useCompare } from "@/hooks/useCompare";
+import { toast } from "@/hooks/use-toast";
 import DealRatingBadge from "./DealRatingBadge";
 import ImageCarousel from "./ImageCarousel";
 import { motion } from "framer-motion";
@@ -48,6 +50,9 @@ const CarCard = ({
   const { formatPrice } = useCountry();
   const [rating, setRating] = useState<string | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites(id, isRental ? "rental" : "sale");
+  const compareType = isRental ? "rental" : "sale";
+  const { isSelected: isCompared, toggle: toggleCompare } = useCompare();
+  const selected = isCompared(id, compareType);
 
   const handleCardClick = () => {
     navigate(isRental ? `/rental/${id}` : `/listing/${id}`);
@@ -108,6 +113,21 @@ const CarCard = ({
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
           <Heart className={`h-5 w-5 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          className={`absolute top-3 right-16 rounded-full shadow-material-lg z-10 h-12 w-12 glass-morphism hover:scale-110 ${selected ? "bg-primary text-primary-foreground" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            const ok = toggleCompare(id, compareType);
+            if (ok === false) {
+              toast({ title: "Maximum atteint", description: "Tu peux comparer 3 véhicules max." });
+            }
+          }}
+          aria-label={selected ? "Retirer du comparateur" : "Ajouter au comparateur"}
+        >
+          <GitCompare className="h-5 w-5" />
         </Button>
         <div className="absolute bottom-3 left-3 z-10">
           <DealRatingBadge 
