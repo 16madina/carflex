@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BODY_TYPES, VEHICLE_CATEGORIES, POPULAR_CITIES } from "@/constants/vehicles";
 import BudgetCalculator from "@/components/BudgetCalculator";
+import AISearchBar from "@/components/AISearchBar";
 import { useCountry } from "@/contexts/CountryContext";
 
 const Listings = () => {
@@ -23,6 +24,7 @@ const Listings = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("created_at");
+  const [aiOverride, setAiOverride] = useState<any[] | null>(null);
   
   const { selectedCountry } = useCountry();
   
