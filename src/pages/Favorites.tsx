@@ -5,23 +5,47 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import CarCard from "@/components/CarCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, WifiOff, Clock } from "lucide-react";
 import { toast } from "sonner";
 import Seo from "@/components/Seo";
+import { cacheFavorites, readFavoritesCache, readRecentlyViewed, isOnline } from "@/lib/offlineCache";
 
 const Favorites = () => {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [offline, setOffline] = useState(!isOnline());
+  const [recent, setRecent] = useState<any[]>(readRecentlyViewed());
 
   useEffect(() => {
+    const onlineHandler = () => setOffline(false);
+    const offlineHandler = () => setOffline(true);
+    window.addEventListener("online", onlineHandler);
+    window.addEventListener("offline", offlineHandler);
+    setRecent(readRecentlyViewed());
     checkAuthAndFetchFavorites();
+    return () => {
+      window.removeEventListener("online", onlineHandler);
+      window.removeEventListener("offline", offlineHandler);
+    };
   }, []);
 
   const checkAuthAndFetchFavorites = async () => {
+    if (!isOnline()) {
+      const cached = readFavoritesCache();
+      setFavorites(cached);
+      setLoading(false);
+      return;
+    }
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      const cached = readFavoritesCache();
+      if (cached.length > 0) {
+        setFavorites(cached);
+        setLoading(false);
+        return;
+      }
       toast.error("Vous devez être connecté");
       navigate("/auth");
       return;
@@ -100,9 +124,16 @@ const Favorites = () => {
 
       console.log("Total listings found:", allListings.length);
       setFavorites(allListings);
+      cacheFavorites(allListings as any);
     } catch (error) {
       console.error("Unexpected error:", error);
-      toast.error("Erreur inattendue");
+      const cached = readFavoritesCache();
+      if (cached.length > 0) {
+        setFavorites(cached);
+        toast.info("Mode hors-ligne : favoris en cache");
+      } else {
+        toast.error("Erreur inattendue");
+      }
     } finally {
       setLoading(false);
     }
@@ -145,6 +176,11 @@ const Favorites = () => {
           <p className="text-muted-foreground">
             Retrouvez tous vos véhicules favoris
           </p>
+          {offline && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-amber-500 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+              <WifiOff className="h-4 w-4" /> Mode hors-ligne — affichage du cache local
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -178,6 +214,31 @@ const Favorites = () => {
               />
             ))}
           </div>
+        )}
+
+        {recent.length > 0 && (
+          <section className="mt-12">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="h-5 w-5 text-accent" />
+              <h2 className="text-2xl font-bold">Vues récemment</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recent.map((listing) => (
+                <CarCard
+                  key={`recent-${listing.id}`}
+                  id={listing.id}
+                  brand={listing.brand || ""}
+                  model={listing.model || ""}
+                  year={listing.year || 0}
+                  price={listing.price || listing.price_per_day || 0}
+                  mileage={listing.mileage || 0}
+                  city={listing.city || ""}
+                  transmission={listing.transmission === "automatic" ? "Automatique" : "Manuelle"}
+                  image={Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : undefined}
+                />
+              ))}
+            </div>
+          </section>
         )}
       </main>
 

@@ -85,6 +85,24 @@ const ListingDetail = () => {
       toast.error("Erreur lors du chargement de l'annonce");
     } else {
       setListing(data);
+      // Track recently viewed for offline cache
+      try {
+        const { trackRecentlyViewed } = await import("@/lib/offlineCache");
+        trackRecentlyViewed({
+          id: data.id,
+          listing_type: "sale",
+          brand: data.brand,
+          model: data.model,
+          year: data.year,
+          price: Number(data.price),
+          city: data.city,
+          country: data.country,
+          images: data.images,
+          mileage: data.mileage,
+          fuel_type: data.fuel_type,
+          transmission: data.transmission,
+        });
+      } catch {}
     }
 
     setLoading(false);
@@ -129,8 +147,20 @@ const ListingDetail = () => {
     setTestDriveDialogOpen(true);
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    const title = `${listing?.brand ?? ""} ${listing?.model ?? ""} ${listing?.year ?? ""}`.trim();
+    const text = `${title} — Découvrez cette annonce sur CarFlex`;
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch {
+        // user cancelled
+        return;
+      }
+    }
+    await navigator.clipboard.writeText(url);
     toast.success("Lien copié dans le presse-papier");
   };
 
@@ -565,6 +595,10 @@ const ListingDetail = () => {
         <ChatBox 
           conversationId={conversationId} 
           onClose={() => setChatOpen(false)}
+          listingId={id}
+          listingType="sale"
+          listingInfo={`${listing?.brand} ${listing?.model}`}
+          listingPrice={Number(listing?.price)}
         />
       )}
 

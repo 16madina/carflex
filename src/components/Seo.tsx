@@ -26,6 +26,7 @@ const Seo = ({ title, description, path, image, type = "website", jsonLd }: SeoP
       <meta property="og:url" content={url} />
       <meta property="og:type" content={type} />
       {image && <meta property="og:image" content={image} />}
+      <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
       <meta name="twitter:title" content={truncatedTitle} />
       {truncatedDesc && <meta name="twitter:description" content={truncatedDesc} />}
       {image && <meta name="twitter:image" content={image} />}

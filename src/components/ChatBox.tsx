@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, X, User, ArrowLeft, ExternalLink, Flag } from "lucide-react";
+import { Send, X, User, ArrowLeft, ExternalLink, Flag, HandCoins, Check, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReportContentDialog from "@/components/ReportContentDialog";
+import OfferDialog from "@/components/OfferDialog";
+import { useCountry } from "@/contexts/CountryContext";
 
 interface ChatBoxProps {
   conversationId: string;
@@ -18,6 +20,7 @@ interface ChatBoxProps {
   listingId?: string;
   listingType?: 'sale' | 'rental';
   listingInfo?: string;
+  listingPrice?: number;
 }
 
 interface Message {
@@ -26,9 +29,14 @@ interface Message {
   content: string;
   created_at: string;
   is_read: boolean;
+  message_type?: string | null;
+  offer_amount?: number | null;
+  offer_status?: string | null;
 }
 
-const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar, listingId, listingType, listingInfo }: ChatBoxProps) => {
+const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation", otherParticipantAvatar, listingId, listingType, listingInfo, listingPrice }: ChatBoxProps) => {
+  const { formatPrice } = useCountry();
+  const [offerDialogOpen, setOfferDialogOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -240,6 +248,37 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
     }
   };
 
+  const sendOffer = async (amount: number) => {
+    if (!currentUserId) return;
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: currentUserId,
+      content: `Offre : ${formatPrice(amount)}`,
+      message_type: "offer",
+      offer_amount: amount,
+      offer_status: "pending",
+    });
+    if (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'envoi de l'offre");
+    } else {
+      toast.success("Offre envoyée");
+    }
+  };
+
+  const respondOffer = async (messageId: string, status: "accepted" | "rejected") => {
+    const { error } = await supabase
+      .from("messages")
+      .update({ offer_status: status })
+      .eq("id", messageId);
+    if (error) {
+      toast.error("Erreur");
+      return;
+    }
+    setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, offer_status: status } : m)));
+    toast.success(status === "accepted" ? "Offre acceptée" : "Offre refusée");
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -326,6 +365,42 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
             <div className="space-y-4">
               {messages.map((message) => {
                 const isOwnMessage = message.sender_id === currentUserId;
+                const isOffer = message.message_type === "offer";
+                if (isOffer) {
+                  const status = message.offer_status || "pending";
+                  return (
+                    <div key={message.id} className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} animate-fade-in`}>
+                      <div className="max-w-[85%] rounded-2xl border-2 border-accent/40 bg-card p-4 shadow-card">
+                        <div className="flex items-center gap-2 mb-2">
+                          <HandCoins className="h-4 w-4 text-accent" />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-accent">Offre</span>
+                        </div>
+                        <p className="text-2xl font-bold text-foreground mb-1">
+                          {message.offer_amount ? formatPrice(Number(message.offer_amount)) : message.content}
+                        </p>
+                        {status === "pending" && !isOwnMessage && (
+                          <div className="flex gap-2 mt-3">
+                            <Button size="sm" className="flex-1" onClick={() => respondOffer(message.id, "accepted")}>
+                              <Check className="h-4 w-4 mr-1" /> Accepter
+                            </Button>
+                            <Button size="sm" variant="outline" className="flex-1" onClick={() => respondOffer(message.id, "rejected")}>
+                              <XCircle className="h-4 w-4 mr-1" /> Refuser
+                            </Button>
+                          </div>
+                        )}
+                        {status !== "pending" && (
+                          <p className={`text-xs font-semibold mt-2 ${status === "accepted" ? "text-green-500" : "text-destructive"}`}>
+                            {status === "accepted" ? "✓ Offre acceptée" : "✗ Offre refusée"}
+                          </p>
+                        )}
+                        {status === "pending" && isOwnMessage && (
+                          <p className="text-xs text-muted-foreground mt-2">En attente de réponse…</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">{format(new Date(message.created_at), "HH:mm")}</p>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={message.id}
@@ -356,7 +431,19 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
 
           {/* Input */}
           <div className="px-4 pt-4 pb-safe-or-4 border-t border-border bg-card flex-shrink-0">
-            <form onSubmit={sendMessage} className="flex gap-3">
+            <form onSubmit={sendMessage} className="flex gap-2">
+              {listingType === 'sale' && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-[44px] w-[44px] flex-shrink-0"
+                  onClick={() => setOfferDialogOpen(true)}
+                  title="Faire une offre"
+                >
+                  <HandCoins className="h-4 w-4" />
+                </Button>
+              )}
               <Textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -384,6 +471,12 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
               </Button>
             </form>
           </div>
+          <OfferDialog
+            open={offerDialogOpen}
+            onOpenChange={setOfferDialogOpen}
+            onSubmit={sendOffer}
+            basePrice={listingPrice}
+          />
         </>
       )}
     </div>

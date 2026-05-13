@@ -76,6 +76,23 @@ const RentalDetail = () => {
       toast.error("Erreur lors du chargement de l'annonce");
     } else {
       setListing(data);
+      try {
+        const { trackRecentlyViewed } = await import("@/lib/offlineCache");
+        trackRecentlyViewed({
+          id: data.id,
+          listing_type: "rental",
+          brand: data.brand,
+          model: data.model,
+          year: data.year,
+          price_per_day: Number(data.price_per_day),
+          city: data.city,
+          country: data.country,
+          images: data.images,
+          mileage: data.mileage,
+          fuel_type: data.fuel_type,
+          transmission: data.transmission,
+        });
+      } catch {}
     }
 
     setLoading(false);
@@ -103,8 +120,19 @@ const RentalDetail = () => {
     navigate("/messages");
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    const title = `${listing?.brand ?? ""} ${listing?.model ?? ""} ${listing?.year ?? ""}`.trim();
+    const text = `${title} — Location sur CarFlex`;
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch {
+        return;
+      }
+    }
+    await navigator.clipboard.writeText(url);
     toast.success("Lien copié dans le presse-papier");
   };
 
@@ -412,6 +440,9 @@ const RentalDetail = () => {
         <ChatBox 
           conversationId={conversationId} 
           onClose={() => setChatOpen(false)}
+          listingId={id}
+          listingType="rental"
+          listingInfo={`${listing?.brand} ${listing?.model}`}
         />
       )}
     </div>
