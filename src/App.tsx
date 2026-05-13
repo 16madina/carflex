@@ -43,6 +43,8 @@ import FAQ from "./pages/FAQ";
 import SocialLinks from "./pages/SocialLinks";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import SearchAlerts from "./pages/SearchAlerts";
+import Compare from "./pages/Compare";
+import CompareBar from "./components/CompareBar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +92,7 @@ const App = () => {
               <Route path="/profile/social-links" element={<SocialLinks />} />
               <Route path="/profile/notification-preferences" element={<NotificationPreferences />} />
               <Route path="/profile/alerts" element={<SearchAlerts />} />
+              <Route path="/compare" element={<Compare />} />
               <Route path="/profile/:userId" element={<PublicProfile />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/admin" element={<AdminPanel />} />
@@ -105,6 +108,7 @@ const App = () => {
               <Route path="/faq" element={<FAQ />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <CompareBar />
           </BrowserRouter>
         </TooltipProvider>
       </SubscriptionProvider>

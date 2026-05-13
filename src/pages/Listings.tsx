@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BODY_TYPES, VEHICLE_CATEGORIES, POPULAR_CITIES } from "@/constants/vehicles";
 import BudgetCalculator from "@/components/BudgetCalculator";
+import AISearchBar from "@/components/AISearchBar";
 import { useCountry } from "@/contexts/CountryContext";
 
 const Listings = () => {
@@ -23,6 +24,7 @@ const Listings = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("created_at");
+  const [aiOverride, setAiOverride] = useState<any[] | null>(null);
   
   const { selectedCountry } = useCountry();
   
@@ -76,7 +78,8 @@ const Listings = () => {
     setLoading(false);
   };
 
-  const filteredListings = listings.filter((listing) => {
+  const baseListings = aiOverride ?? listings;
+  const filteredListings = baseListings.filter((listing) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = 
       listing.brand.toLowerCase().includes(searchLower) ||
@@ -208,6 +211,21 @@ const Listings = () => {
                 </p>
               )}
             </div>
+
+        {/* AI Search */}
+        <AISearchBar
+          onResults={(d) => {
+            setAiOverride(d.listings);
+            if (d.listing_type && d.listing_type !== listingType) setListingType(d.listing_type);
+          }}
+        />
+        {aiOverride && (
+          <div className="mb-3 text-xs">
+            <button onClick={() => setAiOverride(null)} className="text-primary hover:underline">
+              ✕ Effacer la recherche IA
+            </button>
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="flex gap-3 mb-6">

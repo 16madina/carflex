@@ -465,6 +465,33 @@ export type Database = {
         }
         Relationships: []
       }
+      price_history: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          listing_type: string
+          new_price: number
+          old_price: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          listing_type: string
+          new_price: number
+          old_price?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          listing_type?: string
+          new_price?: number
+          old_price?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

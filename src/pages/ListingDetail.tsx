@@ -11,6 +11,7 @@ import AddReview from "@/components/AddReview";
 import DealRatingBadge from "@/components/DealRatingBadge";
 import ReviewsSection from "@/components/ReviewsSection";
 import ReportContentDialog from "@/components/ReportContentDialog";
+import PriceHistoryChart from "@/components/PriceHistoryChart";
 import { TestDriveRequestDialog } from "@/components/TestDriveRequestDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -491,6 +492,11 @@ const ListingDetail = () => {
             </p>
           </div>
         )}
+
+        {/* Price history */}
+        <div className="mb-6">
+          <PriceHistoryChart listingId={id!} listingType="sale" currentPrice={Number(listing.price)} />
+        </div>
 
         {/* Features */}
         {features.length > 0 && (
