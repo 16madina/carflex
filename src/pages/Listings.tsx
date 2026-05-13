@@ -169,6 +169,14 @@ const Listings = () => {
           ? "Parcourez des milliers de voitures à vendre avec filtres avancés (prix, marque, kilométrage)."
           : "Louez une voiture facilement : tarifs journaliers, calendrier et réservation en ligne."}
         path="/listings"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Accueil", item: "https://carflex.lovable.app/" },
+            { "@type": "ListItem", position: 2, name: listingType === "sale" ? "Annonces" : "Locations", item: "https://carflex.lovable.app/listings" },
+          ],
+        }}
       />
       <TopBar />
 

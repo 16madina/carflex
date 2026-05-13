@@ -7,6 +7,7 @@ import CarCard from "@/components/CarCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import Seo from "@/components/Seo";
 
 const Favorites = () => {
   const navigate = useNavigate();
@@ -114,6 +115,19 @@ const Favorites = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <Seo
+        title="Mes favoris — CarFlex"
+        description="Retrouvez vos voitures favorites enregistrées sur CarFlex."
+        path="/favorites"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Accueil", item: "https://carflex.lovable.app/" },
+            { "@type": "ListItem", position: 2, name: "Mes favoris", item: "https://carflex.lovable.app/favorites" },
+          ],
+        }}
+      />
       <TopBar />
 
       <main className="container mx-auto px-4 py-6 pt-24">
