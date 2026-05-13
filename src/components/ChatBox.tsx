@@ -248,6 +248,37 @@ const ChatBox = ({ conversationId, onClose, otherParticipantName = "Conversation
     }
   };
 
+  const sendOffer = async (amount: number) => {
+    if (!currentUserId) return;
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: currentUserId,
+      content: `Offre : ${formatPrice(amount)}`,
+      message_type: "offer",
+      offer_amount: amount,
+      offer_status: "pending",
+    });
+    if (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'envoi de l'offre");
+    } else {
+      toast.success("Offre envoyée");
+    }
+  };
+
+  const respondOffer = async (messageId: string, status: "accepted" | "rejected") => {
+    const { error } = await supabase
+      .from("messages")
+      .update({ offer_status: status })
+      .eq("id", messageId);
+    if (error) {
+      toast.error("Erreur");
+      return;
+    }
+    setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, offer_status: status } : m)));
+    toast.success(status === "accepted" ? "Offre acceptée" : "Offre refusée");
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
