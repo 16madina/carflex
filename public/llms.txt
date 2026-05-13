@@ -1,0 +1,21 @@
+# CarFlex
+
+> CarFlex est une marketplace automobile pour acheter, vendre et louer des véhicules en France et à l'international.
+
+CarFlex met en relation particuliers, vendeurs professionnels, concessionnaires et agents pour faciliter les transactions automobiles. La plateforme propose des annonces sponsorisées, une évaluation IA des véhicules, des essais routiers, et un système de messagerie sécurisé.
+
+## Pages
+
+- [Accueil](/): Recherche et découverte de véhicules à vendre ou à louer.
+- [Annonces](/listings): Liste complète des véhicules disponibles avec filtres avancés.
+- [Vendre ou louer](/sell): Publier une annonce de vente ou de location.
+- [Évaluer un véhicule](/sell/evaluer): Estimation IA gratuite de la valeur d'un véhicule.
+- [Abonnements](/subscription): Plans Standard, Élite et Premium pour les vendeurs.
+- [FAQ](/faq): Politique de modération et processus de signalement.
+- [Connexion](/auth): Création de compte et connexion.
+
+## Optional
+
+- [Politique de confidentialité](/privacy-policy): Conformité RGPD et gestion des données.
+- [Conditions d'utilisation](/terms-of-service): Règles d'utilisation de la plateforme.
+- [Protection des données](/data-protection): Détails sur la sécurité des données.

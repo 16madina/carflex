@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
+import Seo from "@/components/Seo";
 import BottomNav from "@/components/BottomNav";
 import CarCard from "@/components/CarCard";
 import AdBanner from "@/components/AdBanner";
@@ -162,6 +163,13 @@ const Listings = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))]">
+      <Seo
+        title={listingType === "sale" ? "Voitures à vendre — CarFlex" : "Voitures à louer — CarFlex"}
+        description={listingType === "sale"
+          ? "Parcourez des milliers de voitures à vendre avec filtres avancés (prix, marque, kilométrage)."
+          : "Louez une voiture facilement : tarifs journaliers, calendrier et réservation en ligne."}
+        path="/listings"
+      />
       <TopBar />
 
       <main className="container mx-auto px-4 py-6">

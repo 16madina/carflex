@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
+import Seo from "@/components/Seo";
 import BottomNav from "@/components/BottomNav";
 import ImageCarousel from "@/components/ImageCarousel";
 import ChatBox from "@/components/ChatBox";
@@ -138,6 +139,28 @@ const RentalDetail = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <Seo
+        title={`Location ${listing.brand} ${listing.model} — CarFlex`}
+        description={(listing.description || `Louez une ${listing.brand} ${listing.model} sur CarFlex.`).slice(0, 160)}
+        path={`/rental/${listing.id}`}
+        type="product"
+        image={images[0]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: `${listing.brand} ${listing.model} (location)`,
+          image: images,
+          description: listing.description,
+          brand: { "@type": "Brand", name: listing.brand },
+          offers: {
+            "@type": "Offer",
+            price: listing.daily_rate,
+            priceCurrency: listing.currency || "EUR",
+            availability: "https://schema.org/InStock",
+            url: `https://carflex.lovable.app/rental/${listing.id}`,
+          },
+        }}
+      />
       <TopBar />
 
       <main className="container mx-auto px-4 pt-24 pb-6">
