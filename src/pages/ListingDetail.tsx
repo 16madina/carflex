@@ -85,6 +85,24 @@ const ListingDetail = () => {
       toast.error("Erreur lors du chargement de l'annonce");
     } else {
       setListing(data);
+      // Track recently viewed for offline cache
+      try {
+        const { trackRecentlyViewed } = await import("@/lib/offlineCache");
+        trackRecentlyViewed({
+          id: data.id,
+          listing_type: "sale",
+          brand: data.brand,
+          model: data.model,
+          year: data.year,
+          price: Number(data.price),
+          city: data.city,
+          country: data.country,
+          images: data.images,
+          mileage: data.mileage,
+          fuel_type: data.fuel_type,
+          transmission: data.transmission,
+        });
+      } catch {}
     }
 
     setLoading(false);
