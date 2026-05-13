@@ -1,5 +1,6 @@
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
+import Seo from "@/components/Seo";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
