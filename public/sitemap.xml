@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://carflex.lovable.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://carflex.lovable.app/listings</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://carflex.lovable.app/sell</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://carflex.lovable.app/sell/vendre</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://carflex.lovable.app/sell/louer</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://carflex.lovable.app/sell/evaluer</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://carflex.lovable.app/subscription</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://carflex.lovable.app/auth</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://carflex.lovable.app/faq</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://carflex.lovable.app/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://carflex.lovable.app/terms-of-service</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://carflex.lovable.app/data-protection</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+</urlset>
