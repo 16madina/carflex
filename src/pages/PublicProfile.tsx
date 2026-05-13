@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import ReviewsList from "@/components/ReviewsList";
 import CarCard from "@/components/CarCard";
 import { useCountry } from "@/contexts/CountryContext";
+import Seo from "@/components/Seo";
 
 interface UserListing {
   id: string;
