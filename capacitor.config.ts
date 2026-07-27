@@ -16,6 +16,10 @@ const config: CapacitorConfig = {
     scheme: 'carflex'
   },
   plugins: {
+    SystemBars: {
+      insetsHandling: 'css',
+      style: 'DARK',
+    },
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: false,
