@@ -33,16 +33,11 @@ jobs:
 
     - name: Verify no READ_MEDIA permissions in app manifest source
       run: |
-        if grep -RIn --include='AndroidManifest.xml' -E 'android\.permission\.READ_MEDIA_(IMAGES|VIDEO)' android/app/src/main; then
-          # tools:node="remove" lines are allowed; actual granted permissions are not
-          if grep -RIn --include='AndroidManifest.xml' -E '<uses-permission[^>]*android\.permission\.READ_MEDIA_(IMAGES|VIDEO)[^>]*>' android/app/src/main | grep -v 'tools:node="remove"'; then
-            echo "ERROR: READ_MEDIA permission declared without tools:node=remove"
-            exit 1
-          fi
-          echo "OK: only tools:node=remove markers present"
-        else
-          echo "OK: no READ_MEDIA mentions"
+        if grep -RIn --include='AndroidManifest.xml' -E '<uses-permission[^>]*android\.permission\.READ_MEDIA_(IMAGES|VIDEO)[^>]*>' android/app/src/main | grep -v 'tools:node="remove"'; then
+          echo "ERROR: READ_MEDIA permission declared without tools:node=remove"
+          exit 1
         fi
+        echo "OK: no active READ_MEDIA declarations"
 
     - run: chmod +x android/gradlew
 
@@ -62,41 +57,56 @@ jobs:
         echo "Merged permissions:"
         grep 'uses-permission' "$MANIFEST" || true
 
+    - name: Upload debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: carflex-debug-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
+
     - name: Decode release keystore
+      id: keystore
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
       run: |
         if [ -z "$KEYSTORE_BASE64" ]; then
+          echo "present=false" >> "$GITHUB_OUTPUT"
           echo "KEYSTORE_BASE64 secret missing — skipping signed bundle"
-          echo "SKIP_SIGNED=1" >> "$GITHUB_ENV"
         else
           echo "$KEYSTORE_BASE64" | base64 -d > android/app/carflex-release.jks
-          echo "SKIP_SIGNED=0" >> "$GITHUB_ENV"
+          ls -la android/app/carflex-release.jks
+          echo "present=true" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Bundle signed release AAB
-      if: env.SKIP_SIGNED == '0'
+      id: bundle
+      if: steps.keystore.outputs.present == 'true'
+      continue-on-error: true
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
+        set -e
+        test -n "$KEYSTORE_PASSWORD"
+        test -n "$KEY_ALIAS"
+        test -n "$KEY_PASSWORD"
         cd android
         ./gradlew bundleRelease \
           -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/carflex-release.jks \
-          -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
-          -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
-          -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+          -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+          -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+          -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: carflex-debug-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
-        if-no-files-found: warn
-
-    - uses: actions/upload-artifact@v4
-      if: env.SKIP_SIGNED == '0'
+    - name: Upload release AAB
+      if: steps.keystore.outputs.present == 'true' && steps.bundle.outcome == 'success'
+      uses: actions/upload-artifact@v4
       with:
         name: carflex-release-aab
         path: android/app/build/outputs/bundle/release/app-release.aab
         if-no-files-found: warn
+
+    - name: Warn if signed AAB failed
+      if: steps.keystore.outputs.present == 'true' && steps.bundle.outcome != 'success'
+      run: |
+        echo "::warning::Signed AAB failed (check KEYSTORE_* secrets / alias). Debug APK + READ_MEDIA checks still passed."
