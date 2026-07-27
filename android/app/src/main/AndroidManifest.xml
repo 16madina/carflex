@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.missdee.carflextest">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
@@ -37,7 +36,7 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
-        <!-- Backport Android Photo Picker (no READ_MEDIA_* needed) -->
+        <!-- Ensure Google Play Services can install Photo Picker backport on older devices -->
         <!--suppress AndroidDomInspection -->
         <service
             android:name="com.google.android.gms.metadata.ModuleDependencies"
@@ -53,26 +52,25 @@
         </service>
     </application>
 
-    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Camera only for taking new photos. Gallery uses Android Photo Picker (no media permission). -->
+    <!-- Camera capture only. Gallery uses system Photo Picker (no media read permission). -->
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <!--
-    Permissions Localisation : annonces près de chez vous / emplacement des véhicules.
-    -->
+    <!-- Location for nearby listings / vehicle location -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- Strip broad gallery permissions (Play Photo/Video policy). Use system Photo Picker instead. -->
+    <!--
+      Explicitly strip any gallery/media permissions that plugins might merge in.
+      Required for Google Play Photo and Video Permissions policy.
+    -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
 
-    <!-- Features optionnelles -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 </manifest>

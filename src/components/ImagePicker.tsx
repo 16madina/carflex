@@ -46,7 +46,7 @@ export const ImagePicker = ({
   const [showDialog, setShowDialog] = useState(false);
   const isNative = Capacitor.isNativePlatform();
 
-  /** Take a new photo with the device camera (needs CAMERA only). */
+  /** Take a new photo with the device camera (CAMERA permission only). */
   const handleNativeCamera = async () => {
     setShowDialog(false);
     setLoading(true);
@@ -67,8 +67,9 @@ export const ImagePicker = ({
       const file = await webPathToFile(image.webPath, image.format);
       onImageSelect([file]);
       toast.success("Image sélectionnée avec succès");
-    } catch (error: any) {
-      if (error?.message !== "User cancelled photos app") {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message !== "User cancelled photos app") {
         console.error("Error taking photo:", error);
         toast.error("Erreur lors de la prise de photo");
       }
@@ -78,8 +79,8 @@ export const ImagePicker = ({
   };
 
   /**
-   * Pick from gallery via Android Photo Picker / iOS picker.
-   * Does NOT require READ_MEDIA_IMAGES (Play policy compliant).
+   * Gallery via Android Photo Picker only (`Camera.pickImages`).
+   * Never requests READ_MEDIA_IMAGES / READ_MEDIA_VIDEO.
    */
   const handleNativeGallery = async () => {
     setShowDialog(false);
@@ -89,52 +90,34 @@ export const ImagePicker = ({
       const remaining = Math.max(1, maxFiles - currentFilesCount);
       const limit = multiple ? remaining : 1;
 
-      if (multiple || limit > 1) {
-        const result = await Camera.pickImages({
-          quality: 90,
-          limit,
-        });
+      const result = await Camera.pickImages({
+        quality: 90,
+        limit,
+      });
 
-        if (!result.photos?.length) {
-          throw new Error("Aucune image sélectionnée");
-        }
-
-        const files: File[] = [];
-        for (const photo of result.photos) {
-          if (!photo.webPath) continue;
-          files.push(await webPathToFile(photo.webPath, photo.format));
-        }
-
-        if (files.length === 0) {
-          throw new Error("Aucune image sélectionnée");
-        }
-
-        onImageSelect(files);
-        toast.success(
-          files.length > 1
-            ? `${files.length} images sélectionnées`
-            : "Image sélectionnée avec succès"
-        );
-      } else {
-        // Single image via Photo Picker (CameraSource.Photos → system picker on Cap 8+)
-        const image = await Camera.getPhoto({
-          quality: 90,
-          allowEditing: false,
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Photos,
-          saveToGallery: false,
-        });
-
-        if (!image.webPath) {
-          throw new Error("Aucune image sélectionnée");
-        }
-
-        const file = await webPathToFile(image.webPath, image.format);
-        onImageSelect([file]);
-        toast.success("Image sélectionnée avec succès");
+      if (!result.photos?.length) {
+        throw new Error("Aucune image sélectionnée");
       }
-    } catch (error: any) {
-      if (error?.message !== "User cancelled photos app") {
+
+      const files: File[] = [];
+      for (const photo of result.photos) {
+        if (!photo.webPath) continue;
+        files.push(await webPathToFile(photo.webPath, photo.format));
+      }
+
+      if (files.length === 0) {
+        throw new Error("Aucune image sélectionnée");
+      }
+
+      onImageSelect(files);
+      toast.success(
+        files.length > 1
+          ? `${files.length} images sélectionnées`
+          : "Image sélectionnée avec succès"
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message !== "User cancelled photos app") {
         console.error("Error picking image:", error);
         toast.error("Erreur lors de la sélection de l'image");
       }
@@ -205,7 +188,7 @@ export const ImagePicker = ({
             <DialogHeader>
               <DialogTitle>Choisir une source</DialogTitle>
               <DialogDescription>
-                Prenez une photo ou sélectionnez-en une via le sélecteur système
+                Prenez une photo ou sélectionnez-en via le sélecteur système Android
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-3 pt-4">
