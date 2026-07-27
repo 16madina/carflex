@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.missdee.carflextest">
 
     <application
@@ -35,26 +36,42 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Backport Android Photo Picker (no READ_MEDIA_* needed) -->
+        <!--suppress AndroidDomInspection -->
+        <service
+            android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false"
+            tools:ignore="MissingClass">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+            <meta-data
+                android:name="photopicker_activity:0:required"
+                android:value="" />
+        </service>
     </application>
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    
-    <!-- 
-    Permission Caméra : Utilisée pour prendre des photos de vos véhicules lors de la création d'annonces.
-    Vous pouvez refuser cette permission et télécharger des photos depuis votre galerie.
-    Le sélecteur de photos Android est utilisé automatiquement sans permissions supplémentaires.
-    -->
+
+    <!-- Camera only for taking new photos. Gallery uses Android Photo Picker (no media permission). -->
     <uses-permission android:name="android.permission.CAMERA" />
-    
-    <!-- 
-    Permissions Localisation : Utilisées pour afficher les annonces près de chez vous et 
-    pour indiquer l'emplacement de vos véhicules dans vos annonces.
-    Vous pouvez refuser et saisir manuellement votre ville.
+
+    <!--
+    Permissions Localisation : annonces près de chez vous / emplacement des véhicules.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    
+
+    <!-- Strip broad gallery permissions (Play Photo/Video policy). Use system Photo Picker instead. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+
     <!-- Features optionnelles -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />

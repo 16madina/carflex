@@ -32,10 +32,12 @@ const config: CapacitorConfig = {
       splashImmersive: false
     },
     Camera: {
+      // Gallery uses Android Photo Picker — do not request READ_MEDIA_* permissions.
       permissions: ['camera'],
       quality: 90,
-      allowEditing: true,
-      resultType: 'uri'
+      allowEditing: false,
+      resultType: 'uri',
+      saveToGallery: false,
     },
     Geolocation: {
       permissions: ['location']

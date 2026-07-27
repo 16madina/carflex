@@ -24,6 +24,14 @@ interface ImagePickerProps {
   iconOnly?: boolean;
 }
 
+async function webPathToFile(webPath: string, format?: string): Promise<File> {
+  const response = await fetch(webPath);
+  const blob = await response.blob();
+  const ext = format || "jpg";
+  const fileName = `photo_${Date.now()}.${ext}`;
+  return new File([blob], fileName, { type: `image/${ext === "jpg" ? "jpeg" : ext}` });
+}
+
 export const ImagePicker = ({
   onImageSelect,
   multiple = false,
@@ -38,34 +46,95 @@ export const ImagePicker = ({
   const [showDialog, setShowDialog] = useState(false);
   const isNative = Capacitor.isNativePlatform();
 
-  const handleNativeImagePick = async (source: CameraSource) => {
+  /** Take a new photo with the device camera (needs CAMERA only). */
+  const handleNativeCamera = async () => {
     setShowDialog(false);
     setLoading(true);
 
     try {
       const image = await Camera.getPhoto({
         quality: 90,
-        allowEditing: true,
+        allowEditing: false,
         resultType: CameraResultType.Uri,
-        source: source,
+        source: CameraSource.Camera,
+        saveToGallery: false,
       });
 
       if (!image.webPath) {
         throw new Error("Aucune image sélectionnée");
       }
 
-      // Convert to blob
-      const response = await fetch(image.webPath);
-      const blob = await response.blob();
-      
-      // Create File object
-      const fileName = `photo_${Date.now()}.${image.format || 'jpg'}`;
-      const file = new File([blob], fileName, { type: `image/${image.format || 'jpeg'}` });
-
+      const file = await webPathToFile(image.webPath, image.format);
       onImageSelect([file]);
       toast.success("Image sélectionnée avec succès");
     } catch (error: any) {
-      if (error.message !== "User cancelled photos app") {
+      if (error?.message !== "User cancelled photos app") {
+        console.error("Error taking photo:", error);
+        toast.error("Erreur lors de la prise de photo");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Pick from gallery via Android Photo Picker / iOS picker.
+   * Does NOT require READ_MEDIA_IMAGES (Play policy compliant).
+   */
+  const handleNativeGallery = async () => {
+    setShowDialog(false);
+    setLoading(true);
+
+    try {
+      const remaining = Math.max(1, maxFiles - currentFilesCount);
+      const limit = multiple ? remaining : 1;
+
+      if (multiple || limit > 1) {
+        const result = await Camera.pickImages({
+          quality: 90,
+          limit,
+        });
+
+        if (!result.photos?.length) {
+          throw new Error("Aucune image sélectionnée");
+        }
+
+        const files: File[] = [];
+        for (const photo of result.photos) {
+          if (!photo.webPath) continue;
+          files.push(await webPathToFile(photo.webPath, photo.format));
+        }
+
+        if (files.length === 0) {
+          throw new Error("Aucune image sélectionnée");
+        }
+
+        onImageSelect(files);
+        toast.success(
+          files.length > 1
+            ? `${files.length} images sélectionnées`
+            : "Image sélectionnée avec succès"
+        );
+      } else {
+        // Single image via Photo Picker (CameraSource.Photos → system picker on Cap 8+)
+        const image = await Camera.getPhoto({
+          quality: 90,
+          allowEditing: false,
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Photos,
+          saveToGallery: false,
+        });
+
+        if (!image.webPath) {
+          throw new Error("Aucune image sélectionnée");
+        }
+
+        const file = await webPathToFile(image.webPath, image.format);
+        onImageSelect([file]);
+        toast.success("Image sélectionnée avec succès");
+      }
+    } catch (error: any) {
+      if (error?.message !== "User cancelled photos app") {
         console.error("Error picking image:", error);
         toast.error("Erreur lors de la sélection de l'image");
       }
@@ -76,32 +145,30 @@ export const ImagePicker = ({
 
   const handleWebImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     if (files.length === 0) return;
 
-    // Check total count
     if (currentFilesCount + files.length > maxFiles) {
       toast.error(`Maximum ${maxFiles} images autorisées`);
-      e.target.value = '';
+      e.target.value = "";
       return;
     }
 
-    // Validate each file
     for (const file of files) {
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         toast.error("Seules les images sont autorisées");
-        e.target.value = '';
+        e.target.value = "";
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
         toast.error("Taille maximale : 5MB par image");
-        e.target.value = '';
+        e.target.value = "";
         return;
       }
     }
 
     onImageSelect(files);
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const handleClick = () => {
@@ -138,12 +205,12 @@ export const ImagePicker = ({
             <DialogHeader>
               <DialogTitle>Choisir une source</DialogTitle>
               <DialogDescription>
-                Prenez une photo ou sélectionnez-en une depuis votre galerie
+                Prenez une photo ou sélectionnez-en une via le sélecteur système
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-3 pt-4">
               <Button
-                onClick={() => handleNativeImagePick(CameraSource.Camera)}
+                onClick={handleNativeCamera}
                 className="w-full"
                 disabled={loading}
               >
@@ -151,7 +218,7 @@ export const ImagePicker = ({
                 Prendre une photo
               </Button>
               <Button
-                onClick={() => handleNativeImagePick(CameraSource.Photos)}
+                onClick={handleNativeGallery}
                 variant="outline"
                 className="w-full"
                 disabled={loading}
@@ -166,7 +233,6 @@ export const ImagePicker = ({
     );
   }
 
-  // Web version: use standard file input with hidden input
   return (
     <div className={className}>
       <Input
@@ -182,7 +248,7 @@ export const ImagePicker = ({
         type="button"
         variant="ghost"
         size="icon"
-        onClick={() => document.getElementById('file-input')?.click()}
+        onClick={() => document.getElementById("file-input")?.click()}
         disabled={disabled}
         className="h-8 w-8"
       >
