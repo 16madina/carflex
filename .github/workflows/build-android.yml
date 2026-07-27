@@ -10,34 +10,93 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: false
+
     - uses: actions/setup-node@v4
       with:
-        node-version: '20'
-    - run: npm install
+        node-version: '22'
+
+    - run: npm ci || npm install
+
     - run: npm run build
+
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '21'
+
     - uses: android-actions/setup-android@v3
-    - run: npx cap sync android
+
+    - name: Sync Capacitor Android
+      run: npx cap sync android
+
+    - name: Verify no READ_MEDIA permissions in app manifest source
+      run: |
+        if grep -RIn --include='AndroidManifest.xml' -E 'android\.permission\.READ_MEDIA_(IMAGES|VIDEO)' android/app/src/main; then
+          # tools:node="remove" lines are allowed; actual granted permissions are not
+          if grep -RIn --include='AndroidManifest.xml' -E '<uses-permission[^>]*android\.permission\.READ_MEDIA_(IMAGES|VIDEO)[^>]*>' android/app/src/main | grep -v 'tools:node="remove"'; then
+            echo "ERROR: READ_MEDIA permission declared without tools:node=remove"
+            exit 1
+          fi
+          echo "OK: only tools:node=remove markers present"
+        else
+          echo "OK: no READ_MEDIA mentions"
+        fi
+
     - run: chmod +x android/gradlew
-    - run: cd android && ./gradlew assembleDebug
-    - env:
+
+    - name: Assemble debug APK
+      run: cd android && ./gradlew assembleDebug
+
+    - name: Verify merged release manifest has no READ_MEDIA
+      run: |
+        cd android
+        ./gradlew :app:processReleaseMainManifest
+        MANIFEST=$(find app/build/intermediates -path '*merged_manifest*' -name AndroidManifest.xml | head -n 1)
+        echo "Checking: $MANIFEST"
+        if grep -E 'android\.permission\.READ_MEDIA_(IMAGES|VIDEO)' "$MANIFEST"; then
+          echo "ERROR: READ_MEDIA still present in merged manifest"
+          exit 1
+        fi
+        echo "Merged permissions:"
+        grep 'uses-permission' "$MANIFEST" || true
+
+    - name: Decode release keystore
+      env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-      run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/carflex-release.jks
-    - env:
+      run: |
+        if [ -z "$KEYSTORE_BASE64" ]; then
+          echo "KEYSTORE_BASE64 secret missing — skipping signed bundle"
+          echo "SKIP_SIGNED=1" >> "$GITHUB_ENV"
+        else
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/carflex-release.jks
+          echo "SKIP_SIGNED=0" >> "$GITHUB_ENV"
+        fi
+
+    - name: Bundle signed release AAB
+      if: env.SKIP_SIGNED == '0'
+      env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
         cd android
-        ./gradlew bundleRelease -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/carflex-release.jks -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$KEY_ALIAS -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+        ./gradlew bundleRelease \
+          -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/carflex-release.jks \
+          -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
+          -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+          -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+
     - uses: actions/upload-artifact@v4
       with:
         name: carflex-debug-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: warn
+
     - uses: actions/upload-artifact@v4
+      if: env.SKIP_SIGNED == '0'
       with:
         name: carflex-release-aab
         path: android/app/build/outputs/bundle/release/app-release.aab
+        if-no-files-found: warn
