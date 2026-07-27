@@ -1,14 +1,26 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+// Like KiDi+: load the live web app so UI updates deploy without a new Play build.
+// Native plugins still need a store release when Capacitor/SDK/permissions change.
+// Local hot-reload: set NATIVE_APP_URL=http://YOUR_LAN_IP:5173 before cap sync.
+const nativeAppUrl = process.env.NATIVE_APP_URL || "https://carflex.lovable.app";
+
 const config: CapacitorConfig = {
   appId: 'com.missdee.carflextest',
   appName: 'CarFlex',
   webDir: 'dist',
-  // Hot-reload désactivé pour production
-  // server: {
-  //   url: 'https://c69889b6-be82-4301-84ff-53e58a725869.lovableproject.com?forceHideBadge=true',
-  //   cleartext: true
-  // },
+    server: {
+    url: nativeAppUrl,
+    cleartext: nativeAppUrl.startsWith("http://"),
+    androidScheme: "https",
+    allowNavigation: [
+      "carflex.lovable.app",
+      "*.lovable.app",
+      "*.lovableproject.com",
+      "*.stripe.com",
+      "*.paypal.com",
+    ],
+  },
   ios: {
     scheme: 'App'
   },
@@ -32,7 +44,6 @@ const config: CapacitorConfig = {
       splashImmersive: false
     },
     Camera: {
-      // Gallery uses Android Photo Picker — do not request READ_MEDIA_* permissions.
       permissions: ['camera'],
       quality: 90,
       allowEditing: false,
